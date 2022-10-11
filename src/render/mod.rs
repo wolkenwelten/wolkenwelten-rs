@@ -5,24 +5,15 @@ mod mesh;
 mod shader;
 mod program;
 
+mod state;
+
 pub use self::vertex::{f32_f32_f32, Vertex};
 pub use self::shader::Shader;
 pub use self::program::Program;
 pub use self::mesh::Mesh;
 
-pub fn refresh_gl() {
-    unsafe {
-        gl::Viewport(0, 0, 900, 700); // set viewport
-    }
-}
-
-pub fn render_frame(i:i32) {
-    let r:f32 = 0.4 + (((i as f64) / 100.0).sin() / 5.0) as f32;
-    unsafe {
-        gl::ClearColor(r, 0.5, 0.8, 1.0);
-        gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
-    }
-}
+pub use self::state::viewport::Viewport;
+pub use self::state::RenderState;
 
 pub fn create_whitespace_cstring_with_len(len: usize) -> CString {
     // allocate buffer of correct size
