@@ -3,9 +3,6 @@ name = "rostregen"
 version = "0.1.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
 sdl2 = "0.35.2"
 gl = "0.10.0"
-# v8 = "0.52.0"
