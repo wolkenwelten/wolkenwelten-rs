@@ -56,6 +56,44 @@ impl RenderState {
                     self.input.key_up(Key::Crouch);
                 },
 
+                Event::KeyDown { keycode: Some(Keycode::Up), .. } => {
+                    self.input.key_down(Key::RotateUp);
+                },
+                Event::KeyUp { keycode: Some(Keycode::Up), .. } => {
+                    self.input.key_up(Key::RotateUp);
+                },
+
+                Event::KeyDown { keycode: Some(Keycode::Down), .. } => {
+                    self.input.key_down(Key::RotateDown);
+                },
+                Event::KeyUp { keycode: Some(Keycode::Down), .. } => {
+                    self.input.key_up(Key::RotateDown);
+                },
+
+                Event::KeyDown { keycode: Some(Keycode::Left), .. } => {
+                    self.input.key_down(Key::RotateLeft);
+                },
+                Event::KeyUp { keycode: Some(Keycode::Left), .. } => {
+                    self.input.key_up(Key::RotateLeft);
+                },
+
+                Event::KeyDown { keycode: Some(Keycode::Right), .. } => {
+                    self.input.key_down(Key::RotateRight);
+                },
+                Event::KeyUp { keycode: Some(Keycode::Right), .. } => {
+                    self.input.key_up(Key::RotateRight);
+                },
+
+                Event::KeyDown { keycode: Some(Keycode::LShift), .. } => {
+                    self.input.key_down(Key::Sneak);
+                },
+                Event::KeyUp { keycode: Some(Keycode::LShift), .. } => {
+                    self.input.key_up(Key::Sneak);
+                },
+
+                Event::MouseMotion {xrel, yrel, ..} => {
+                    self.input.mouse_motion(xrel, yrel);
+                },
                 Event::Window {
                     win_event: sdl2::event::WindowEvent::Resized(w, h),
                     ..

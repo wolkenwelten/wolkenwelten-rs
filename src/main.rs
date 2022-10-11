@@ -13,6 +13,7 @@ pub fn main() {
 	let mut render_state = RenderState::new();
 
 	'running: loop {
+		render_state.input.mouse_flush();
 		render_state.check_events(&mut app_state);
 		render_state.draw(&app_state, &game_state);
 

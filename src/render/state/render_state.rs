@@ -41,8 +41,15 @@ impl RenderState {
             .build()
             .unwrap();
 
+        let mouse = sdl_context.mouse();
+        mouse.show_cursor(false);
+        mouse.set_relative_mouse_mode(true);
+        video_subsystem.disable_screen_saver();
+
         let gl_context = window.gl_create_context().unwrap();
         gl::load_with(|s| video_subsystem.gl_get_proc_address(s) as *const std::os::raw::c_void);
+
+        video_subsystem.gl_set_swap_interval(-1).unwrap();
 
         unsafe {
             gl::ClearColor(0.32, 0.63, 0.96, 1.0);
@@ -83,14 +90,16 @@ impl RenderState {
         }
 
         let perspective = glam::Mat4::perspective_rh_gl(
-            90.0_f32.to_radians(),
+            80.0_f32.to_radians(),
             (self.viewport.w as f32) / (self.viewport.h as f32),
             0.1,
             100.0,
         );
-        let view = glam::Mat4::from_translation(-game_state.player_position);
-        let model = glam::Mat4::IDENTITY;
-        let mv = model * view;
+
+        let view = glam::Mat4::from_rotation_x(game_state.player_rotation[1]);
+        let view = view * glam::Mat4::from_rotation_y(game_state.player_rotation[0]);
+        let model = glam::Mat4::from_translation(-game_state.player_position);
+        let mv = view * model;
         let mvp = perspective * mv;
 
         self.shaders.mesh.set_used();
