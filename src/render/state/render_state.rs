@@ -1,7 +1,7 @@
 extern crate sdl2;
 use sdl2::{EventPump, Sdl, VideoSubsystem};
 use sdl2::video::{GLContext, Window};
-use crate::AppState;
+use crate::{AppState, GameState};
 use crate::render::Viewport;
 use crate::render::state::MeshList;
 use crate::render::state::ShaderList;
@@ -57,7 +57,7 @@ impl RenderState {
         }
     }
 
-    pub fn draw(&self, app_state: &AppState) {
+    pub fn draw(&self, app_state: &AppState, _game_state: &GameState) {
         let i = app_state.ticks_elapsed;
         let r:f32 = 0.4 + (((i as f64) / 100.0).sin() / 5.0) as f32;
         unsafe {
