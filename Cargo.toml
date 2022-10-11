@@ -8,3 +8,4 @@ edition = "2021"
 [dependencies]
 sdl2 = "0.35.2"
 gl = "0.10.0"
+# v8 = "0.52.0"
