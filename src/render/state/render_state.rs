@@ -30,8 +30,8 @@ impl RenderState {
         let sdl_context = sdl2::init().unwrap();
         let video_subsystem = sdl_context.video().unwrap();
         let gl_attr = video_subsystem.gl_attr();
-        gl_attr.set_context_profile(sdl2::video::GLProfile::Core);
-        gl_attr.set_context_version(3, 1);
+        gl_attr.set_context_profile(sdl2::video::GLProfile::GLES);
+        gl_attr.set_context_version(3, 0);
 
         let window = video_subsystem
             .window("RostRegen", window_width.try_into().unwrap(), window_height.try_into().unwrap())
