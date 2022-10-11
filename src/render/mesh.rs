@@ -1,6 +1,5 @@
+use crate::render::Vertex;
 use gl::types::*;
-
-use super::vertex::Vertex;
 
 pub struct Mesh {
     vao: GLuint,
@@ -47,11 +46,9 @@ impl Mesh {
             gl::BindBuffer(gl::ARRAY_BUFFER, 0);
             gl::BindVertexArray(0);
         }
-
         Ok(Mesh { vao, vbo, vertex_count})
     }
 }
-
 
 impl Drop for Mesh {
     fn drop(&mut self) {

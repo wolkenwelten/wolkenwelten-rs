@@ -1,7 +1,9 @@
 extern crate sdl2;
+
 use sdl2::{EventPump, Sdl, VideoSubsystem};
 use sdl2::video::{GLContext, Window};
 use crate::{AppState, GameState};
+use crate::input::InputState;
 use crate::render::Viewport;
 use crate::render::state::MeshList;
 use crate::render::state::ShaderList;
@@ -16,6 +18,8 @@ pub struct RenderState {
     pub viewport:Viewport,
     pub meshes:MeshList,
     pub shaders:ShaderList,
+
+    pub input:InputState,
 }
 
 impl RenderState {
@@ -40,10 +44,25 @@ impl RenderState {
         let gl_context = window.gl_create_context().unwrap();
         gl::load_with(|s| video_subsystem.gl_get_proc_address(s) as *const std::os::raw::c_void);
 
+        unsafe {
+            gl::ClearColor(0.32, 0.63, 0.96, 1.0);
+            gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
+
+            gl::Enable(gl::CULL_FACE);
+            gl::FrontFace(gl::CCW);
+            gl::CullFace(gl::BACK);
+
+            gl::Enable(gl::DEPTH_TEST);
+            gl::DepthFunc(gl::LEQUAL);
+
+            gl::Enable(gl::PROGRAM_POINT_SIZE);
+        }
+
         let viewport = Viewport::for_window(window_width, window_height);
         let event_pump = sdl_context.event_pump().unwrap();
         let shaders = ShaderList::new();
         let meshes = MeshList::new();
+        let input = InputState::new();
 
         RenderState {
             sdl_context,
@@ -54,18 +73,28 @@ impl RenderState {
             event_pump,
             meshes,
             shaders,
+            input,
         }
     }
 
-    pub fn draw(&self, app_state: &AppState, _game_state: &GameState) {
-        let i = app_state.ticks_elapsed;
-        let r:f32 = 0.4 + (((i as f64) / 100.0).sin() / 5.0) as f32;
+    pub fn draw(&self, _app_state: &AppState, game_state: &GameState) {
         unsafe {
-            gl::ClearColor(r, 0.5, 0.8, 1.0);
             gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
         }
 
+        let perspective = glam::Mat4::perspective_rh_gl(
+            90.0_f32.to_radians(),
+            (self.viewport.w as f32) / (self.viewport.h as f32),
+            0.1,
+            100.0,
+        );
+        let view = glam::Mat4::from_translation(-game_state.player_position);
+        let model = glam::Mat4::IDENTITY;
+        let mv = model * view;
+        let mvp = perspective * mv;
+
         self.shaders.mesh.set_used();
+        self.shaders.mesh.set_mvp(&mvp);
         self.meshes.triangle.draw();
         self.window.gl_swap_window();
     }

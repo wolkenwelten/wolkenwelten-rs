@@ -8,8 +8,8 @@ impl ShaderList {
     pub fn new() -> ShaderList {
 
         let mesh = Program::from_shader_sources(
-            include_str!("triangle.vert"),
-            include_str!("triangle.frag")
+            include_str!("mesh.vert"),
+            include_str!("mesh.frag")
         ).unwrap();
 
         ShaderList {

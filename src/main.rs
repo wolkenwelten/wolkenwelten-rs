@@ -16,6 +16,7 @@ pub fn main() {
 		render_state.check_events(&mut app_state);
 		render_state.draw(&app_state, &game_state);
 
+		game_state.check_input(&render_state);
 		game_state.tick();
 		if !game_state.running {
 			game_state = GameState::new(); // Auto Restart for now

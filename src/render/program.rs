@@ -1,11 +1,14 @@
 use gl;
 use std;
+use gl::types::{GLint, GLuint};
+use glam::Mat4;
 use std::ffi::{CString};
 
 use super::shader::Shader;
 
 pub struct Program {
-    id: gl::types::GLuint,
+    id: GLuint,
+    location_mvp: GLint,
 }
 
 impl Program {
@@ -46,8 +49,13 @@ impl Program {
         for shader in shaders {
             unsafe { gl::DetachShader(program_id, shader.id()); }
         }
+        let name:CString = CString::new("matMVP").expect("CString::new failed");
+        let location_mvp:GLint = unsafe { gl::GetUniformLocation(program_id, name.as_ptr()) };
 
-        Ok(Program { id: program_id })
+        Ok(Program {
+            id: program_id,
+            location_mvp,
+        })
     }
 
     pub fn from_shader_sources(vert_source: &str, frag_source: &str) -> Result<Program, String> {
@@ -59,6 +67,12 @@ impl Program {
     pub fn set_used(&self) {
         unsafe {
             gl::UseProgram(self.id);
+        }
+    }
+
+    pub fn set_mvp(&self, mvp: &Mat4) {
+        unsafe {
+            gl::UniformMatrix4fv(self.location_mvp, 1, gl::FALSE, mvp.to_cols_array().as_ptr());
         }
     }
 }
