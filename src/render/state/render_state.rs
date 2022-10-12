@@ -102,9 +102,10 @@ impl RenderState {
         let mv = view * model;
         let mvp = perspective * mv;
 
-        self.shaders.mesh.set_used();
-        self.shaders.mesh.set_mvp(&mvp);
+        self.shaders.colored_mesh.set_used();
+        self.shaders.colored_mesh.set_mvp(&mvp);
         self.meshes.triangle.draw();
+        self.meshes.ground_plane.draw();
         self.window.gl_swap_window();
     }
 }

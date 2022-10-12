@@ -1,13 +1,17 @@
 #version 300 es
 
 uniform mat4 matMVP;
+uniform vec4 inColor;
 
-layout (location = 0) in vec3 Position;
-layout (location = 1) in vec3 Color;
+layout (location = 0) in vec4 pos;
+layout (location = 1) in vec2 tex;
+layout (location = 2) in float lval;
 
-out vec4 VertColor;
+out vec2 multiTexCoord;
+out vec4 color;
 
 void main() {
-    gl_Position = matMVP * vec4(Position, 1.0);
-    VertColor = vec4(Color, 1.0);
+    gl_Position = matMVP * pos;
+    multiTexCoord = tex;
+    color = vec4(inColor.rgb * vec3(lval, lval, lval), inColor.a);
 }

@@ -1,19 +1,19 @@
 use crate::render::Program;
 
 pub struct ShaderList {
-    pub mesh:Program,
+    pub colored_mesh:Program,
 }
 
 impl ShaderList {
     pub fn new() -> ShaderList {
 
-        let mesh = Program::from_shader_sources(
-            include_str!("mesh.vert"),
-            include_str!("mesh.frag")
+        let colored_mesh = Program::from_shader_sources(
+            include_str!("colored_mesh.vert"),
+            include_str!("colored_mesh.frag")
         ).unwrap();
 
         ShaderList {
-            mesh,
+            colored_mesh,
         }
     }
 }

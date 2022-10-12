@@ -1,9 +1,11 @@
 #version 300 es
 precision mediump float;
 
-in vec4 VertColor;
-out vec4 FragColor;
+in vec4 multiTexCoord;
+in vec4 color;
+
+out vec4 fragColor;
 
 void main() {
-    FragColor = VertColor;
+    fragColor = color;
 }
