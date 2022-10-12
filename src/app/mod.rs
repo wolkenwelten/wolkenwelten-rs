@@ -1,3 +1,4 @@
+pub use self::state::AppState;
+
 mod state;
 
-pub use self::state::AppState;

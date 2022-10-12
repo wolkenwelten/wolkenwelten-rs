@@ -1,3 +1,4 @@
+pub use self::state::GameState;
+
 mod state;
 
-pub use self::state::GameState;

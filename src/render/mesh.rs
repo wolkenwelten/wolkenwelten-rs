@@ -1,10 +1,11 @@
-use crate::render::Mesh_Vertex;
 use gl::types::*;
+
+use crate::render::Mesh_Vertex;
 
 pub struct Mesh {
 	vao: GLuint,
 	vbo: GLuint,
-	vertex_count:GLuint,
+	vertex_count: GLuint,
 }
 
 impl Mesh {
@@ -14,7 +15,7 @@ impl Mesh {
 			gl::DrawArrays(
 				gl::TRIANGLES,
 				0, // starting index
-				self.vertex_count.try_into().unwrap()
+				self.vertex_count.try_into().unwrap(),
 			);
 		}
 	}
@@ -23,7 +24,7 @@ impl Mesh {
 		vertices: &Vec<Mesh_Vertex>
 	) -> Result<Mesh, String> {
 		let vbo_size = (vertices.len() * std::mem::size_of::<Mesh_Vertex>()) as gl::types::GLsizeiptr;
-		let vertex_count:GLuint = vertices.len().try_into().unwrap();
+		let vertex_count: GLuint = vertices.len().try_into().unwrap();
 		let mut vbo: gl::types::GLuint = 0;
 		unsafe {
 			gl::GenBuffers(1, &mut vbo);
@@ -46,7 +47,7 @@ impl Mesh {
 			gl::BindBuffer(gl::ARRAY_BUFFER, 0);
 			gl::BindVertexArray(0);
 		}
-		Ok(Mesh { vao, vbo, vertex_count})
+		Ok(Mesh { vao, vbo, vertex_count })
 	}
 
 	pub fn from_obj_string(
@@ -65,11 +66,11 @@ impl Mesh {
 
 		let mut vertices: Vec<Mesh_Vertex> = Vec::with_capacity(m.indices.len());
 		for i in m.indices.iter() {
-			let idx:usize = *i as usize;
+			let idx: usize = *i as usize;
 			m.positions[idx];
 			vertices.push(Mesh_Vertex {
-				pos: (m.positions[idx*3], m.positions[idx*3 + 1], m.positions[idx*3 + 2]).into(),
-				tex: (m.texcoords[idx*2], m.texcoords[idx*2 + 1]).into(),
+				pos: (m.positions[idx * 3], m.positions[idx * 3 + 1], m.positions[idx * 3 + 2]).into(),
+				tex: (m.texcoords[idx * 2], m.texcoords[idx * 2 + 1]).into(),
 				c: 1.0,
 			});
 		}

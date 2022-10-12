@@ -1,6 +1,6 @@
-use crate::render::RenderState;
 use crate::app::AppState;
 use crate::game::GameState;
+use crate::render::RenderState;
 
 mod app;
 mod game;
