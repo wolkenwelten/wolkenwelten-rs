@@ -1,11 +1,12 @@
 extern crate sdl2;
 
+use glam::Vec4;
 use sdl2::{EventPump, Sdl, VideoSubsystem};
 use sdl2::video::{GLContext, Window};
 use crate::{AppState, GameState};
 use crate::input::InputState;
 use crate::render::Viewport;
-use crate::render::state::MeshList;
+use crate::render::state::{MeshList, TextureList};
 use crate::render::state::ShaderList;
 
 pub struct RenderState {
@@ -18,6 +19,7 @@ pub struct RenderState {
     pub viewport:Viewport,
     pub meshes:MeshList,
     pub shaders:ShaderList,
+    pub textures:TextureList,
 
     pub input:InputState,
 }
@@ -55,6 +57,8 @@ impl RenderState {
             gl::ClearColor(0.32, 0.63, 0.96, 1.0);
             gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
 
+            gl::Enable(gl::BLEND);
+            gl::Enable(gl::TEXTURE0);
             gl::Enable(gl::CULL_FACE);
             gl::FrontFace(gl::CCW);
             gl::CullFace(gl::BACK);
@@ -70,6 +74,7 @@ impl RenderState {
         let shaders = ShaderList::new();
         let meshes = MeshList::new();
         let input = InputState::new();
+        let textures = TextureList::new();
 
         RenderState {
             sdl_context,
@@ -81,8 +86,10 @@ impl RenderState {
             meshes,
             shaders,
             input,
+            textures,
         }
     }
+
 
     pub fn draw(&self, _app_state: &AppState, game_state: &GameState) {
         unsafe {
@@ -90,7 +97,7 @@ impl RenderState {
         }
 
         let perspective = glam::Mat4::perspective_rh_gl(
-            80.0_f32.to_radians(),
+            90.0_f32.to_radians(),
             (self.viewport.w as f32) / (self.viewport.h as f32),
             0.1,
             100.0,
@@ -105,6 +112,11 @@ impl RenderState {
         self.shaders.colored_mesh.set_used();
         self.shaders.colored_mesh.set_mvp(&mvp);
         self.meshes.triangle.draw();
+
+        self.shaders.mesh.set_used();
+        self.shaders.mesh.set_mvp(&mvp);
+        self.shaders.mesh.set_color(&Vec4::new(1.0, 1.0, 1.0, 1.0));
+        self.textures.blocks.bind();
         self.meshes.ground_plane.draw();
         self.window.gl_swap_window();
     }

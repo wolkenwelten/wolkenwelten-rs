@@ -1,7 +1,7 @@
 use gl;
 use std;
 use gl::types::{GLint, GLuint};
-use glam::Mat4;
+use glam::{Vec4,Mat4};
 use std::ffi::{CString};
 
 use super::shader::Shader;
@@ -9,6 +9,7 @@ use super::shader::Shader;
 pub struct Program {
     id: GLuint,
     location_mvp: GLint,
+    location_color: GLint,
 }
 
 impl Program {
@@ -52,9 +53,13 @@ impl Program {
         let name:CString = CString::new("matMVP").expect("CString::new failed");
         let location_mvp:GLint = unsafe { gl::GetUniformLocation(program_id, name.as_ptr()) };
 
+        let name:CString = CString::new("inColor").expect("CString::new failed");
+        let location_color:GLint = unsafe { gl::GetUniformLocation(program_id, name.as_ptr()) };
+
         Ok(Program {
             id: program_id,
             location_mvp,
+            location_color,
         })
     }
 
@@ -73,6 +78,12 @@ impl Program {
     pub fn set_mvp(&self, mvp: &Mat4) {
         unsafe {
             gl::UniformMatrix4fv(self.location_mvp, 1, gl::FALSE, mvp.to_cols_array().as_ptr());
+        }
+    }
+
+    pub fn set_color(&self, c: &Vec4) {
+        unsafe {
+            gl::Uniform4f(self.location_color, c.x, c.y, c.z, c.w);
         }
     }
 }

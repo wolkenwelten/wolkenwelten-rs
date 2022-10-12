@@ -5,15 +5,16 @@ mod colored_mesh;
 mod mesh;
 mod shader;
 mod program;
+mod texture;
 
 mod state;
 
-pub use self::vertex::{f32_f32_f32, Colored_Mesh_Vertex};
+pub use self::vertex::{f32_f32_f32, Colored_Mesh_Vertex, Mesh_Vertex, f32_f32};
 pub use self::shader::Shader;
 pub use self::program::Program;
 pub use self::mesh::Mesh;
 pub use self::colored_mesh::ColoredMesh;
-
+pub use self::texture::Texture;
 pub use self::state::viewport::Viewport;
 pub use self::state::RenderState;
 
