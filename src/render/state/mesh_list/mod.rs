@@ -1,5 +1,5 @@
 use crate::render::{ColoredMesh, Mesh};
-use crate::render::{Colored_Mesh_Vertex, Mesh_Vertex};
+use crate::render::mesh::{Colored_Mesh_Vertex, Mesh_Vertex};
 
 pub struct MeshList {
 	pub triangle: ColoredMesh,

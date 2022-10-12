@@ -15,7 +15,8 @@ pub fn main() {
 	'running: loop {
 		render_state.input.mouse_flush();
 		render_state.check_events(&mut app_state);
-		render_state.draw(&app_state, &game_state);
+		render_state.prepare(&mut app_state, &mut game_state)
+			.draw(&app_state, &game_state);
 
 		game_state.check_input(&render_state);
 		game_state.tick();

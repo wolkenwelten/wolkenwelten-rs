@@ -6,6 +6,7 @@ use sdl2::video::{GLContext, Window};
 
 use crate::{AppState, GameState};
 use crate::input::InputState;
+use crate::render::mesh::TextMesh;
 use crate::render::state::{MeshList, TextureList};
 use crate::render::state::ShaderList;
 use crate::render::Viewport;
@@ -21,6 +22,8 @@ pub struct RenderState {
 	pub meshes: MeshList,
 	pub shaders: ShaderList,
 	pub textures: TextureList,
+
+	pub ui_mesh: TextMesh,
 
 	pub input: InputState,
 }
@@ -70,31 +73,36 @@ impl RenderState {
 			gl::Enable(gl::PROGRAM_POINT_SIZE);
 		}
 
-		let viewport = Viewport::for_window(window_width, window_height);
 		let event_pump = sdl_context.event_pump().unwrap();
-		let shaders = ShaderList::new();
-		let meshes = MeshList::new();
-		let input = InputState::new();
-		let textures = TextureList::new();
 
 		RenderState {
 			sdl_context,
 			video_subsystem,
 			gl_context,
-			viewport,
 			window,
 			event_pump,
-			meshes,
-			shaders,
-			input,
-			textures,
+			viewport: Viewport::for_window(window_width, window_height),
+			meshes: MeshList::new(),
+			shaders: ShaderList::new(),
+			input:  InputState::new(),
+			textures: TextureList::new(),
+			ui_mesh: TextMesh::new(),
 		}
 	}
 
+	pub fn prepare(&mut self, _app_state: &mut AppState, _game_state: &mut GameState) -> &mut RenderState {
+		self.ui_mesh.empty();
+		self.ui_mesh.push_box(0,0,64,64,0,0,64,64, 0xFFFFFFFF);
+		self.ui_mesh.push_box(256,256,64,64,0,0,64,64, 0xFFFFFFFF);
+		self.ui_mesh.prepare();
+		self
+	}
+
 	pub fn draw(&self, _app_state: &AppState, game_state: &GameState) {
+
 		unsafe {
 			gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
-		}
+		};
 
 		let perspective = glam::Mat4::perspective_rh_gl(
 			90.0_f32.to_radians(),
@@ -113,10 +121,11 @@ impl RenderState {
 		self.shaders.colored_mesh.set_mvp(&mvp);
 		self.meshes.triangle.draw();
 
+
 		self.shaders.mesh.set_used();
 		self.shaders.mesh.set_mvp(&mvp);
 		self.shaders.mesh.set_color(&Vec4::new(1.0, 1.0, 1.0, 1.0));
-		self.textures.blocks.bind();
+		self.textures.gui.bind();
 		self.meshes.ground_plane.draw();
 
 		let model = glam::Mat4::from_translation(-game_state.player_position + Vec3::new(0.0, 2.0, -8.0));
@@ -126,6 +135,29 @@ impl RenderState {
 
 		self.textures.pear.bind();
 		self.meshes.pear.draw();
+
+		let perspective = glam::Mat4::orthographic_rh_gl(
+			0.0,
+			self.viewport.w as f32,
+
+			0.0,
+			self.viewport.h as f32,
+
+			-100.0,
+			100.0,
+		);
+
+		unsafe {
+			gl::Disable(gl::DEPTH_TEST);
+		}
+		self.shaders.text_shader.set_used();
+		self.shaders.text_shader.set_mvp(&perspective);
+		self.textures.blocks.bind();
+		self.ui_mesh.draw();
+
+		unsafe {
+			gl::Enable(gl::DEPTH_TEST);
+		}
 
 		self.window.gl_swap_window();
 	}

@@ -1,6 +1,6 @@
 use gl::types::*;
 
-use crate::render::Colored_Mesh_Vertex;
+use crate::render::mesh::Colored_Mesh_Vertex;
 
 pub struct ColoredMesh {
 	vao: GLuint,
@@ -35,7 +35,6 @@ impl ColoredMesh {
 				vertices.as_ptr() as *const gl::types::GLvoid, // pointer to data
 				gl::STATIC_DRAW, // usage
 			);
-			gl::BindBuffer(gl::ARRAY_BUFFER, 0); // unbind the buffer
 		}
 
 		let mut vao: gl::types::GLuint = 0;
@@ -44,8 +43,6 @@ impl ColoredMesh {
 			gl::BindVertexArray(vao);
 			gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
 			Colored_Mesh_Vertex::vertex_attrib_pointers();
-			gl::BindBuffer(gl::ARRAY_BUFFER, 0);
-			gl::BindVertexArray(0);
 		}
 		Ok(ColoredMesh { vao, vbo, vertex_count })
 	}

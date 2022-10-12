@@ -13,7 +13,7 @@ impl Texture {
 		let img = image::load_from_memory(bytes)?;
 		let width: u16 = img.width().try_into().unwrap();
 		let height: u16 = img.height().try_into().unwrap();
-		let img = img.flipv();
+
 		let img = match img {
 			image::DynamicImage::ImageRgba8(img) => img,
 			x => x.to_rgba8()

@@ -1,6 +1,6 @@
 use gl::types::*;
 
-use crate::render::Mesh_Vertex;
+use crate::render::mesh::Mesh_Vertex;
 
 pub struct Mesh {
 	vao: GLuint,
@@ -35,7 +35,6 @@ impl Mesh {
 				vertices.as_ptr() as *const gl::types::GLvoid, // pointer to data
 				gl::STATIC_DRAW, // usage
 			);
-			gl::BindBuffer(gl::ARRAY_BUFFER, 0); // unbind the buffer
 		}
 
 		let mut vao: gl::types::GLuint = 0;
@@ -44,8 +43,6 @@ impl Mesh {
 			gl::BindVertexArray(vao);
 			gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
 			Mesh_Vertex::vertex_attrib_pointers();
-			gl::BindBuffer(gl::ARRAY_BUFFER, 0);
-			gl::BindVertexArray(0);
 		}
 		Ok(Mesh { vao, vbo, vertex_count })
 	}
@@ -70,7 +67,7 @@ impl Mesh {
 			m.positions[idx];
 			vertices.push(Mesh_Vertex {
 				pos: (m.positions[idx * 3], m.positions[idx * 3 + 1], m.positions[idx * 3 + 2]).into(),
-				tex: (m.texcoords[idx * 2], m.texcoords[idx * 2 + 1]).into(),
+				tex: (m.texcoords[idx * 2], 1.0 - m.texcoords[idx * 2 + 1]).into(), // Gotta flip them around for some reason, might be a wrong config option in blender during export
 				c: 1.0,
 			});
 		}

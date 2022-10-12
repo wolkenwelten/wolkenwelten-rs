@@ -3,6 +3,7 @@ use crate::render::Program;
 pub struct ShaderList {
 	pub colored_mesh: Program,
 	pub mesh: Program,
+	pub text_shader: Program,
 }
 
 impl ShaderList {
@@ -17,9 +18,15 @@ impl ShaderList {
             include_str!("mesh.frag"),
         ).unwrap();
 
+		let text_shader = Program::from_shader_sources(
+			include_str!("text_shader.vert"),
+			include_str!("text_shader.frag"),
+		).unwrap();
+
 		ShaderList {
 			colored_mesh,
 			mesh,
+			text_shader
 		}
 	}
 }

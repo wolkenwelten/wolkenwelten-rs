@@ -1,16 +1,14 @@
 use std::ffi::CString;
 
-pub use self::colored_mesh::ColoredMesh;
+pub use self::mesh::ColoredMesh;
 pub use self::mesh::Mesh;
+
 pub use self::program::Program;
 pub use self::shader::Shader;
 pub use self::state::RenderState;
 pub use self::state::viewport::Viewport;
 pub use self::texture::Texture;
-pub use self::vertex::{Colored_Mesh_Vertex, f32_f32, f32_f32_f32, Mesh_Vertex};
 
-mod vertex;
-mod colored_mesh;
 mod mesh;
 mod shader;
 mod program;
