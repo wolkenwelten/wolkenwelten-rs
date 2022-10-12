@@ -4,6 +4,7 @@ use crate::render::{Colored_Mesh_Vertex, Mesh_Vertex};
 pub struct MeshList {
     pub triangle:ColoredMesh,
     pub ground_plane:Mesh,
+    pub pear:Mesh,
 }
 
 impl MeshList {
@@ -33,9 +34,12 @@ impl MeshList {
         ];
         let ground_plane = Mesh::from_vec(&vertices).unwrap();
 
+        let pear = Mesh::from_obj_string(include_str!("./pear.obj")).unwrap();
+
         MeshList {
             triangle,
             ground_plane,
+            pear,
         }
     }
 }

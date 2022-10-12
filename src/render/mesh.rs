@@ -48,6 +48,33 @@ impl Mesh {
 		}
 		Ok(Mesh { vao, vbo, vertex_count})
 	}
+
+	pub fn from_obj_string(
+		s: &str
+	) -> Result<Mesh, String> {
+		let o = tobj::load_obj_buf(
+			&mut s.as_bytes(),
+			&tobj::LoadOptions {
+				triangulate: true,
+				single_index: true,
+				..Default::default()
+			},
+			|_p| unreachable!(),
+		).unwrap().0;
+		let m = &o[0].mesh;
+
+		let mut vertices: Vec<Mesh_Vertex> = Vec::with_capacity(m.indices.len());
+		for i in m.indices.iter() {
+			let idx:usize = *i as usize;
+			m.positions[idx];
+			vertices.push(Mesh_Vertex {
+				pos: (m.positions[idx*3], m.positions[idx*3 + 1], m.positions[idx*3 + 2]).into(),
+				tex: (m.texcoords[idx*2], m.texcoords[idx*2 + 1]).into(),
+				c: 1.0,
+			});
+		}
+		Mesh::from_vec(&vertices)
+	}
 }
 
 impl Drop for Mesh {

@@ -1,6 +1,6 @@
 extern crate sdl2;
 
-use glam::Vec4;
+use glam::{Vec3,Vec4};
 use sdl2::{EventPump, Sdl, VideoSubsystem};
 use sdl2::video::{GLContext, Window};
 use crate::{AppState, GameState};
@@ -118,6 +118,15 @@ impl RenderState {
         self.shaders.mesh.set_color(&Vec4::new(1.0, 1.0, 1.0, 1.0));
         self.textures.blocks.bind();
         self.meshes.ground_plane.draw();
+
+        let model = glam::Mat4::from_translation(-game_state.player_position + Vec3::new(0.0, 2.0, -8.0));
+        let mv = view * model;
+        let mvp = perspective * mv;
+        self.shaders.mesh.set_mvp(&mvp);
+
+        self.textures.pear.bind();
+        self.meshes.pear.draw();
+
         self.window.gl_swap_window();
     }
 }
