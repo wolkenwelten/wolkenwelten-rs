@@ -124,7 +124,7 @@ impl RenderState {
 		self.calc_fps()
 	}
 
-	pub fn draw(&self, _app_state: &AppState, game_state: &GameState) {
+	pub fn draw(&self, app_state: &AppState, game_state: &GameState) {
 		self.viewport.set_used();
 		unsafe {
 			gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
@@ -154,7 +154,9 @@ impl RenderState {
 		self.textures.gui.bind();
 		self.meshes.ground_plane.draw();
 
-		let model = glam::Mat4::from_translation(-game_state.player_position + Vec3::new(0.0, 2.0, -8.0));
+
+		let model = glam::Mat4::from_rotation_y(app_state.ticks_elapsed as f32 / 16.0);
+		let model = glam::Mat4::from_translation(-game_state.player_position + Vec3::new(0.0, 2.0 + (app_state.ticks_elapsed as f32 / 70.0).sin(), -8.0)) * model;
 		let mv = view * model;
 		let mvp = perspective * mv;
 		self.shaders.mesh.set_mvp(&mvp);
