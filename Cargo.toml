@@ -7,4 +7,4 @@ edition = "2021"
 sdl2 = "0.35.2"
 gl = "0.10.0"
 glam = "0.21.3"
-image = "0.24.4"
+image = { version = "0.24.4", default-features = false, features = ["png"]}
