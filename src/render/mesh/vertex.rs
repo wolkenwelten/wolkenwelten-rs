@@ -1,12 +1,12 @@
 use gl;
 
-unsafe fn vertex_attrib_pointer(stride: usize, location: usize, offset: usize, components: usize, data_type: u32, size: usize) -> usize {
+unsafe fn vertex_attrib_pointer(stride: usize, location: usize, offset: usize, components: usize, data_type: u32, size: usize, normalized: bool) -> usize {
 	gl::EnableVertexAttribArray(location as gl::types::GLuint);
 	gl::VertexAttribPointer(
 		location as gl::types::GLuint,
 		components as i32, // the number of components per generic vertex attribute
 		data_type, // data type
-		gl::FALSE, // normalized (int-to-float conversion)
+		if normalized { gl::TRUE } else { gl::FALSE }, // normalized (int-to-float conversion)
 		stride as gl::types::GLint,
 		offset as *const gl::types::GLvoid,
 	);
@@ -67,8 +67,8 @@ impl Colored_Mesh_Vertex {
 
 		unsafe {
 			let offset = 0;
-			let offset = vertex_attrib_pointer(stride, 0, offset, 3, gl::FLOAT, 4);
-			vertex_attrib_pointer(stride, 1, offset, 3, gl::FLOAT, 4);
+			let offset = vertex_attrib_pointer(stride, 0, offset, 3, gl::FLOAT, 4, false);
+			vertex_attrib_pointer(stride, 1, offset, 3, gl::FLOAT, 4, false);
 		}
 	}
 }
@@ -87,9 +87,9 @@ impl Mesh_Vertex {
 
 		unsafe {
 			let offset = 0;
-			let offset = vertex_attrib_pointer(stride, 0, offset, 3, gl::FLOAT, 4);
-			let offset = vertex_attrib_pointer(stride, 1, offset, 2, gl::FLOAT, 4);
-			vertex_attrib_pointer(stride, 2, offset, 1, gl::FLOAT, 4);
+			let offset = vertex_attrib_pointer(stride, 0, offset, 3, gl::FLOAT, 4, false);
+			let offset = vertex_attrib_pointer(stride, 1, offset, 2, gl::FLOAT, 4, true);
+			vertex_attrib_pointer(stride, 2, offset, 1, gl::FLOAT, 4, false);
 		}
 	}
 }
@@ -112,9 +112,9 @@ impl Vertex2D {
 
 		unsafe {
 			let offset = 0;
-			let offset = vertex_attrib_pointer(stride, 0, offset, 2, gl::SHORT, 2);
-			let offset = vertex_attrib_pointer(stride, 1, offset, 2, gl::SHORT, 2);
-			vertex_attrib_pointer(stride, 2, offset, 4, gl::UNSIGNED_BYTE, 1);
+			let offset = vertex_attrib_pointer(stride, 0, offset, 2, gl::SHORT, 2, false);
+			let offset = vertex_attrib_pointer(stride, 1, offset, 2, gl::SHORT, 2, false);
+			vertex_attrib_pointer(stride, 2, offset, 4, gl::UNSIGNED_BYTE, 1, true);
 		}
 	}
 }

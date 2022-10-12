@@ -1,7 +1,7 @@
 extern crate sdl2;
 
 use glam::{Vec3, Vec4};
-use sdl2::{EventPump, Sdl, VideoSubsystem};
+use sdl2::{EventPump, Sdl, TimerSubsystem, VideoSubsystem};
 use sdl2::video::{GLContext, Window};
 
 use crate::{AppState, GameState};
@@ -14,6 +14,7 @@ use crate::render::Viewport;
 pub struct RenderState {
 	pub sdl_context: Sdl,
 	pub video_subsystem: VideoSubsystem,
+	pub timer_subsystem: TimerSubsystem,
 	pub gl_context: GLContext,
 	pub window: Window,
 	pub event_pump: EventPump,
@@ -26,6 +27,10 @@ pub struct RenderState {
 	pub ui_mesh: TextMesh,
 
 	pub input: InputState,
+
+	pub cur_fps: u32,
+	pub frame_count: u32,
+	pub last_ticks: u32,
 }
 
 impl RenderState {
@@ -35,6 +40,7 @@ impl RenderState {
 
 		let sdl_context = sdl2::init().unwrap();
 		let video_subsystem = sdl_context.video().unwrap();
+		let timer_subsystem = sdl_context.timer().unwrap();
 		let gl_attr = video_subsystem.gl_attr();
 		gl_attr.set_context_profile(sdl2::video::GLProfile::GLES);
 		gl_attr.set_context_version(3, 0);
@@ -74,10 +80,12 @@ impl RenderState {
 		}
 
 		let event_pump = sdl_context.event_pump().unwrap();
+		let last_ticks = timer_subsystem.ticks();
 
 		RenderState {
 			sdl_context,
 			video_subsystem,
+			timer_subsystem,
 			gl_context,
 			window,
 			event_pump,
@@ -87,19 +95,37 @@ impl RenderState {
 			input:  InputState::new(),
 			textures: TextureList::new(),
 			ui_mesh: TextMesh::new(),
+
+			cur_fps: 0,
+			frame_count: 0,
+			last_ticks,
 		}
 	}
 
-	pub fn prepare(&mut self, _app_state: &mut AppState, _game_state: &mut GameState) -> &mut RenderState {
-		self.ui_mesh.empty();
-		self.ui_mesh.push_box(0,0,64,64,0,0,64,64, 0xFFFFFFFF);
-		self.ui_mesh.push_box(256,256,64,64,0,0,64,64, 0xFFFFFFFF);
-		self.ui_mesh.prepare();
+	pub fn fps(&self) -> u32 { self.cur_fps }
+
+	pub fn calc_fps(&mut self) -> &mut RenderState {
+		let ticks = self.timer_subsystem.ticks();
+		if ticks > self.last_ticks + 1000 {
+			self.cur_fps = (((self.frame_count as f32) / ((ticks - self.last_ticks) as f32)) * 1000.0) as u32;
+			self.last_ticks = ticks;
+			self.frame_count = 0;
+		}
+		self.frame_count += 1;
 		self
 	}
 
-	pub fn draw(&self, _app_state: &AppState, game_state: &GameState) {
+	pub fn prepare(&mut self, _app_state: &mut AppState, _game_state: &mut GameState) -> &mut RenderState {
+		let fps_text = format!("FPS: {}", self.fps());
+		self.ui_mesh.empty()
+			.push_string(8,8,2,0xFFFFFFFF, fps_text.as_str())
+			.push_string(8,40,1,0xFF4040FF, "Und nochmal in klein und rot.")
+			.prepare();
+		self.calc_fps()
+	}
 
+	pub fn draw(&self, _app_state: &AppState, game_state: &GameState) {
+		self.viewport.set_used();
 		unsafe {
 			gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
 		};
@@ -136,28 +162,24 @@ impl RenderState {
 		self.textures.pear.bind();
 		self.meshes.pear.draw();
 
+
 		let perspective = glam::Mat4::orthographic_rh_gl(
 			0.0,
 			self.viewport.w as f32,
 
-			0.0,
 			self.viewport.h as f32,
+			0.0,
 
-			-100.0,
-			100.0,
+			-10.0,
+			10.0,
 		);
 
-		unsafe {
-			gl::Disable(gl::DEPTH_TEST);
-		}
 		self.shaders.text_shader.set_used();
 		self.shaders.text_shader.set_mvp(&perspective);
-		self.textures.blocks.bind();
+		self.textures.gui.bind();
 		self.ui_mesh.draw();
 
-		unsafe {
-			gl::Enable(gl::DEPTH_TEST);
-		}
+
 
 		self.window.gl_swap_window();
 	}
