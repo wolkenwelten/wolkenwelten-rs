@@ -115,11 +115,14 @@ impl RenderState {
 		self
 	}
 
-	pub fn prepare(&mut self, _app_state: &mut AppState, _game_state: &mut GameState) -> &mut RenderState {
+	pub fn prepare(&mut self, _app_state: &mut AppState, game_state: &mut GameState) -> &mut RenderState {
 		let fps_text = format!("FPS: {}", self.fps());
+		let pos_text = format!("X:{:8.2} Y:{:8.2} Z:{:8.2}", game_state.player_position[0], game_state.player_position[1], game_state.player_position[2]);
+		let rot_text = format!("Y:{:8.2} P:{:8.2} R:{:8.2}", game_state.player_rotation[0], game_state.player_rotation[1], game_state.player_rotation[2]);
 		self.ui_mesh.empty()
 			.push_string(8,8,2,0xFFFFFFFF, fps_text.as_str())
-			.push_string(8,40,1,0xFF4040FF, "Und nochmal in klein und rot.")
+			.push_string(8,40,1,0xFFFFFFFF, pos_text.as_str())
+			.push_string(8,50,1,0xFFFFFFFF, rot_text.as_str())
 			.prepare();
 		self.calc_fps()
 	}
@@ -137,8 +140,8 @@ impl RenderState {
 			100.0,
 		);
 
-		let view = glam::Mat4::from_rotation_x(game_state.player_rotation[1]);
-		let view = view * glam::Mat4::from_rotation_y(game_state.player_rotation[0]);
+		let view = glam::Mat4::from_rotation_x(game_state.player_rotation[1].to_radians());
+		let view = view * glam::Mat4::from_rotation_y(game_state.player_rotation[0].to_radians());
 		let model = glam::Mat4::from_translation(-game_state.player_position);
 		let mv = view * model;
 		let mvp = perspective * mv;
@@ -153,7 +156,6 @@ impl RenderState {
 		self.shaders.mesh.set_color(&Vec4::new(1.0, 1.0, 1.0, 1.0));
 		self.textures.gui.bind();
 		self.meshes.ground_plane.draw();
-
 
 		let model = glam::Mat4::from_rotation_y(app_state.ticks_elapsed as f32 / 16.0);
 		let model = glam::Mat4::from_translation(-game_state.player_position + Vec3::new(0.0, 2.0 + (app_state.ticks_elapsed as f32 / 70.0).sin(), -8.0)) * model;
