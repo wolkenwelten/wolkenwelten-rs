@@ -22,7 +22,7 @@ impl Mesh {
 
 	pub fn from_vec(
 		vertices: &Vec<Mesh_Vertex>
-	) -> Result<Mesh, String> {
+	) -> Result<Self, String> {
 		let vbo_size = (vertices.len() * std::mem::size_of::<Mesh_Vertex>()) as gl::types::GLsizeiptr;
 		let vertex_count: GLuint = vertices.len().try_into().unwrap();
 		let mut vbo: gl::types::GLuint = 0;
@@ -44,12 +44,12 @@ impl Mesh {
 			gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
 			Mesh_Vertex::vertex_attrib_pointers();
 		}
-		Ok(Mesh { vao, vbo, vertex_count })
+		Ok(Self { vao, vbo, vertex_count })
 	}
 
 	pub fn from_obj_string(
 		s: &str
-	) -> Result<Mesh, String> {
+	) -> Result<Self, String> {
 		let o = tobj::load_obj_buf(
 			&mut s.as_bytes(),
 			&tobj::LoadOptions {
@@ -71,7 +71,7 @@ impl Mesh {
 				c: 1.0,
 			});
 		}
-		Mesh::from_vec(&vertices)
+		Self::from_vec(&vertices)
 	}
 }
 

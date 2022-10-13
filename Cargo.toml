@@ -4,8 +4,13 @@ version = "0.0.1"
 edition = "2021"
 
 [dependencies]
+rand = "0.8.5"
 sdl2 = "0.35.2"
 gl = "0.14.0"
 glam = "0.21.3"
 tobj = "3.2.3"
 image = { version = "0.24.4", default-features = false, features = ["png"]}
+#deno_core = "0.154.0"
+#deno_ops = "0.32.0"
+#v8 = "0.52.0"
+#rapier3d = "0.15.0"

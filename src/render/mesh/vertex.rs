@@ -56,25 +56,6 @@ impl From<(f32, f32)> for f32_f32 {
 
 #[derive(Copy, Clone, Debug)]
 #[repr(C, packed)]
-pub struct Colored_Mesh_Vertex {
-	pub pos: f32_f32_f32,
-	pub clr: f32_f32_f32,
-}
-
-impl Colored_Mesh_Vertex {
-	pub fn vertex_attrib_pointers() {
-		let stride = std::mem::size_of::<Self>();
-
-		unsafe {
-			let offset = 0;
-			let offset = vertex_attrib_pointer(stride, 0, offset, 3, gl::FLOAT, 4, false);
-			vertex_attrib_pointer(stride, 1, offset, 3, gl::FLOAT, 4, false);
-		}
-	}
-}
-
-#[derive(Copy, Clone, Debug)]
-#[repr(C, packed)]
 pub struct Mesh_Vertex {
 	pub pos: f32_f32_f32,
 	pub tex: f32_f32,

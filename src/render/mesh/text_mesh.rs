@@ -13,13 +13,13 @@ pub struct TextMesh {
 
 impl TextMesh {
 
-	pub fn empty(&mut self) -> &mut TextMesh {
+	pub fn empty(&mut self) -> &mut Self {
 		self.vertices.clear();
 		self.finished = false;
 		self
 	}
 
-	pub fn prepare(&mut self) -> &mut TextMesh {
+	pub fn prepare(&mut self) -> &mut Self {
 		if self.vao == 0 {
 			unsafe {
 				gl::GenVertexArrays(1, &mut self.vao);
@@ -71,8 +71,8 @@ impl TextMesh {
 		}
 	}
 
-	pub fn new() -> TextMesh {
-		TextMesh {
+	pub fn new() -> Self {
+		Self {
 			vao: 0,
 			vbo: 0,
 			vertex_count: 0,
@@ -81,12 +81,12 @@ impl TextMesh {
 		}
 	}
 
-	pub fn push_vertex(&mut self, x:i16, y:i16, u:i16, v:i16, rgba:u32) -> &mut TextMesh {
+	pub fn push_vertex(&mut self, x:i16, y:i16, u:i16, v:i16, rgba:u32) -> &mut Self {
 		self.vertices.push( Vertex2D { x,y,u,v,rgba });
 		self
 	}
 
-	pub fn push_box(&mut self, x:i16, y:i16, w:i16, h:i16, u:i16, v:i16, uw:i16, vh:i16, rgba:u32) -> &mut TextMesh {
+	pub fn push_box(&mut self, x:i16, y:i16, w:i16, h:i16, u:i16, v:i16, uw:i16, vh:i16, rgba:u32) -> &mut Self {
 		self.push_vertex(x,y+h,u,v+vh,rgba)
 			.push_vertex(x+w,y,u+uw,v,rgba)
 			.push_vertex(x,y,u,v,rgba)
@@ -96,7 +96,7 @@ impl TextMesh {
 			.push_vertex(x+w,y+h,u+uw,v+vh,rgba)
 	}
 
-	pub fn push_glyph(&mut self, x:i16, y:i16, size:i16, rgba:u32, c:char) -> &mut TextMesh {
+	pub fn push_glyph(&mut self, x:i16, y:i16, size:i16, rgba:u32, c:char) -> &mut Self {
 		let glyph_width:i16 = (8 * size) as i16;
 
 		if x < -glyph_width {return self;}
@@ -112,14 +112,13 @@ impl TextMesh {
 		self.push_box(x, y, glyph_width, glyph_width, u, v, size, size, rgba)
 	}
 
-	pub fn push_string(&mut self, x:i16, y:i16, size:i32, rgba:u32, text:&str) -> &mut TextMesh {
+	pub fn push_string(&mut self, x:i16, y:i16, size:i32, rgba:u32, text:&str) -> &mut Self {
 		let glyph_width:i32 = 8*size;
 		for (i,c) in text.chars().enumerate() {
 			let x:i16 = (x + ((i as i32)*glyph_width) as i16).try_into().unwrap();
 
 			self.push_glyph(x, y, size as i16, rgba, c);
 		}
-
 		self
 	}
 }

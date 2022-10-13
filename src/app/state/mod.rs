@@ -4,11 +4,11 @@ pub struct AppState {
 }
 
 impl AppState {
-	pub fn new() -> AppState {
+	pub fn new() -> Self {
 		let running = true;
 		let ticks_elapsed: u64 = 0;
 
-		AppState {
+		Self {
 			running,
 			ticks_elapsed,
 		}

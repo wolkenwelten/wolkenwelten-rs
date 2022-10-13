@@ -24,12 +24,12 @@ pub struct InputState {
 }
 
 impl InputState {
-	pub fn new() -> InputState {
+	pub fn new() -> Self {
 		let button_states = [false; 11];
 		let mouse_xrel = 0.0;
 		let mouse_yrel = 0.0;
 
-		InputState {
+		Self {
 			button_states,
 			mouse_xrel,
 			mouse_yrel,

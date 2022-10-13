@@ -14,7 +14,7 @@ pub struct Program {
 }
 
 impl Program {
-	pub fn from_shaders(shaders: &[Shader]) -> Result<Program, String> {
+	pub fn from_shaders(shaders: &[Shader]) -> Result<Self, String> {
 		let program_id = unsafe { gl::CreateProgram() };
 
 		for shader in shaders {
@@ -57,17 +57,17 @@ impl Program {
 		let name: CString = CString::new("inColor").expect("CString::new failed");
 		let location_color: GLint = unsafe { gl::GetUniformLocation(program_id, name.as_ptr()) };
 
-		Ok(Program {
+		Ok(Self {
 			id: program_id,
 			location_mvp,
 			location_color,
 		})
 	}
 
-	pub fn from_shader_sources(vert_source: &str, frag_source: &str) -> Result<Program, String> {
+	pub fn from_shader_sources(vert_source: &str, frag_source: &str) -> Result<Self, String> {
 		let vert_shader = Shader::from_vert_source(&CString::new(vert_source).unwrap()).unwrap();
 		let frag_shader = Shader::from_frag_source(&CString::new(frag_source).unwrap()).unwrap();
-		Program::from_shaders(&[vert_shader, frag_shader])
+		Self::from_shaders(&[vert_shader, frag_shader])
 	}
 
 	pub fn set_used(&self) {

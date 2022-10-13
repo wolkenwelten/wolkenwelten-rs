@@ -1,4 +1,6 @@
-use glam::Vec3;
+use glam::{Vec3, Vec4};
+use crate::game::Entity;
+use rand::Rng;
 
 use crate::render::RenderState;
 
@@ -7,21 +9,42 @@ pub struct GameState {
 	pub ticks_elapsed: u64,
 	pub player_position: Vec3,
 	pub player_rotation: Vec3,
+
+	pub entities: Vec<Entity>,
 }
 
 impl GameState {
-	pub fn new() -> GameState {
+	pub fn new() -> Self {
 		let running = true;
 		let ticks_elapsed: u64 = 0;
 		let player_position: Vec3 = Vec3::new(0.0, 0.0, 0.0);
 		let player_rotation: Vec3 = Vec3::new(0.0, 0.0, 0.0);
+		let mut entities:Vec<Entity> = Vec::with_capacity(16);
+		let mut rng = rand::thread_rng();
+		for x in -5..=5 {
+			for z in -5..=5 {
+				let mut e = Entity::new(Vec3::new(x as f32, 5.0, z as f32));
+				let vx:f32 = (rng.gen::<f32>() - 0.5)*0.05;
+				let vy:f32 = (rng.gen::<f32>() - 0.5)*0.01;
+				let vz:f32 = (rng.gen::<f32>() - 0.5)*0.05;
+				let vel = Vec3::new(vx, vy, vz);
+				e.set_vel(&vel);
+				entities.push(e);
+			}
+		}
 
-		GameState {
+		Self {
 			running,
 			ticks_elapsed,
 			player_position,
 			player_rotation,
+
+			entities,
 		}
+	}
+
+	pub fn _push_entity (&mut self, e:Entity) {
+		self.entities.push(e);
 	}
 
 	pub fn check_input(&mut self, render_state: &RenderState) {
@@ -50,5 +73,34 @@ impl GameState {
 
 	pub fn tick(&mut self) {
 		self.ticks_elapsed += 1;
+		for e in &mut self.entities {
+			e.tick();
+		}
+	}
+
+	pub fn draw(&self, render_state:&RenderState) {
+		let projection = glam::Mat4::perspective_rh_gl(
+			90.0_f32.to_radians(),
+			(render_state.viewport.w as f32) / (render_state.viewport.h as f32),
+			0.1,
+			100.0,
+		);
+
+		let view = glam::Mat4::from_rotation_x(self.player_rotation[1].to_radians());
+		let view = view * glam::Mat4::from_rotation_y(self.player_rotation[0].to_radians());
+		let view = view * glam::Mat4::from_translation(-self.player_position);
+		let mvp = projection * view;
+
+		render_state.shaders.mesh.set_used();
+		let c = Vec4::new(1.0, 1.0, 1.0, 1.0);
+		render_state.shaders.mesh.set_color(&c);
+		render_state.shaders.mesh.set_mvp(&mvp);
+		render_state.textures.blocks.bind();
+		render_state.meshes.ground_plane.draw();
+		render_state.textures.pear.bind();
+
+		for e in &self.entities {
+			e.draw(render_state, &view, &projection);
+		}
 	}
 }

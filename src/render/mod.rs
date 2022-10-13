@@ -1,6 +1,5 @@
 use std::ffi::CString;
 
-pub use self::mesh::ColoredMesh;
 pub use self::mesh::Mesh;
 
 pub use self::program::Program;

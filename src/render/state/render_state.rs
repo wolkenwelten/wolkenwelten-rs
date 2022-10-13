@@ -1,6 +1,5 @@
 extern crate sdl2;
 
-use glam::{Vec3, Vec4};
 use sdl2::{EventPump, Sdl, TimerSubsystem, VideoSubsystem};
 use sdl2::video::{GLContext, Window};
 
@@ -127,44 +126,13 @@ impl RenderState {
 		self.calc_fps()
 	}
 
-	pub fn draw(&self, app_state: &AppState, game_state: &GameState) {
+	pub fn draw(&self, _app_state: &AppState, game_state: &GameState) {
 		self.viewport.set_used();
 		unsafe {
 			gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
 		};
 
-		let perspective = glam::Mat4::perspective_rh_gl(
-			90.0_f32.to_radians(),
-			(self.viewport.w as f32) / (self.viewport.h as f32),
-			0.1,
-			100.0,
-		);
-
-		let view = glam::Mat4::from_rotation_x(game_state.player_rotation[1].to_radians());
-		let view = view * glam::Mat4::from_rotation_y(game_state.player_rotation[0].to_radians());
-		let model = glam::Mat4::from_translation(-game_state.player_position);
-		let mv = view * model;
-		let mvp = perspective * mv;
-
-		self.shaders.colored_mesh.set_used();
-		self.shaders.colored_mesh.set_mvp(&mvp);
-		self.meshes.triangle.draw();
-
-
-		self.shaders.mesh.set_used();
-		self.shaders.mesh.set_mvp(&mvp);
-		self.shaders.mesh.set_color(&Vec4::new(1.0, 1.0, 1.0, 1.0));
-		self.textures.gui.bind();
-		self.meshes.ground_plane.draw();
-
-		let model = glam::Mat4::from_rotation_y(app_state.ticks_elapsed as f32 / 16.0);
-		let model = glam::Mat4::from_translation(-game_state.player_position + Vec3::new(0.0, 2.0 + (app_state.ticks_elapsed as f32 / 70.0).sin(), -8.0)) * model;
-		let mv = view * model;
-		let mvp = perspective * mv;
-		self.shaders.mesh.set_mvp(&mvp);
-
-		self.textures.pear.bind();
-		self.meshes.pear.draw();
+		game_state.draw(self);
 
 
 		let perspective = glam::Mat4::orthographic_rh_gl(
@@ -182,8 +150,6 @@ impl RenderState {
 		self.shaders.text_shader.set_mvp(&perspective);
 		self.textures.gui.bind();
 		self.ui_mesh.draw();
-
-
 
 		self.window.gl_swap_window();
 	}

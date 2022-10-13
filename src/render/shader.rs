@@ -11,17 +11,17 @@ impl Shader {
 	pub fn from_source(
 		source: &CStr,
 		kind: gl::types::GLenum,
-	) -> Result<Shader, String> {
+	) -> Result<Self, String> {
 		let id = shader_from_source(source, kind)?;
-		Ok(Shader { id })
+		Ok(Self { id })
 	}
 
-	pub fn from_vert_source(source: &CStr) -> Result<Shader, String> {
-		Shader::from_source(source, gl::VERTEX_SHADER)
+	pub fn from_vert_source(source: &CStr) -> Result<Self, String> {
+		Self::from_source(source, gl::VERTEX_SHADER)
 	}
 
-	pub fn from_frag_source(source: &CStr) -> Result<Shader, String> {
-		Shader::from_source(source, gl::FRAGMENT_SHADER)
+	pub fn from_frag_source(source: &CStr) -> Result<Self, String> {
+		Self::from_source(source, gl::FRAGMENT_SHADER)
 	}
 
 	pub fn id(&self) -> gl::types::GLuint {
