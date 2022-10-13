@@ -11,7 +11,7 @@ out vec2 multiTexCoord;
 out vec4 color;
 
 void main() {
-    gl_Position = matMVP * pos;
-    multiTexCoord = tex;
-    color = vec4(inColor.rgb * vec3(lval, lval, lval), inColor.a);
+	gl_Position = matMVP * pos;
+	multiTexCoord = tex;
+	color = vec4(inColor.rgb * vec3(lval, lval, lval), inColor.a);
 }

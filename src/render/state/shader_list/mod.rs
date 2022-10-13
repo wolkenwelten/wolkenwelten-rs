@@ -9,14 +9,14 @@ pub struct ShaderList {
 impl ShaderList {
 	pub fn new() -> ShaderList {
 		let colored_mesh = Program::from_shader_sources(
-            include_str!("colored_mesh.vert"),
-            include_str!("colored_mesh.frag"),
-        ).unwrap();
+			include_str!("colored_mesh.vert"),
+			include_str!("colored_mesh.frag"),
+		).unwrap();
 
 		let mesh = Program::from_shader_sources(
-            include_str!("mesh.vert"),
-            include_str!("mesh.frag"),
-        ).unwrap();
+			include_str!("mesh.vert"),
+			include_str!("mesh.frag"),
+		).unwrap();
 
 		let text_shader = Program::from_shader_sources(
 			include_str!("text_shader.vert"),

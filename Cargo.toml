@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies]
 sdl2 = "0.35.2"
-gl = "0.10.0"
+gl = "0.14.0"
 glam = "0.21.3"
 tobj = "3.2.3"
 image = { version = "0.24.4", default-features = false, features = ["png"]}

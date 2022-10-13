@@ -8,5 +8,5 @@ in vec2 multiTexCoord;
 out vec4 fragColor;
 
 void main() {
-    fragColor = texture2D(curTex, multiTexCoord) * color;
+	fragColor = texture2D(curTex, multiTexCoord) * color;
 }

@@ -38,11 +38,11 @@ impl Program {
 
 			unsafe {
 				gl::GetProgramInfoLog(
-                    program_id,
-                    len,
-                    std::ptr::null_mut(),
-                    error.as_ptr() as *mut gl::types::GLchar,
-                );
+					program_id,
+					len,
+					std::ptr::null_mut(),
+					error.as_ptr() as *mut gl::types::GLchar,
+				);
 			}
 
 			return Err(error.to_string_lossy().into_owned());

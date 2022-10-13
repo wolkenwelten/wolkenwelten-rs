@@ -9,9 +9,9 @@ pub struct Shader {
 
 impl Shader {
 	pub fn from_source(
-        source: &CStr,
-        kind: gl::types::GLenum,
-    ) -> Result<Shader, String> {
+		source: &CStr,
+		kind: gl::types::GLenum,
+	) -> Result<Shader, String> {
 		let id = shader_from_source(source, kind)?;
 		Ok(Shader { id })
 	}
@@ -38,8 +38,8 @@ impl Drop for Shader {
 }
 
 fn shader_from_source(
-    source: &CStr,
-    kind: gl::types::GLenum,
+	source: &CStr,
+	kind: gl::types::GLenum,
 ) -> Result<gl::types::GLuint, String> {
 	let id = unsafe { gl::CreateShader(kind) };
 	unsafe {
@@ -62,11 +62,11 @@ fn shader_from_source(
 
 		unsafe {
 			gl::GetShaderInfoLog(
-                id,
-                len,
-                std::ptr::null_mut(),
-                error.as_ptr() as *mut gl::types::GLchar,
-            );
+				id,
+				len,
+				std::ptr::null_mut(),
+				error.as_ptr() as *mut gl::types::GLchar,
+			);
 		}
 		return Err(error.to_string_lossy().into_owned());
 	}

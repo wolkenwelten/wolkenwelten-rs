@@ -27,15 +27,15 @@ impl Texture {
 			gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::NEAREST.try_into().unwrap());
 
 			gl::TexImage2D(gl::TEXTURE_2D,
-                           0,
-                           gl::RGBA.try_into().unwrap(),
-                           width.try_into().unwrap(),
-                           height.try_into().unwrap(),
-                           0,
-                           gl::RGBA,
-                           gl::UNSIGNED_BYTE,
-                           (&img as &[u8]).as_ptr() as *const c_void,
-            );
+						   0,
+						   gl::RGBA.try_into().unwrap(),
+						   width.try_into().unwrap(),
+						   height.try_into().unwrap(),
+						   0,
+						   gl::RGBA,
+						   gl::UNSIGNED_BYTE,
+						   (&img as &[u8]).as_ptr() as *const c_void,
+			);
 		};
 
 		Ok(Texture { id })

@@ -13,10 +13,10 @@ impl ColoredMesh {
 		unsafe {
 			gl::BindVertexArray(self.vao);
 			gl::DrawArrays(
-                gl::TRIANGLES,
-                0, // starting index
+				gl::TRIANGLES,
+				0, // starting index
 				self.vertex_count.try_into().unwrap(),
-            );
+			);
 		}
 	}
 
