@@ -65,8 +65,8 @@ impl Program {
 	}
 
 	pub fn from_shader_sources(vert_source: &str, frag_source: &str) -> Result<Self, String> {
-		let vert_shader = Shader::from_vert_source(&CString::new(vert_source).unwrap()).unwrap();
-		let frag_shader = Shader::from_frag_source(&CString::new(frag_source).unwrap()).unwrap();
+		let vert_shader = Shader::from_vert_source(vert_source).unwrap();
+		let frag_shader = Shader::from_frag_source(frag_source).unwrap();
 		Self::from_shaders(&[vert_shader, frag_shader])
 	}
 

@@ -1,11 +1,52 @@
 use std;
-use std::ffi::CStr;
+use std::ffi::{CStr, CString};
 
 use gl;
 
 pub struct Shader {
 	id: gl::types::GLuint,
 }
+
+fn cstr_from_string (s:String) -> CString {
+	CString::new(s).unwrap()
+}
+
+const VERT_PREFIX:&str = if cfg!(target_arch = "arm") || cfg!(target_arch = "aarch64") {
+	r"#version 300 es
+precision mediump float;
+precision mediump int;
+
+#line 0"
+} else if cfg!(target_os = "macos") {
+	r"#version 330 core
+precision mediump float;
+precision mediump int;
+
+#line 0"
+} else {
+	r"#version 130
+#line 0"};
+
+
+const FRAG_PREFIX:&str = if cfg!(target_arch = "arm") || cfg!(target_arch = "aarch64") {
+	r"#version 300 es
+precision mediump float;
+precision mediump int;
+precision mediump sampler2DArray;
+
+#line 0"
+} else if cfg!(target_os = "macos") {
+	r"#version 330 core
+precision mediump float;
+precision mediump int;
+precision mediump sampler2DArray;
+
+#line 0"
+} else {
+	r"#version 130
+#line 0"}
+;
+
 
 impl Shader {
 	pub fn from_source(
@@ -16,12 +57,14 @@ impl Shader {
 		Ok(Self { id })
 	}
 
-	pub fn from_vert_source(source: &CStr) -> Result<Self, String> {
-		Self::from_source(source, gl::VERTEX_SHADER)
+	pub fn from_vert_source(source: &str) -> Result<Self, String> {
+		let s:String = format!("{VERT_PREFIX}\n{source}");
+		Self::from_source(&cstr_from_string(s), gl::VERTEX_SHADER)
 	}
 
-	pub fn from_frag_source(source: &CStr) -> Result<Self, String> {
-		Self::from_source(source, gl::FRAGMENT_SHADER)
+	pub fn from_frag_source(source: &str) -> Result<Self, String> {
+		let s:String = format!("{FRAG_PREFIX}\n{source}");
+		Self::from_source(&cstr_from_string(s), gl::FRAGMENT_SHADER)
 	}
 
 	pub fn id(&self) -> gl::types::GLuint {

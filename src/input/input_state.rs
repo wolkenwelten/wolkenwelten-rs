@@ -23,7 +23,7 @@ pub struct InputState {
 	mouse_yrel: f32,
 }
 
-const MOUSE_ACCELERATION:f32 = 0.04;
+const MOUSE_ACCELERATION:f32 = 0.03;
 
 impl InputState {
 	pub fn new() -> Self {

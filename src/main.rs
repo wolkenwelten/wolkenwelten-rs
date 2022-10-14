@@ -17,7 +17,11 @@ mod render;
 
 pub fn main() {
 	let event_loop = EventLoop::new();
-	let wb = WindowBuilder::new().with_title("RostRegen");
+	let wb = WindowBuilder::new()
+		.with_decorations(false)
+		.with_maximized(true)
+		.with_title("RostRegen");
+
 	let windowed_context = ContextBuilder::new()
 		.with_gl_profile(GlProfile::Core)
 		.with_vsync(true)
@@ -47,64 +51,61 @@ pub fn main() {
 	let mut render_state = RenderState::new();
 
 	event_loop.run(move |event, _, control_flow| {
+		//println!("{event:?}");
 		match event {
 			Event::LoopDestroyed => (),
+
+			Event::DeviceEvent { event: DeviceEvent::Key(input), .. } |
+			Event::WindowEvent { event: WindowEvent::KeyboardInput { input, .. }, .. } => match input {
+				KeyboardInput { virtual_keycode: Some(VirtualKeyCode::Escape), .. } => *control_flow = ControlFlow::Exit,
+
+				KeyboardInput { state: ElementState::Pressed , virtual_keycode: Some(VirtualKeyCode::W), .. } =>
+					render_state.input.key_down(Key::Up),
+				KeyboardInput { state: ElementState::Released , virtual_keycode: Some(VirtualKeyCode::W), .. } =>
+					render_state.input.key_up(Key::Up),
+
+				KeyboardInput { state: ElementState::Pressed , virtual_keycode: Some(VirtualKeyCode::S), .. } =>
+					render_state.input.key_down(Key::Down),
+				KeyboardInput { state: ElementState::Released , virtual_keycode: Some(VirtualKeyCode::S), .. } =>
+					render_state.input.key_up(Key::Down),
+
+				KeyboardInput { state: ElementState::Pressed , virtual_keycode: Some(VirtualKeyCode::A), .. } =>
+					render_state.input.key_down(Key::Left),
+				KeyboardInput { state: ElementState::Released , virtual_keycode: Some(VirtualKeyCode::A), .. } =>
+					render_state.input.key_up(Key::Left),
+
+				KeyboardInput { state: ElementState::Pressed , virtual_keycode: Some(VirtualKeyCode::D), .. } =>
+					render_state.input.key_down(Key::Right),
+				KeyboardInput { state: ElementState::Released , virtual_keycode: Some(VirtualKeyCode::D), .. } =>
+					render_state.input.key_up(Key::Right),
+
+				KeyboardInput { state: ElementState::Pressed , virtual_keycode: Some(VirtualKeyCode::Space), .. } =>
+					render_state.input.key_down(Key::Jump),
+				KeyboardInput { state: ElementState::Released , virtual_keycode: Some(VirtualKeyCode::Space), .. } =>
+					render_state.input.key_up(Key::Jump),
+
+				KeyboardInput { state: ElementState::Pressed , virtual_keycode: Some(VirtualKeyCode::C), .. } =>
+					render_state.input.key_down(Key::Crouch),
+				KeyboardInput { state: ElementState::Released , virtual_keycode: Some(VirtualKeyCode::C), .. } =>
+					render_state.input.key_up(Key::Crouch),
+
+				KeyboardInput { state: ElementState::Pressed , virtual_keycode: Some(VirtualKeyCode::LShift), .. } =>
+					render_state.input.key_down(Key::Sprint),
+				KeyboardInput { state: ElementState::Released , virtual_keycode: Some(VirtualKeyCode::LShift), .. } =>
+					render_state.input.key_up(Key::Sprint),
+
+				_ => (),
+			},
 			Event::WindowEvent { event, .. } => match event {
 				WindowEvent::Resized(physical_size) => {
 					windowed_context.resize(physical_size);
 					render_state.viewport.update_size(physical_size.width, physical_size.height);
 				},
-				WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
 				_ => (),
 			},
 			Event::DeviceEvent { event, .. } => match event {
-				DeviceEvent::Key(keypress) => match keypress {
-					KeyboardInput { virtual_keycode: Some(VirtualKeyCode::Escape), .. } => *control_flow = ControlFlow::Exit,
-
-					KeyboardInput { state: ElementState::Pressed , virtual_keycode: Some(VirtualKeyCode::W), .. } =>
-						render_state.input.key_down(Key::Up),
-					KeyboardInput { state: ElementState::Released , virtual_keycode: Some(VirtualKeyCode::W), .. } =>
-						render_state.input.key_up(Key::Up),
-
-					KeyboardInput { state: ElementState::Pressed , virtual_keycode: Some(VirtualKeyCode::S), .. } =>
-						render_state.input.key_down(Key::Down),
-					KeyboardInput { state: ElementState::Released , virtual_keycode: Some(VirtualKeyCode::S), .. } =>
-						render_state.input.key_up(Key::Down),
-
-					KeyboardInput { state: ElementState::Pressed , virtual_keycode: Some(VirtualKeyCode::A), .. } =>
-						render_state.input.key_down(Key::Left),
-					KeyboardInput { state: ElementState::Released , virtual_keycode: Some(VirtualKeyCode::A), .. } =>
-						render_state.input.key_up(Key::Left),
-
-					KeyboardInput { state: ElementState::Pressed , virtual_keycode: Some(VirtualKeyCode::D), .. } =>
-						render_state.input.key_down(Key::Right),
-					KeyboardInput { state: ElementState::Released , virtual_keycode: Some(VirtualKeyCode::D), .. } =>
-						render_state.input.key_up(Key::Right),
-
-					KeyboardInput { state: ElementState::Pressed , virtual_keycode: Some(VirtualKeyCode::Space), .. } =>
-						render_state.input.key_down(Key::Jump),
-					KeyboardInput { state: ElementState::Released , virtual_keycode: Some(VirtualKeyCode::Space), .. } =>
-						render_state.input.key_up(Key::Jump),
-
-					KeyboardInput { state: ElementState::Pressed , virtual_keycode: Some(VirtualKeyCode::C), .. } =>
-						render_state.input.key_down(Key::Crouch),
-					KeyboardInput { state: ElementState::Released , virtual_keycode: Some(VirtualKeyCode::C), .. } =>
-						render_state.input.key_up(Key::Crouch),
-
-					KeyboardInput { state: ElementState::Pressed , virtual_keycode: Some(VirtualKeyCode::LShift), .. } =>
-						render_state.input.key_down(Key::Sprint),
-					KeyboardInput { state: ElementState::Released , virtual_keycode: Some(VirtualKeyCode::LShift), .. } =>
-						render_state.input.key_up(Key::Sprint),
-
-					_ => ()
-				},
 				DeviceEvent::MouseMotion { delta } => {
 					render_state.input.mouse_motion(delta.0 as f32, delta.1 as f32);
-
-					let window = windowed_context.window();
-					let x = render_state.viewport.w / 2;
-					let y = render_state.viewport.h / 2;
-					let _ = window.set_cursor_position(PhysicalPosition::new(x, y));
 				}
 				_ => ()
 			},

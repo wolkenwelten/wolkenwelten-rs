@@ -1,5 +1,3 @@
-#version 300 es
-
 uniform mat4 matMVP;
 uniform vec4 inColor;
 
