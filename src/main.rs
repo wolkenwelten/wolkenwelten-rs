@@ -5,9 +5,7 @@ use crate::render::RenderState;
 use glutin::event::{Event, DeviceEvent, ElementState, KeyboardInput, VirtualKeyCode, WindowEvent};
 use glutin::event_loop::{ControlFlow, EventLoop};
 use glutin::window::{CursorGrabMode, WindowBuilder};
-use glutin::dpi::PhysicalPosition;
 use glutin::ContextBuilder;
-use glutin::GlProfile;
 use crate::input::Key;
 
 
@@ -23,7 +21,6 @@ pub fn main() {
 		.with_title("RostRegen");
 
 	let windowed_context = ContextBuilder::new()
-		.with_gl_profile(GlProfile::Core)
 		.with_vsync(true)
 		.with_double_buffer(Some(true))
 		.build_windowed(wb, &event_loop)

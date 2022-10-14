@@ -7,19 +7,34 @@ use glam::{Mat4, Vec4};
 
 use super::shader::Shader;
 
+fn cstr_from_string (s:String) -> CString {
+	CString::new(s).unwrap()
+}
+
 pub struct Program {
 	id: GLuint,
 	location_mvp: GLint,
 	location_color: GLint,
 }
 
+fn bind_attrib_locations(program: GLuint) {
+	unsafe {
+		gl::BindAttribLocation(program, 0, cstr_from_string("pos".to_string()).as_ptr());
+		gl::BindAttribLocation(program, 1, cstr_from_string("tex".to_string()).as_ptr());
+		gl::BindAttribLocation(program, 2, cstr_from_string("lval".to_string()).as_ptr());
+		gl::BindAttribLocation(program, 2, cstr_from_string("color".to_string()).as_ptr());
+	}
+}
+
 impl Program {
 	pub fn from_shaders(shaders: &[Shader]) -> Result<Self, String> {
-		let program_id = unsafe { gl::CreateProgram() };
+		let program_id:GLuint = unsafe { gl::CreateProgram() };
 
 		for shader in shaders {
 			unsafe { gl::AttachShader(program_id, shader.id()); }
 		}
+
+		bind_attrib_locations(program_id);
 
 		unsafe { gl::LinkProgram(program_id); }
 

@@ -2,9 +2,10 @@ use std;
 use std::ffi::{CStr, CString};
 
 use gl;
+use gl::types::GLuint;
 
 pub struct Shader {
-	id: gl::types::GLuint,
+	id:GLuint,
 }
 
 fn cstr_from_string (s:String) -> CString {
@@ -111,7 +112,8 @@ fn shader_from_source(
 				error.as_ptr() as *mut gl::types::GLchar,
 			);
 		}
-		return Err(error.to_string_lossy().into_owned());
+		Err(error.to_string_lossy().into_owned())
+	} else {
+		Ok(id)
 	}
-	Ok(id)
 }
