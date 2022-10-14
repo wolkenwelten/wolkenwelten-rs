@@ -1,32 +1,125 @@
-use crate::app::AppState;
+use std::ffi::CStr;
 use crate::game::GameState;
 use crate::render::RenderState;
 
-mod app;
+use glutin::event::{Event, DeviceEvent, ElementState, KeyboardInput, VirtualKeyCode, WindowEvent};
+use glutin::event_loop::{ControlFlow, EventLoop};
+use glutin::window::{CursorGrabMode, WindowBuilder};
+use glutin::dpi::PhysicalPosition;
+use glutin::ContextBuilder;
+use glutin::GlProfile;
+use crate::input::Key;
+
+
 mod game;
 mod input;
 mod render;
 
 pub fn main() {
-	let mut app_state = AppState::new();
+	let event_loop = EventLoop::new();
+	let wb = WindowBuilder::new().with_title("RostRegen");
+	let windowed_context = ContextBuilder::new()
+		.with_gl_profile(GlProfile::Core)
+		.with_vsync(true)
+		.with_double_buffer(Some(true))
+		.build_windowed(wb, &event_loop)
+		.unwrap();
+
+	let windowed_context = unsafe { windowed_context.make_current().unwrap() };
+	let _gl = gl::load_with(|ptr| windowed_context.get_proc_address(ptr) as *const _);
+
+
+	{
+		let window = windowed_context.window();
+		window.set_cursor_grab(CursorGrabMode::Confined)
+			.or_else(|_e| window.set_cursor_grab(CursorGrabMode::Locked))
+			.unwrap();
+		window.set_cursor_visible(false);
+	}
+
+	let version = unsafe {
+		let data = CStr::from_ptr(gl::GetString(gl::VERSION) as *const _).to_bytes().to_vec();
+		String::from_utf8(data).unwrap()
+	};
+	println!("OpenGL version {}", version);
+
 	let mut game_state = GameState::new();
 	let mut render_state = RenderState::new();
 
-	'running: loop {
-		render_state.input.mouse_flush();
-		render_state.check_events(&mut app_state);
-		render_state.prepare(&mut app_state, &mut game_state)
-			.draw(&app_state, &game_state);
+	event_loop.run(move |event, _, control_flow| {
+		match event {
+			Event::LoopDestroyed => (),
+			Event::WindowEvent { event, .. } => match event {
+				WindowEvent::Resized(physical_size) => {
+					windowed_context.resize(physical_size);
+					render_state.viewport.update_size(physical_size.width, physical_size.height);
+				},
+				WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
+				_ => (),
+			},
+			Event::DeviceEvent { event, .. } => match event {
+				DeviceEvent::Key(keypress) => match keypress {
+					KeyboardInput { virtual_keycode: Some(VirtualKeyCode::Escape), .. } => *control_flow = ControlFlow::Exit,
 
-		game_state.check_input(&render_state);
-		game_state.tick();
-		if !game_state.running {
-			game_state = GameState::new(); // Auto Restart for now
-		}
+					KeyboardInput { state: ElementState::Pressed , virtual_keycode: Some(VirtualKeyCode::W), .. } =>
+						render_state.input.key_down(Key::Up),
+					KeyboardInput { state: ElementState::Released , virtual_keycode: Some(VirtualKeyCode::W), .. } =>
+						render_state.input.key_up(Key::Up),
 
-		app_state.tick();
-		if !app_state.running {
-			break 'running;
+					KeyboardInput { state: ElementState::Pressed , virtual_keycode: Some(VirtualKeyCode::S), .. } =>
+						render_state.input.key_down(Key::Down),
+					KeyboardInput { state: ElementState::Released , virtual_keycode: Some(VirtualKeyCode::S), .. } =>
+						render_state.input.key_up(Key::Down),
+
+					KeyboardInput { state: ElementState::Pressed , virtual_keycode: Some(VirtualKeyCode::A), .. } =>
+						render_state.input.key_down(Key::Left),
+					KeyboardInput { state: ElementState::Released , virtual_keycode: Some(VirtualKeyCode::A), .. } =>
+						render_state.input.key_up(Key::Left),
+
+					KeyboardInput { state: ElementState::Pressed , virtual_keycode: Some(VirtualKeyCode::D), .. } =>
+						render_state.input.key_down(Key::Right),
+					KeyboardInput { state: ElementState::Released , virtual_keycode: Some(VirtualKeyCode::D), .. } =>
+						render_state.input.key_up(Key::Right),
+
+					KeyboardInput { state: ElementState::Pressed , virtual_keycode: Some(VirtualKeyCode::Space), .. } =>
+						render_state.input.key_down(Key::Jump),
+					KeyboardInput { state: ElementState::Released , virtual_keycode: Some(VirtualKeyCode::Space), .. } =>
+						render_state.input.key_up(Key::Jump),
+
+					KeyboardInput { state: ElementState::Pressed , virtual_keycode: Some(VirtualKeyCode::C), .. } =>
+						render_state.input.key_down(Key::Crouch),
+					KeyboardInput { state: ElementState::Released , virtual_keycode: Some(VirtualKeyCode::C), .. } =>
+						render_state.input.key_up(Key::Crouch),
+
+					KeyboardInput { state: ElementState::Pressed , virtual_keycode: Some(VirtualKeyCode::LShift), .. } =>
+						render_state.input.key_down(Key::Sprint),
+					KeyboardInput { state: ElementState::Released , virtual_keycode: Some(VirtualKeyCode::LShift), .. } =>
+						render_state.input.key_up(Key::Sprint),
+
+					_ => ()
+				},
+				DeviceEvent::MouseMotion { delta } => {
+					render_state.input.mouse_motion(delta.0 as f32, delta.1 as f32);
+
+					let window = windowed_context.window();
+					let x = render_state.viewport.w / 2;
+					let y = render_state.viewport.h / 2;
+					let _ = window.set_cursor_position(PhysicalPosition::new(x, y));
+				}
+				_ => ()
+			},
+			Event::MainEventsCleared => {
+				game_state.check_input(&render_state);
+				game_state.tick();
+
+				render_state.input.mouse_flush();
+				render_state.prepare(&mut game_state)
+					.draw(&game_state);
+				windowed_context.swap_buffers().unwrap();
+			}
+			_ => {
+				//println!("{:?}", event);
+			},
 		}
-	}
+	});
 }

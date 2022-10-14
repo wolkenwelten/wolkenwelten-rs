@@ -8,7 +8,7 @@ pub enum Key {
 
 	Jump,
 	Crouch,
-	Sneak,
+	Sprint,
 
 	RotateUp,
 	RotateDown,
@@ -23,6 +23,8 @@ pub struct InputState {
 	mouse_yrel: f32,
 }
 
+const MOUSE_ACCELERATION:f32 = 0.04;
+
 impl InputState {
 	pub fn new() -> Self {
 		let button_states = [false; 11];
@@ -36,9 +38,9 @@ impl InputState {
 		}
 	}
 
-	pub fn mouse_motion(&mut self, xrel: i32, yrel: i32) {
-		self.mouse_xrel = (xrel as f32) * 0.02;
-		self.mouse_yrel = (yrel as f32) * 0.02;
+	pub fn mouse_motion(&mut self, xrel: f32, yrel: f32) {
+		self.mouse_xrel = (xrel as f32) * MOUSE_ACCELERATION;
+		self.mouse_yrel = (yrel as f32) * MOUSE_ACCELERATION;
 	}
 	pub fn mouse_flush(&mut self) {
 		self.mouse_xrel = 0.0;
@@ -55,7 +57,7 @@ impl InputState {
 	}
 
 	pub fn get_speed(&self) -> f32 {
-		if self.button_states[Key::Sneak as usize] { 0.1 } else { 0.01 }
+		if self.button_states[Key::Sprint as usize] { 0.1 } else { 0.01 }
 	}
 	pub fn get_jump(&self) -> f32 { (if self.button_states[Key::Crouch as usize] { -1.0 } else { 0.0 }) + (if self.button_states[Key::Jump as usize] { 1.0 } else { 0.0 }) }
 	pub fn get_movement_vector(&self) -> Vec3 {

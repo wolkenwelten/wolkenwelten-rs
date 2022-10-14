@@ -44,7 +44,7 @@ impl GameState {
 			entities,
 		}
 	}
-	pub fn push_entity (&mut self, e:Entity) { self.entities.push(e); }
+	pub fn _push_entity (&mut self, e:Entity) { self.entities.push(e); }
 
 	pub fn check_input(&mut self, render_state: &RenderState) {
 		let rot_vec = render_state.input.get_rotation_movement_vector();

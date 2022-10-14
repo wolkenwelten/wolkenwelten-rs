@@ -4,8 +4,9 @@ version = "0.0.1"
 edition = "2021"
 
 [dependencies]
+winit = "0.27.4"
+glutin = "0.29.1"
 rand = "0.8.5"
-sdl2 = "0.35.2"
 gl = "0.14.0"
 glam = "0.21.3"
 tobj = "3.2.3"
