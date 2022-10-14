@@ -57,10 +57,11 @@ impl InputState {
 	pub fn get_speed(&self) -> f32 {
 		if self.button_states[Key::Sneak as usize] { 0.1 } else { 0.01 }
 	}
+	pub fn get_jump(&self) -> f32 { (if self.button_states[Key::Crouch as usize] { -1.0 } else { 0.0 }) + (if self.button_states[Key::Jump as usize] { 1.0 } else { 0.0 }) }
 	pub fn get_movement_vector(&self) -> Vec3 {
 		Vec3::new(
 			(if self.button_states[Key::Left as usize] { -1.0 } else { 0.0 }) + (if self.button_states[Key::Right as usize] { 1.0 } else { 0.0 }),
-			(if self.button_states[Key::Crouch as usize] { -1.0 } else { 0.0 }) + (if self.button_states[Key::Jump as usize] { 1.0 } else { 0.0 }),
+			0.0,
 			(if self.button_states[Key::Up as usize] { -1.0 } else { 0.0 }) + (if self.button_states[Key::Down as usize] { 1.0 } else { 0.0 }),
 		)
 	}

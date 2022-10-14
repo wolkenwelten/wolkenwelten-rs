@@ -66,9 +66,9 @@ impl GameState {
 		let v = glam::Vec4::from((render_state.input.get_movement_vector(), 1.0_f32));
 		let move_vec = view * v;
 		let speed = render_state.input.get_speed();
-		self.player_position[0] += move_vec[0] * speed;
-		self.player_position[1] += move_vec[1] * speed;
-		self.player_position[2] += move_vec[2] * speed;
+		self.player_position[0] +=  move_vec[0] * speed;
+		self.player_position[1] += (move_vec[1] * speed) + (render_state.input.get_jump() * speed);
+		self.player_position[2] +=  move_vec[2] * speed;
 	}
 
 	pub fn tick(&mut self) {
