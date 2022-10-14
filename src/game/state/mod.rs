@@ -23,12 +23,14 @@ impl GameState {
 		let mut rng = rand::thread_rng();
 		for x in -5..=5 {
 			for z in -5..=5 {
-				let mut e = Entity::new(Vec3::new(x as f32, 5.0, z as f32));
+				let y:f32 = (rng.gen::<f32>()*5.0) + 2.5;
+				let mut e = Entity::new(Vec3::new(x as f32, y, z as f32));
 				let vx:f32 = (rng.gen::<f32>() - 0.5)*0.05;
 				let vy:f32 = (rng.gen::<f32>() - 0.5)*0.01;
 				let vz:f32 = (rng.gen::<f32>() - 0.5)*0.05;
 				let vel = Vec3::new(vx, vy, vz);
 				e.set_vel(&vel);
+
 				entities.push(e);
 			}
 		}
@@ -42,10 +44,7 @@ impl GameState {
 			entities,
 		}
 	}
-
-	pub fn _push_entity (&mut self, e:Entity) {
-		self.entities.push(e);
-	}
+	pub fn push_entity (&mut self, e:Entity) { self.entities.push(e); }
 
 	pub fn check_input(&mut self, render_state: &RenderState) {
 		let rot_vec = render_state.input.get_rotation_movement_vector();
