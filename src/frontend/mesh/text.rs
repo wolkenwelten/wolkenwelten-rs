@@ -1,10 +1,9 @@
 use gl::types::*;
 
-use crate::frontend::mesh::Vertex2D;
+use crate::frontend::mesh::{VAO, VBO, Vertex2D};
 
 pub struct TextMesh {
-	vao: GLuint,
-	vbo: GLuint,
+	vao: VAO,
 	vertex_count: GLuint,
 
 	finished: bool,
@@ -20,53 +19,25 @@ impl TextMesh {
 	}
 
 	pub fn prepare(&mut self) -> &mut Self {
-		if self.vao == 0 {
-			unsafe { gl::GenVertexArrays(1, &mut self.vao); }
-		}
-		unsafe { gl::BindVertexArray(self.vao); }
-
-		if self.vbo == 0 {
-			unsafe {
-				gl::GenBuffers(1, &mut self.vbo);
-				gl::BindBuffer(gl::ARRAY_BUFFER, self.vbo);
-				Vertex2D::vertex_attrib_pointers();
-			}
-		} else {
-			unsafe { gl::BindBuffer(gl::ARRAY_BUFFER, self.vbo); }
-		}
-
 		if !self.finished {
+			self.vao.bind();
 			self.vertex_count = self.vertices.len() as u32;
 			let vbo_size = (self.vertices.len() * std::mem::size_of::<Vertex2D>()) as gl::types::GLsizeiptr;
-			unsafe {
-				gl::BufferData(
-					gl::ARRAY_BUFFER,
-					vbo_size.try_into().unwrap(), // size of data in bytes
-					self.vertices.as_ptr() as *const gl::types::GLvoid,
-					gl::STATIC_DRAW,
-				);
-			}
+			VBO::buffer_data(self.vertices.as_ptr() as *const GLvoid, vbo_size.try_into().unwrap());
 			self.finished = true;
 		}
-
 		self
 	}
 
 	pub fn draw(&self) {
-		unsafe {
-			gl::BindVertexArray(self.vao);
-			gl::DrawArrays(
-				gl::TRIANGLES,
-				0,
-				self.vertex_count.try_into().unwrap(),
-			);
-		}
+		self.vao.draw(self.vertex_count)
 	}
 
 	pub fn new() -> Self {
+		let vao = VAO::new_empty("Text Mesh");
+		Vertex2D::vertex_attrib_pointers();
 		Self {
-			vao: 0,
-			vbo: 0,
+			vao,
 			vertex_count: 0,
 			finished: false,
 			vertices: Vec::with_capacity(8),
@@ -112,18 +83,5 @@ impl TextMesh {
 			self.push_glyph(x, y, size as i16, rgba, c);
 		}
 		self
-	}
-}
-
-impl Drop for TextMesh {
-	fn drop(&mut self) {
-		unsafe {
-			if self.vbo != 0 {
-				gl::DeleteBuffers(1, &mut self.vbo);
-			}
-			if self.vao != 0 {
-				gl::DeleteVertexArrays(1, &mut self.vao);
-			}
-		}
 	}
 }

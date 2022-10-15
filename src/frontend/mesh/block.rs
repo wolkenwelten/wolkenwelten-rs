@@ -1,10 +1,9 @@
-use std::ffi::CString;
 use super::vertex::vertex_attrib_int_pointer;
 use gl::types::{GLuint, GLvoid};
+use crate::frontend::mesh::VAO;
 
 pub struct BlockMesh {
-	vao: GLuint,
-	vbo: GLuint,
+	vao: VAO,
 	vertex_count: u16,
 }
 
@@ -118,45 +117,16 @@ impl BlockVertex {
 
 impl BlockMesh {
 	pub fn draw(&self) {
-		unsafe {
-			gl::BindVertexArray(self.vao);
-			gl::DrawArrays(gl::TRIANGLES, 0, self.vertex_count.try_into().unwrap());
-		}
+		self.vao.draw(self.vertex_count.into());
 	}
 
 	fn new(vertices: &Vec<BlockVertex>) -> Result<Self, String> {
-		let vbo_size = (vertices.len() * std::mem::size_of::<BlockVertex>()) as gl::types::GLsizeiptr;
+		let vbo_size:u32 = (vertices.len() * std::mem::size_of::<BlockVertex>()) as u32;
 		let vertex_count: GLuint = vertices.len().try_into().unwrap();
-		let i:u32 = 0;
-
-		let label = CString::new(format!("BlockMesh VAO {i}")).unwrap();
-		let vao = unsafe {
-			let mut vao = 0;
-			gl::GenVertexArrays(1, &mut vao);
-			gl::BindVertexArray(vao);
-			gl::ObjectLabel(gl::ARRAY_BUFFER, vao, -1, label.as_ptr());
-			vao
-		};
-
-		let label = CString::new(format!("BlockMesh VBO {i}")).unwrap();
-		let vbo = unsafe {
-			let mut vbo:GLuint = 0;
-			gl::GenBuffers(1, &mut vbo);
-			gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
-			gl::BufferData(
-				gl::ARRAY_BUFFER,
-				vbo_size.try_into().unwrap(),
-				vertices.as_ptr() as *const GLvoid,
-				gl::STATIC_DRAW,
-			);
-			gl::ObjectLabel(gl::BUFFER, vbo, -1, label.as_ptr());
-			BlockVertex::vertex_attrib_pointers();
-			vbo
-		};
-
-		let _vbo_size:u16 = vbo_size.try_into().unwrap();
+		let vao = VAO::new("BlockMesh", vertices.as_ptr() as *const GLvoid, vbo_size);
+		BlockVertex::vertex_attrib_pointers();
 		let vertex_count:u16 = vertex_count.try_into().unwrap();
-		Ok(Self { vao, vbo, vertex_count })
+		Ok(Self { vao, vertex_count })
 	}
 
 	pub fn test_mesh() -> Self {
@@ -172,14 +142,5 @@ impl BlockMesh {
 			}
 		}
 		Self::new(&vertices).unwrap()
-	}
-}
-
-impl Drop for BlockMesh {
-	fn drop(&mut self) {
-		unsafe {
-			gl::DeleteBuffers(1, &mut self.vbo);
-			gl::DeleteVertexArrays(1, &mut self.vao);
-		}
 	}
 }

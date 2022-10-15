@@ -1,50 +1,24 @@
-use gl::types::{GLuint};
+use gl::types::{GLuint,  GLvoid};
 
 use crate::frontend::mesh::MeshVertex;
+use super::util::VAO;
 
 pub struct Mesh {
-	vao: GLuint,
-	vbo: GLuint,
-	vertex_count: GLuint,
+	vao: VAO,
+	vertex_count: u32,
 }
 
 impl Mesh {
 	pub fn draw(&self) {
-		unsafe {
-			gl::BindVertexArray(self.vao);
-			gl::DrawArrays(
-				gl::TRIANGLES,
-				0, // starting index
-				self.vertex_count.try_into().unwrap(),
-			);
-		}
+		self.vao.draw(self.vertex_count);
 	}
 
 	pub fn from_vec(vertices: &Vec<MeshVertex>) -> Result<Self, String> {
-		let vbo_size = (vertices.len() * std::mem::size_of::<MeshVertex>()) as gl::types::GLsizeiptr;
+		let vbo_size:u32 = (vertices.len() * std::mem::size_of::<MeshVertex>()).try_into().unwrap();
+		let vao = VAO::new("Block Mesh", vertices.as_ptr() as *const GLvoid, vbo_size);
+		MeshVertex::vertex_attrib_pointers();
 		let vertex_count: GLuint = vertices.len().try_into().unwrap();
-
-		let vao: GLuint = unsafe {
-			let mut vao: GLuint = 0;
-			gl::GenVertexArrays(1, &mut vao);
-			gl::BindVertexArray(vao);
-			vao
-		};
-
-		let vbo: GLuint = unsafe {
-			let mut vbo:GLuint = 0;
-			gl::GenBuffers(1, &mut vbo);
-			gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
-			gl::BufferData(
-				gl::ARRAY_BUFFER, // target
-				vbo_size.try_into().unwrap(), // size of data in bytes
-				vertices.as_ptr() as *const gl::types::GLvoid, // pointer to data
-				gl::STATIC_DRAW, // usage
-			);
-			MeshVertex::vertex_attrib_pointers();
-			vbo
-		};
-		Ok(Self { vao, vbo, vertex_count })
+		Ok(Self { vao, vertex_count })
 	}
 
 	pub fn from_obj_string(s: &str) -> Result<Self, String> {
@@ -70,14 +44,5 @@ impl Mesh {
 			});
 		}
 		Self::from_vec(&vertices)
-	}
-}
-
-impl Drop for Mesh {
-	fn drop(&mut self) {
-		unsafe {
-			gl::DeleteBuffers(1, &mut self.vbo);
-			gl::DeleteVertexArrays(1, &mut self.vao);
-		}
 	}
 }
