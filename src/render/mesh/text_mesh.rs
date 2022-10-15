@@ -21,15 +21,9 @@ impl TextMesh {
 
 	pub fn prepare(&mut self) -> &mut Self {
 		if self.vao == 0 {
-			unsafe {
-				gl::GenVertexArrays(1, &mut self.vao);
-				gl::BindVertexArray(self.vao);
-			}
+			unsafe { gl::GenVertexArrays(1, &mut self.vao); }
 		}
-		unsafe {
-			gl::BindVertexArray(self.vao);
-		}
-
+		unsafe { gl::BindVertexArray(self.vao); }
 
 		if self.vbo == 0 {
 			unsafe {
@@ -38,9 +32,7 @@ impl TextMesh {
 				Vertex2D::vertex_attrib_pointers();
 			}
 		} else {
-			unsafe {
-				gl::BindBuffer(gl::ARRAY_BUFFER, self.vbo);
-			}
+			unsafe { gl::BindBuffer(gl::ARRAY_BUFFER, self.vbo); }
 		}
 
 		if !self.finished {
@@ -82,7 +74,7 @@ impl TextMesh {
 	}
 
 	pub fn push_vertex(&mut self, x:i16, y:i16, u:i16, v:i16, rgba:u32) -> &mut Self {
-		self.vertices.push( Vertex2D { x,y,u,v,rgba });
+		self.vertices.push( Vertex2D { x, y, u, v, rgba });
 		self
 	}
 

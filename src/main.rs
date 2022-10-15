@@ -38,11 +38,10 @@ pub fn main() {
 		window.set_cursor_visible(false);
 	}
 
-	let version = unsafe {
+	let _version = unsafe {
 		let data = CStr::from_ptr(gl::GetString(gl::VERSION) as *const _).to_bytes().to_vec();
 		String::from_utf8(data).unwrap()
 	};
-	println!("OpenGL version {}", version);
 
 	let mut game_state = GameState::new();
 	let mut render_state = RenderState::new();

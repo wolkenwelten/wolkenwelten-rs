@@ -1,4 +1,4 @@
-use std::ffi::c_void;
+use std::ffi::{c_void, CString};
 
 use gl;
 
@@ -8,6 +8,7 @@ pub struct Texture {
 
 impl Texture {
 	pub fn from_bytes(
+		label:&str,
 		bytes: &'static [u8]
 	) -> Result<Texture, image::ImageError> {
 		let img = image::load_from_memory(bytes)?;
@@ -19,10 +20,12 @@ impl Texture {
 			x => x.to_rgba8()
 		};
 
+		let label = CString::new(label).unwrap();
 		let mut id = 0;
 		unsafe {
 			gl::GenTextures(1, &mut id);
 			gl::BindTexture(gl::TEXTURE_2D, id);
+			gl::ObjectLabel(gl::TEXTURE, id, -1, label.as_ptr());
 			gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::NEAREST.try_into().unwrap());
 			gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::NEAREST.try_into().unwrap());
 
@@ -55,4 +58,3 @@ impl Drop for Texture {
 		}
 	}
 }
-

@@ -89,7 +89,6 @@ impl RenderState {
 		unsafe {
 			gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
 		};
-
 		game_state.draw(self);
 
 
@@ -104,8 +103,8 @@ impl RenderState {
 			10.0,
 		);
 
-		self.shaders.text_shader.set_used();
-		self.shaders.text_shader.set_mvp(&perspective);
+		self.shaders.text.set_used();
+		self.shaders.text.set_mvp(&perspective);
 		self.textures.gui.bind();
 		self.ui_mesh.draw();
 	}

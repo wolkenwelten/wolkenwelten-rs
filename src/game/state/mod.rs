@@ -90,12 +90,16 @@ impl GameState {
 		let view = view * glam::Mat4::from_translation(-self.player_position);
 		let mvp = projection * view;
 
+		render_state.shaders.block.set_used();
+		render_state.shaders.block.set_mvp(&mvp);
+		let trans: Vec3 = Vec3::new(1.0,1.0,-10.0);
+		render_state.shaders.block.set_trans(&trans);
+		render_state.shaders.block.set_alpha(1.0);
+		render_state.meshes.voxel_test.draw();
+
 		render_state.shaders.mesh.set_used();
 		let c = Vec4::new(1.0, 1.0, 1.0, 1.0);
 		render_state.shaders.mesh.set_color(&c);
-		render_state.shaders.mesh.set_mvp(&mvp);
-		render_state.textures.blocks.bind();
-		render_state.meshes.ground_plane.draw();
 		render_state.textures.pear.bind();
 
 		for e in &self.entities {
