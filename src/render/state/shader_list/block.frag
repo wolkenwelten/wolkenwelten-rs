@@ -13,6 +13,5 @@ void main() {
  | they have been generated so their sudden appearance is less jarring.
  */
 	vec3 lightColor = vec3(lightValue, lightValue, lightValue);
-	//fragColor = vec4(texture(curTex, texCoord).rgb * lightColor, colorAlpha);
-	fragColor = vec4(lightColor, colorAlpha);
+	fragColor = vec4(texture(curTex, texCoord).rgb * lightColor, colorAlpha);
 }

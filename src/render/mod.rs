@@ -7,12 +7,13 @@ pub use self::shader::Shader;
 pub use self::state::RenderState;
 pub use self::state::viewport::Viewport;
 pub use self::texture::Texture;
+pub use self::texture_array::TextureArray;
 
 mod mesh;
 mod shader;
 mod program;
 mod texture;
-
+mod texture_array;
 mod state;
 
 pub fn create_whitespace_cstring_with_len(len: usize) -> CString {

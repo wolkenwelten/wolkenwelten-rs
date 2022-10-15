@@ -92,9 +92,10 @@ impl GameState {
 
 		render_state.shaders.block.set_used();
 		render_state.shaders.block.set_mvp(&mvp);
-		let trans: Vec3 = Vec3::new(1.0,1.0,-10.0);
+		let trans: Vec3 = Vec3::new(-8.0,-8.0,-12.0);
 		render_state.shaders.block.set_trans(&trans);
 		render_state.shaders.block.set_alpha(1.0);
+		render_state.textures.blocks.bind();
 		render_state.meshes.voxel_test.draw();
 
 		render_state.shaders.mesh.set_used();

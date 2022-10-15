@@ -10,7 +10,7 @@ impl Texture {
 	pub fn from_bytes(
 		label:&str,
 		bytes: &'static [u8]
-	) -> Result<Texture, image::ImageError> {
+	) -> Result<Self, image::ImageError> {
 		let img = image::load_from_memory(bytes)?;
 		let width: u16 = img.width().try_into().unwrap();
 		let height: u16 = img.height().try_into().unwrap();
@@ -21,14 +21,13 @@ impl Texture {
 		};
 
 		let label = CString::new(label).unwrap();
-		let mut id = 0;
-		unsafe {
+		let id = unsafe {
+			let mut id = 0;
 			gl::GenTextures(1, &mut id);
 			gl::BindTexture(gl::TEXTURE_2D, id);
 			gl::ObjectLabel(gl::TEXTURE, id, -1, label.as_ptr());
 			gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::NEAREST.try_into().unwrap());
 			gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::NEAREST.try_into().unwrap());
-
 			gl::TexImage2D(gl::TEXTURE_2D,
 						   0,
 						   gl::RGBA.try_into().unwrap(),
@@ -39,9 +38,9 @@ impl Texture {
 						   gl::UNSIGNED_BYTE,
 						   (&img as &[u8]).as_ptr() as *const c_void,
 			);
+			id
 		};
-
-		Ok(Texture { id })
+		Ok(Self { id })
 	}
 
 	pub fn bind(&self) {
