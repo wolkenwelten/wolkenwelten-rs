@@ -2,19 +2,17 @@ use std::ffi::CString;
 
 pub use self::mesh::Mesh;
 
-pub use self::program::Program;
-pub use self::shader::Shader;
+pub use self::shader::Program;
 pub use self::state::RenderState;
 pub use self::state::viewport::Viewport;
-pub use self::texture::Texture;
-pub use self::texture_array::TextureArray;
+pub use self::texture::{Texture, TextureArray};
+pub use self::input::{InputState, Key};
 
 mod mesh;
 mod shader;
-mod program;
 mod texture;
-mod texture_array;
 mod state;
+mod input;
 
 pub fn create_whitespace_cstring_with_len(len: usize) -> CString {
 	let mut buffer: Vec<u8> = Vec::with_capacity(len + 1);

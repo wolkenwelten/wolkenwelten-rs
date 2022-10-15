@@ -1,10 +1,10 @@
 use std::time::{Instant};
+use crate::frontend::input::InputState;
 use crate::{GameState};
-use crate::input::InputState;
-use crate::render::mesh::TextMesh;
-use crate::render::state::{MeshList, TextureList};
-use crate::render::state::ShaderList;
-use crate::render::Viewport;
+use crate::frontend::mesh::TextMesh;
+use crate::frontend::state::{MeshList, TextureList};
+use crate::frontend::state::ShaderList;
+use crate::frontend::Viewport;
 
 pub struct RenderState {
 	pub instant: Instant,

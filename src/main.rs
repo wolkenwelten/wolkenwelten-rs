@@ -1,17 +1,16 @@
 use std::ffi::CStr;
-use crate::game::GameState;
-use crate::render::RenderState;
+use crate::backend::GameState;
+use crate::frontend::RenderState;
 
 use glutin::event::{Event, DeviceEvent, ElementState, KeyboardInput, VirtualKeyCode, WindowEvent};
 use glutin::event_loop::{ControlFlow, EventLoop};
 use glutin::window::{CursorGrabMode, WindowBuilder};
 use glutin::ContextBuilder;
-use crate::input::Key;
+use crate::frontend::Key;
 
 
-mod game;
-mod input;
-mod render;
+mod backend;
+mod frontend;
 
 pub fn main() {
 	let event_loop = EventLoop::new();

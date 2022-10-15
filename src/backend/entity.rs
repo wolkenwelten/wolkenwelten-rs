@@ -29,33 +29,33 @@ impl Entity {
 		self.rot.x += self.vel.x;
 		self.rot.y += self.vel.y;
 
-		if self.pos.y < 0.0 {
-			self.pos.y = 0.001;
+		if self.pos.y < -7.5 {
+			self.pos.y = -7.499;
 			self.vel.y *= -0.99;
 		}
 
-		if self.pos.y > 10.0 {
-			self.pos.y = 9.999;
+		if self.pos.y > 7.5 {
+			self.pos.y = 7.499;
 			self.vel.y *= -0.99;
 		}
 
-		if self.pos.x < -10.0 {
-			self.pos.x = -9.999;
+		if self.pos.x < -7.5 {
+			self.pos.x = -7.499;
 			self.vel.x *= -0.99;
 		}
 
-		if self.pos.x > 10.0 {
-			self.pos.x = 9.999;
+		if self.pos.x > 7.5 {
+			self.pos.x = 7.499;
 			self.vel.x *= -0.99;
 		}
 
-		if self.pos.z < -10.0 {
-			self.pos.z = -9.999;
+		if self.pos.z < -7.5 {
+			self.pos.z = -7.499;
 			self.vel.z *= -0.99;
 		}
 
-		if self.pos.z > 10.0 {
-			self.pos.z = 9.999;
+		if self.pos.z > 7.5 {
+			self.pos.z = 7.499;
 			self.vel.z *= -0.99;
 		}
 	}

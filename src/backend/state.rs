@@ -1,8 +1,8 @@
 use glam::{Vec3, Vec4};
-use crate::game::Entity;
+use crate::backend::Entity;
 use rand::Rng;
 
-use crate::render::RenderState;
+use crate::frontend::RenderState;
 
 pub struct GameState {
 	pub running: bool,
@@ -92,7 +92,7 @@ impl GameState {
 
 		render_state.shaders.block.set_used();
 		render_state.shaders.block.set_mvp(&mvp);
-		let trans: Vec3 = Vec3::new(-8.0,-8.0,-12.0);
+		let trans: Vec3 = Vec3::new(-8.0,-8.0,-8.0);
 		render_state.shaders.block.set_trans(&trans);
 		render_state.shaders.block.set_alpha(1.0);
 		render_state.textures.blocks.bind();

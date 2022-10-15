@@ -1,5 +1,5 @@
-use crate::render::Mesh;
-use crate::render::mesh::{BlockMesh, MeshVertex};
+use crate::frontend::Mesh;
+use crate::frontend::mesh::{BlockMesh, MeshVertex};
 
 pub struct MeshList {
 	pub ground_plane: Mesh,
@@ -19,7 +19,7 @@ impl MeshList {
 		];
 		let ground_plane = Mesh::from_vec(&vertices).unwrap();
 
-		let pear = Mesh::from_obj_string(include_str!("./pear.obj")).unwrap();
+		let pear = Mesh::from_obj_string(include_str!("../assets/meshes/pear.obj")).unwrap();
 		let voxel_test = BlockMesh::test_mesh();
 
 		Self {

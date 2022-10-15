@@ -1,6 +1,6 @@
 use gl::types::{GLuint};
 
-use crate::render::mesh::MeshVertex;
+use crate::frontend::mesh::MeshVertex;
 
 pub struct Mesh {
 	vao: GLuint,

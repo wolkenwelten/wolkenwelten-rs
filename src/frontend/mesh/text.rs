@@ -1,6 +1,6 @@
 use gl::types::*;
 
-use crate::render::mesh::Vertex2D;
+use crate::frontend::mesh::Vertex2D;
 
 pub struct TextMesh {
 	vao: GLuint,
