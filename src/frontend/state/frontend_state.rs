@@ -1,4 +1,4 @@
-use glam::f32::{Mat4, Vec3};
+use glam::f32::Mat4;
 use std::time::{Instant};
 use crate::{GameState};
 use crate::backend::{ChunkBlockData, Entity};
@@ -91,6 +91,8 @@ impl FrontendState {
 			.push_string(8,50,1,0xFFFFFFFF, rot_text.as_str())
 			.prepare();
 
+		self.world_mesh.update(&game_state.world);
+
 		self.calc_fps()
 	}
 
@@ -100,8 +102,7 @@ impl FrontendState {
 			gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
 		};
 		game_state.draw(self);
-		let trans = Vec3::new(0.0,0.0,0.0);
-		self.shaders.block.set_trans(&trans);
+
 		self.world_mesh.draw();
 
 		let perspective = glam::Mat4::orthographic_rh_gl(

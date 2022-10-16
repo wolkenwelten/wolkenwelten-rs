@@ -22,14 +22,14 @@ impl VBO {
 		}
 	}
 	pub fn new(label:&str, vertices:*const GLvoid, vbo_size:u32) -> Self {
-		let label = CString::new(format!("{label} VBO")).unwrap();
 		let id: GLuint = unsafe {
 			let mut vbo:GLuint = 0;
 			gl::GenBuffers(1, &mut vbo);
 			gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
-			gl::ObjectLabel(gl::BUFFER, vbo, -1, label.as_ptr());
 			vbo
 		};
+		let label = CString::new(format!("{label} VBO {id}")).unwrap();
+		unsafe { gl::ObjectLabel(gl::BUFFER, id, -1, label.as_ptr()); }
 		Self::buffer_data(vertices, vbo_size);
 		Self { id }
 
@@ -38,14 +38,14 @@ impl VBO {
 
 impl VAO {
 	pub fn new(label:&str, vertices:*const GLvoid, vbo_size:u32) -> Self {
-		let vao_label = CString::new(format!("{label} VAO")).unwrap();
 		let id: GLuint = unsafe {
 			let mut vao: GLuint = 0;
 			gl::GenVertexArrays(1, &mut vao);
 			gl::BindVertexArray(vao);
-			gl::ObjectLabel(gl::VERTEX_ARRAY, vao, -1, vao_label.as_ptr());
 			vao
 		};
+		let vao_label = CString::new(format!("{label} VAO {id}")).unwrap();
+		unsafe { gl::ObjectLabel(gl::VERTEX_ARRAY, id, -1, vao_label.as_ptr()); }
 		let vbo = VBO::new(label, vertices, vbo_size);
 		Self { id, _vbo:vbo }
 	}

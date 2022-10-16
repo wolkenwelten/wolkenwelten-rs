@@ -1,3 +1,4 @@
+use std::fmt;
 use super::vertex::vertex_attrib_int_pointer;
 use gl::types::{GLuint, GLvoid};
 use crate::backend::ChunkBlockData;
@@ -14,6 +15,17 @@ struct BlockVertex {
 	xyz: u16, // We've got 1 bit left here
 	texture_index: u8, // Right now we don't really use 256 distinct block faces, ~32 should suffice for a long time
 	side_and_light: u8, // And another one here as well
+}
+
+impl fmt::Display for BlockVertex {
+	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+		let x = self.xyz & 0x1F;
+		let y = (self.xyz >> 5) & 0x1F;
+		let z = (self.xyz >> 10) & 0x1F;
+		let bt = self.texture_index;
+		let l = self.side_and_light;
+		write!(f, "X:{x}, Y:{y} Z:{z} BT:{bt} L:{l}")
+	}
 }
 
 #[derive(Copy, Clone)]
