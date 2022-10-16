@@ -19,17 +19,20 @@ impl TextMesh {
 	}
 
 	pub fn prepare(&mut self) -> &mut Self {
+		self.vao.bind();
+
 		if !self.finished {
-			self.vao.bind();
 			self.vertex_count = self.vertices.len() as u32;
 			let vbo_size = (self.vertices.len() * std::mem::size_of::<Vertex2D>()) as gl::types::GLsizeiptr;
 			VBO::buffer_data(self.vertices.as_ptr() as *const GLvoid, vbo_size.try_into().unwrap());
+			Vertex2D::vertex_attrib_pointers();
 			self.finished = true;
 		}
 		self
 	}
 
 	pub fn draw(&self) {
+		if (self.vertex_count == 0) || (!self.finished) { return }
 		self.vao.draw(self.vertex_count)
 	}
 

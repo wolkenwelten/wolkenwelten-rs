@@ -12,15 +12,13 @@ pub struct VAO {
 
 impl VBO {
 	pub fn buffer_data(vertices:*const GLvoid, vbo_size:u32) {
-		if vbo_size > 0 {
-			unsafe {
-				gl::BufferData(
-					gl::ARRAY_BUFFER, // target
-					vbo_size.try_into().unwrap(), // size of data in bytes
-					vertices, // pointer to data
-					gl::STATIC_DRAW, // usage
-				)
-			}
+		unsafe {
+			gl::BufferData(
+				gl::ARRAY_BUFFER, // target
+				vbo_size.try_into().unwrap(), // size of data in bytes
+				vertices, // pointer to data
+				gl::STATIC_DRAW, // usage
+			)
 		}
 	}
 	pub fn new(label:&str, vertices:*const GLvoid, vbo_size:u32) -> Self {
@@ -45,7 +43,7 @@ impl VAO {
 			let mut vao: GLuint = 0;
 			gl::GenVertexArrays(1, &mut vao);
 			gl::BindVertexArray(vao);
-			gl::ObjectLabel(gl::BUFFER, vao, -1, vao_label.as_ptr());
+			gl::ObjectLabel(gl::VERTEX_ARRAY, vao, -1, vao_label.as_ptr());
 			vao
 		};
 		let vbo = VBO::new(label, vertices, vbo_size);

@@ -10,6 +10,10 @@ impl ChunkBlockData {
 		data[8][7][8] = 3;
 		data[7][8][8] = 4;
 		data[9][8][8] = 5;
+		data[10][8][8] = 6;
+		data[6][8][8] = 7;
+		data[11][8][8] = 8;
+		data[5][8][8] = 9;
 		Self { data }
 	}
 

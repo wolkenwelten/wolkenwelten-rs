@@ -23,8 +23,8 @@ impl GameState {
 		let player_rotation: Vec3 = Vec3::new(0.0, 0.0, 0.0);
 		let mut entities:Vec<Entity> = Vec::with_capacity(16);
 		let mut rng = rand::thread_rng();
-		for x in -5..=5 {
-			for z in -5..=5 {
+		for x in -2..=2 {
+			for z in -2..=2 {
 				let y:f32 = (rng.gen::<f32>()*5.0) + 2.5;
 				let mut e = Entity::new(Vec3::new(x as f32, y, z as f32));
 				let vx:f32 = (rng.gen::<f32>() - 0.5)*0.05;

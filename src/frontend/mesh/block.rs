@@ -1,7 +1,7 @@
 use super::vertex::vertex_attrib_int_pointer;
 use gl::types::{GLuint, GLvoid};
 use crate::backend::ChunkBlockData;
-use crate::frontend::mesh::VAO;
+use crate::frontend::mesh::{VAO, VBO};
 
 pub struct BlockMesh {
 	vao: VAO,
@@ -132,6 +132,7 @@ impl BlockMesh {
 
 	pub fn new_empty() -> Self {
 		let vao = VAO::new_empty("BlockMesh");
+		BlockVertex::vertex_attrib_pointers();
 		Self { vao, vertex_count: 0 }
 	}
 
@@ -149,11 +150,9 @@ impl BlockMesh {
 		}
 		Self::new(&vertices).unwrap()
 	}
-}
 
-impl From<&ChunkBlockData> for BlockMesh {
-	fn from(chunk: &ChunkBlockData) -> Self {
-		let mut vertices:Vec<BlockVertex> = Vec::with_capacity(512);
+	pub fn update(&mut self, chunk:&ChunkBlockData) {
+		let mut vertices:Vec<BlockVertex> = Vec::with_capacity(65536);
 		for x in 0..16_u16 {
 			for y in 0..16_u16 {
 				for z in 0..16_u16 {
@@ -171,6 +170,10 @@ impl From<&ChunkBlockData> for BlockMesh {
 				}
 			}
 		}
-		Self::new(&vertices).unwrap()
+		self.vao.bind();
+		let vbo_size:u32 = (vertices.len() * std::mem::size_of::<BlockVertex>()).try_into().unwrap();
+		VBO::buffer_data(vertices.as_ptr() as *const GLvoid, vbo_size);
+		BlockVertex::vertex_attrib_pointers();
+		self.vertex_count = vertices.len().try_into().unwrap();
 	}
 }

@@ -65,7 +65,7 @@ impl FrontendState {
 	}
 
 	pub fn update_world(&mut self, chunk:&ChunkBlockData) {
-		self.world_mesh = chunk.into();
+		self.world_mesh.update(chunk);
 	}
 
 	pub fn fps(&self) -> u32 { self.cur_fps }
