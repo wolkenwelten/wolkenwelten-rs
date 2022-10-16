@@ -24,7 +24,7 @@ impl VBO {
 		}
 	}
 	pub fn new(label:&str, vertices:*const GLvoid, vbo_size:u32) -> Self {
-		let label = CString::new(format!("{label} VAO")).unwrap();
+		let label = CString::new(format!("{label} VBO")).unwrap();
 		let id: GLuint = unsafe {
 			let mut vbo:GLuint = 0;
 			gl::GenBuffers(1, &mut vbo);

@@ -1,6 +1,6 @@
 use std::ffi::CStr;
 use crate::backend::GameState;
-use crate::frontend::RenderState;
+use crate::frontend::FrontendState;
 
 use glutin::event::{Event, DeviceEvent, ElementState, KeyboardInput, VirtualKeyCode, WindowEvent};
 use glutin::event_loop::{ControlFlow, EventLoop};
@@ -43,7 +43,10 @@ pub fn main() {
 	};
 
 	let mut game_state = GameState::new();
-	let mut render_state = RenderState::new();
+	let mut render_state = FrontendState::new();
+
+
+	render_state.update_world(&game_state.world);
 
 	event_loop.run(move |event, _, control_flow| {
 		//println!("{event:?}");

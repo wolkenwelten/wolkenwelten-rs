@@ -1,5 +1,5 @@
 pub use self::static_meshes::MeshList;
-pub use self::frontend_state::RenderState;
+pub use self::frontend_state::FrontendState;
 pub use self::static_shaders::ShaderList;
 pub use self::static_textures::TextureList;
 pub use self::viewport::Viewport;

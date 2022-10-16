@@ -3,7 +3,7 @@ use std::ffi::CString;
 pub use self::mesh::Mesh;
 
 pub use self::shader::Program;
-pub use self::state::RenderState;
+pub use self::state::FrontendState;
 pub use self::state::viewport::Viewport;
 pub use self::texture::{Texture, TextureArray};
 pub use self::input::{InputState, Key};

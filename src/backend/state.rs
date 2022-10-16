@@ -1,8 +1,9 @@
 use glam::{Vec3, Vec4};
 use crate::backend::Entity;
 use rand::Rng;
+use super::ChunkBlockData;
 
-use crate::frontend::RenderState;
+use crate::frontend::FrontendState;
 
 pub struct GameState {
 	pub running: bool,
@@ -11,6 +12,7 @@ pub struct GameState {
 	pub player_rotation: Vec3,
 
 	pub entities: Vec<Entity>,
+	pub world:ChunkBlockData,
 }
 
 impl GameState {
@@ -34,6 +36,7 @@ impl GameState {
 				entities.push(e);
 			}
 		}
+		let world = ChunkBlockData::new();
 
 		Self {
 			running,
@@ -42,11 +45,12 @@ impl GameState {
 			player_rotation,
 
 			entities,
+			world,
 		}
 	}
 	pub fn _push_entity (&mut self, e:Entity) { self.entities.push(e); }
 
-	pub fn check_input(&mut self, render_state: &RenderState) {
+	pub fn check_input(&mut self, render_state: &FrontendState) {
 		let rot_vec = render_state.input.get_rotation_movement_vector();
 
 		self.player_rotation[0] += (rot_vec[0] * 0.2) + render_state.input.xrel() * 16.0;
@@ -77,7 +81,7 @@ impl GameState {
 		}
 	}
 
-	pub fn draw(&self, render_state:&RenderState) {
+	pub fn draw(&self, render_state:&FrontendState) {
 		let projection = glam::Mat4::perspective_rh_gl(
 			90.0_f32.to_radians(),
 			(render_state.viewport.w as f32) / (render_state.viewport.h as f32),
@@ -90,6 +94,15 @@ impl GameState {
 		let view = view * glam::Mat4::from_translation(-self.player_position);
 		let mvp = projection * view;
 
+		render_state.shaders.mesh.set_used();
+		let c = Vec4::new(1.0, 1.0, 1.0, 1.0);
+		render_state.shaders.mesh.set_color(&c);
+		render_state.textures.pear.bind();
+
+		for e in &self.entities {
+			render_state.draw_entity(&e, &view, &projection);
+		}
+
 		render_state.shaders.block.set_used();
 		render_state.shaders.block.set_mvp(&mvp);
 		let trans: Vec3 = Vec3::new(-8.0,-8.0,-8.0);
@@ -97,14 +110,5 @@ impl GameState {
 		render_state.shaders.block.set_alpha(1.0);
 		render_state.textures.blocks.bind();
 		render_state.meshes.voxel_test.draw();
-
-		render_state.shaders.mesh.set_used();
-		let c = Vec4::new(1.0, 1.0, 1.0, 1.0);
-		render_state.shaders.mesh.set_color(&c);
-		render_state.textures.pear.bind();
-
-		for e in &self.entities {
-			e.draw(render_state, &view, &projection);
-		}
 	}
 }

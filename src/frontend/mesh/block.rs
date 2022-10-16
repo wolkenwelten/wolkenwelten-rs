@@ -1,5 +1,6 @@
 use super::vertex::vertex_attrib_int_pointer;
 use gl::types::{GLuint, GLvoid};
+use crate::backend::ChunkBlockData;
 use crate::frontend::mesh::VAO;
 
 pub struct BlockMesh {
@@ -129,6 +130,11 @@ impl BlockMesh {
 		Ok(Self { vao, vertex_count })
 	}
 
+	pub fn new_empty() -> Self {
+		let vao = VAO::new_empty("BlockMesh");
+		Self { vao, vertex_count: 0 }
+	}
+
 	pub fn test_mesh() -> Self {
 		let mut vertices:Vec<BlockVertex> = Vec::with_capacity(512);
 		for y in 0..16 {
@@ -139,6 +145,30 @@ impl BlockMesh {
 				BlockVertex::add_bottom(&mut vertices, x, 16, y, 1, 1, 1, (x + (y * 16)).try_into().unwrap(), 0x0F);
 				BlockVertex::add_left(&mut vertices, 16, x, y, 1, 1, 1, (x + (y * 16)).try_into().unwrap(), 0x0F);
 				BlockVertex::add_right(&mut vertices, 0, x, y, 1, 1, 1, (x + (y * 16)).try_into().unwrap(), 0x0F);
+			}
+		}
+		Self::new(&vertices).unwrap()
+	}
+}
+
+impl From<&ChunkBlockData> for BlockMesh {
+	fn from(chunk: &ChunkBlockData) -> Self {
+		let mut vertices:Vec<BlockVertex> = Vec::with_capacity(512);
+		for x in 0..16_u16 {
+			for y in 0..16_u16 {
+				for z in 0..16_u16 {
+					let block = chunk.get_block(x,y,z);
+					if block > 0 {
+						let texture_index = block;
+						let light = 0x0F;
+						BlockVertex::add_front(&mut vertices, x, y, z, 1, 1, 1, texture_index, light);
+						BlockVertex::add_back(&mut vertices, x, y, z, 1, 1, 1, texture_index, light);
+						BlockVertex::add_top(&mut vertices, x, y, z, 1, 1, 1, texture_index, light);
+						BlockVertex::add_bottom(&mut vertices, x, y, z, 1, 1, 1, texture_index, light);
+						BlockVertex::add_left(&mut vertices, x, y, z, 1, 1, 1, texture_index, light);
+						BlockVertex::add_right(&mut vertices, x, y, z, 1, 1, 1, texture_index, light);
+					}
+				}
 			}
 		}
 		Self::new(&vertices).unwrap()
