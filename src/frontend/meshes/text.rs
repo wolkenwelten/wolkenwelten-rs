@@ -88,3 +88,11 @@ impl TextMesh {
 		self
 	}
 }
+
+impl std::fmt::Display for TextMesh {
+	fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+		let fs = if self.finished { "true" } else { "false" };
+		let len = self.vertices.len();
+		write!(f, "<TextMesh finished={fs} len={len} />")
+	}
+}

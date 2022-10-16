@@ -40,7 +40,7 @@ pub fn render_init() {
 }
 
 pub fn prepare_frame(fe:&mut FrontendState, game:&GameState) {
-	fe.calc_fps();
+
 	let fps_text = format!("FPS: {}", fe.fps());
 	let pos_text = format!("X:{:8.2} Y:{:8.2} Z:{:8.2}", game.player_position[0], game.player_position[1], game.player_position[2]);
 	let rot_text = format!("Y:{:8.2} P:{:8.2} R:{:8.2}", game.player_rotation[0], game.player_rotation[1], game.player_rotation[2]);
@@ -51,7 +51,9 @@ pub fn prepare_frame(fe:&mut FrontendState, game:&GameState) {
 		.push_string(8,50,1,0xFFFFFFFF, rot_text.as_str())
 		.prepare();
 
-	fe.world_mesh.update(&game.world);
+	fe.calc_fps();
+
+	fe.world_mesh.update(&game.world, &game);
 }
 
 fn render_game(fe:&FrontendState, game:&GameState) {
@@ -86,7 +88,6 @@ fn render_game(fe:&FrontendState, game:&GameState) {
 pub fn render_frame(fe:&FrontendState, game:&GameState) {
 	unsafe { gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT) };
 	render_game(&fe, &game);
-
 	fe.world_mesh.draw();
 
 	let perspective = glam::Mat4::orthographic_rh_gl(
@@ -94,7 +95,6 @@ pub fn render_frame(fe:&FrontendState, game:&GameState) {
 		fe.window_height as f32, 0.0,
 		-10.0, 10.0,
 	);
-
 	fe.shaders.text.set_used();
 	fe.shaders.text.set_mvp(&perspective);
 	fe.textures.gui.bind();

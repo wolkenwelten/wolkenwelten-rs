@@ -65,6 +65,7 @@ impl TextureArray {
 			for x in 0..16 {
 				let i = x + (y * 16);
 				let tile = img.crop(x * tile_size, y*tile_size, tile_size, tile_size);
+				let tile = tile.flipv();
 				image::imageops::replace(&mut atlas, &tile, 0, (i*tile_size).into());
 			}
 		}

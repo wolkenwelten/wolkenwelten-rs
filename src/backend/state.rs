@@ -1,4 +1,5 @@
 use glam::Vec3;
+use crate::backend::BlockType;
 use crate::backend::Entity;
 use rand::Rng;
 use super::ChunkBlockData;
@@ -10,6 +11,7 @@ pub struct GameState {
 	pub player_rotation: Vec3,
 
 	pub entities: Vec<Entity>,
+	pub blocks: Vec<BlockType>,
 	pub world:ChunkBlockData,
 }
 
@@ -34,6 +36,7 @@ impl GameState {
 				entities.push(e);
 			}
 		}
+		let blocks = BlockType::load_all();
 		let world = ChunkBlockData::new();
 
 		Self {
@@ -42,6 +45,7 @@ impl GameState {
 			player_position,
 			player_rotation,
 
+			blocks,
 			entities,
 			world,
 		}
@@ -53,5 +57,9 @@ impl GameState {
 		for e in &mut self.entities {
 			e.tick();
 		}
+	}
+
+	pub fn get_block_type(&self, i:u8) -> &BlockType {
+		&self.blocks[i as usize]
 	}
 }

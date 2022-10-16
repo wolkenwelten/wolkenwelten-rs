@@ -1,8 +1,9 @@
 use std::fmt;
-use super::vertex::vertex_attrib_int_pointer;
 use gl::types::{GLuint, GLvoid};
-use crate::backend::ChunkBlockData;
-use crate::frontend::meshes::{VAO, VBO};
+use crate::backend::{ChunkBlockData, Side};
+use super::vertex::vertex_attrib_int_pointer;
+use super::{VAO, VBO};
+use crate::backend::GameState;
 
 pub struct BlockMesh {
 	vao: VAO,
@@ -24,22 +25,8 @@ impl fmt::Display for BlockVertex {
 		let z = (self.xyz >> 10) & 0x1F;
 		let bt = self.texture_index;
 		let l = self.side_and_light;
-		write!(f, "X:{x}, Y:{y} Z:{z} BT:{bt} L:{l}")
+		write!(f, "<BlockVertex X:{x} Y:{y} Z:{z} BT:{bt} L:{l} />")
 	}
-}
-
-#[derive(Copy, Clone)]
-enum Side {
-	Front = 0,
-	Back,
-	Top,
-	Bottom,
-	Left,
-	Right,
-}
-
-impl From<Side> for u8 {
-	fn from(item: Side) -> Self { item as u8 }
 }
 
 impl BlockVertex {
@@ -163,21 +150,21 @@ impl BlockMesh {
 		Self::new(&vertices).unwrap()
 	}
 
-	pub fn update(&mut self, chunk:&ChunkBlockData) {
+	pub fn update(&mut self, chunk:&ChunkBlockData, game:&GameState) {
 		let mut vertices:Vec<BlockVertex> = Vec::with_capacity(65536);
 		for x in 0..16_u16 {
 			for y in 0..16_u16 {
 				for z in 0..16_u16 {
 					let block = chunk.get_block(x,y,z);
 					if block > 0 {
-						let texture_index = block;
+						let b = game.get_block_type(block);
 						let light = 0x0F;
-						BlockVertex::add_front(&mut vertices, x, y, z, 1, 1, 1, texture_index, light);
-						BlockVertex::add_back(&mut vertices, x, y, z, 1, 1, 1, texture_index, light);
-						BlockVertex::add_top(&mut vertices, x, y, z, 1, 1, 1, texture_index, light);
-						BlockVertex::add_bottom(&mut vertices, x, y, z, 1, 1, 1, texture_index, light);
-						BlockVertex::add_left(&mut vertices, x, y, z, 1, 1, 1, texture_index, light);
-						BlockVertex::add_right(&mut vertices, x, y, z, 1, 1, 1, texture_index, light);
+						BlockVertex::add_front(&mut vertices, x, y, z, 1, 1, 1, b.tex_front(), light);
+						BlockVertex::add_back(&mut vertices, x, y, z, 1, 1, 1, b.tex_back(), light);
+						BlockVertex::add_top(&mut vertices, x, y, z, 1, 1, 1, b.tex_top(), light);
+						BlockVertex::add_bottom(&mut vertices, x, y, z, 1, 1, 1, b.tex_bottom(), light);
+						BlockVertex::add_left(&mut vertices, x, y, z, 1, 1, 1, b.tex_left(), light);
+						BlockVertex::add_right(&mut vertices, x, y, z, 1, 1, 1, b.tex_right(), light);
 					}
 				}
 			}
