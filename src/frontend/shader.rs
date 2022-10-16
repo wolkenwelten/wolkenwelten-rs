@@ -1,7 +1,7 @@
 use std;
 use gl;
 use gl::types::{GLint, GLuint};
-use glam::{Mat4, Vec3, Vec4};
+use glam::Mat4;
 use std::ffi::{CStr, CString};
 
 pub struct Program {
@@ -220,15 +220,13 @@ impl Program {
 		}
 	}
 
-	pub fn set_trans(&self, trans: &Vec3) {
-		unsafe {
-			gl::Uniform3f(self.location_trans, trans.x, trans.y, trans.z);
-		}
+	pub fn set_trans(&self, trans_x: f32, trans_y:f32, trans_z:f32) {
+		unsafe { gl::Uniform3f(self.location_trans, trans_x, trans_y, trans_z) }
 	}
 
-	pub fn set_color(&self, c: &Vec4) {
+	pub fn set_color(&self, r:f32, g:f32, b:f32, a:f32) {
 		unsafe {
-			gl::Uniform4f(self.location_color, c.x, c.y, c.z, c.w);
+			gl::Uniform4f(self.location_color, r, g, b, a);
 		}
 	}
 

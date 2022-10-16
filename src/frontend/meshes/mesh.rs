@@ -1,6 +1,6 @@
 use gl::types::{GLuint,  GLvoid};
 
-use crate::frontend::mesh::MeshVertex;
+use crate::frontend::meshes::MeshVertex;
 use super::util::VAO;
 
 pub struct Mesh {

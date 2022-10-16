@@ -1,6 +1,6 @@
 use gl::types::*;
 
-use crate::frontend::mesh::{VAO, VBO, Vertex2D};
+use crate::frontend::meshes::{VAO, VBO, Vertex2D};
 
 pub struct TextMesh {
 	vao: VAO,

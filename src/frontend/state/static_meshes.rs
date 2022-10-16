@@ -1,5 +1,5 @@
 use crate::frontend::Mesh;
-use crate::frontend::mesh::{BlockMesh, MeshVertex};
+use crate::frontend::meshes::{BlockMesh, MeshVertex};
 
 pub struct MeshList {
 	pub ground_plane: Mesh,

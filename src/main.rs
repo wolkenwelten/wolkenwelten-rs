@@ -6,7 +6,8 @@ use glutin::event::{Event, DeviceEvent, ElementState, KeyboardInput, VirtualKeyC
 use glutin::event_loop::{ControlFlow, EventLoop};
 use glutin::window::{CursorGrabMode, WindowBuilder};
 use glutin::ContextBuilder;
-use crate::frontend::Key;
+use crate::frontend::{Key, input_tick};
+use frontend::{prepare_frame, render_frame, render_init, set_viewport};
 
 
 mod backend;
@@ -44,9 +45,7 @@ pub fn main() {
 
 	let mut game_state = GameState::new();
 	let mut render_state = FrontendState::new();
-
-
-	render_state.update_world(&game_state.world);
+	render_init();
 
 	event_loop.run(move |event, _, control_flow| {
 		//println!("{event:?}");
@@ -97,7 +96,8 @@ pub fn main() {
 			Event::WindowEvent { event, .. } => match event {
 				WindowEvent::Resized(physical_size) => {
 					windowed_context.resize(physical_size);
-					render_state.viewport.update_size(physical_size.width, physical_size.height);
+					render_state.set_window_size(physical_size.width, physical_size.height);
+					set_viewport(&render_state);
 				},
 				_ => (),
 			},
@@ -108,17 +108,16 @@ pub fn main() {
 				_ => ()
 			},
 			Event::MainEventsCleared => {
-				game_state.check_input(&render_state);
+				input_tick(&mut game_state, &render_state);
+				render_state.input.mouse_flush();
+
 				game_state.tick();
 
-				render_state.input.mouse_flush();
-				render_state.prepare(&mut game_state)
-					.draw(&game_state);
+				prepare_frame(&mut render_state, &game_state);
+				render_frame(&render_state, &game_state);
 				windowed_context.swap_buffers().unwrap();
 			}
-			_ => {
-				//println!("{:?}", event);
-			},
+			_ => {},
 		}
 	});
 }

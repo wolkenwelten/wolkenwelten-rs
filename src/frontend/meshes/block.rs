@@ -2,7 +2,7 @@ use std::fmt;
 use super::vertex::vertex_attrib_int_pointer;
 use gl::types::{GLuint, GLvoid};
 use crate::backend::ChunkBlockData;
-use crate::frontend::mesh::{VAO, VBO};
+use crate::frontend::meshes::{VAO, VBO};
 
 pub struct BlockMesh {
 	vao: VAO,
