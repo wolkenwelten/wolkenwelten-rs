@@ -45,8 +45,7 @@ pub fn prepare_frame(fe:&mut FrontendState, game:&GameState) {
 	let pos_text = format!("X:{:8.2} Y:{:8.2} Z:{:8.2}", game.player_position[0], game.player_position[1], game.player_position[2]);
 	let rot_text = format!("Y:{:8.2} P:{:8.2} R:{:8.2}", game.player_rotation[0], game.player_rotation[1], game.player_rotation[2]);
 
-	fe.ui_mesh.empty()
-		.push_string(8,8,2,0xFFFFFFFF, fps_text.as_str())
+	fe.ui_mesh.push_string(8,8,2,0xFFFFFFFF, fps_text.as_str())
 		.push_string(8,40,1,0xFFFFFFFF, pos_text.as_str())
 		.push_string(8,50,1,0xFFFFFFFF, rot_text.as_str())
 		.prepare();
@@ -82,13 +81,12 @@ fn render_game(fe:&FrontendState, game:&GameState) {
 	fe.shaders.block.set_trans(-8.0, -8.0, -8.0);
 	fe.shaders.block.set_alpha(1.0);
 	fe.textures.blocks.bind();
-	fe.meshes.voxel_test.draw();
+	fe.world_mesh.draw();
 }
 
 pub fn render_frame(fe:&FrontendState, game:&GameState) {
 	unsafe { gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT) };
 	render_game(&fe, &game);
-	fe.world_mesh.draw();
 
 	let perspective = glam::Mat4::orthographic_rh_gl(
 		0.0, fe.window_width as f32,

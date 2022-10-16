@@ -135,27 +135,12 @@ impl BlockMesh {
 		Self { vao, vertex_count: 0 }
 	}
 
-	pub fn test_mesh() -> Self {
-		let mut vertices:Vec<BlockVertex> = Vec::with_capacity(512);
-		for y in 0..16 {
-			for x in 0..16 {
-				BlockVertex::add_front(&mut vertices, x, y, 0, 1, 1, 1, (x + (y * 16)).try_into().unwrap(), 0x0F);
-				BlockVertex::add_back(&mut vertices, x, y, 16, 1, 1, 1, (x + (y * 16)).try_into().unwrap(), 0x0F);
-				BlockVertex::add_top(&mut vertices, x, 0, y, 1, 1, 1, (x + (y * 16)).try_into().unwrap(), 0x0F);
-				BlockVertex::add_bottom(&mut vertices, x, 16, y, 1, 1, 1, (x + (y * 16)).try_into().unwrap(), 0x0F);
-				BlockVertex::add_left(&mut vertices, 16, x, y, 1, 1, 1, (x + (y * 16)).try_into().unwrap(), 0x0F);
-				BlockVertex::add_right(&mut vertices, 0, x, y, 1, 1, 1, (x + (y * 16)).try_into().unwrap(), 0x0F);
-			}
-		}
-		Self::new(&vertices).unwrap()
-	}
-
 	pub fn update(&mut self, chunk:&ChunkBlockData, game:&GameState) {
 		let mut vertices:Vec<BlockVertex> = Vec::with_capacity(65536);
 		for x in 0..16_u16 {
 			for y in 0..16_u16 {
 				for z in 0..16_u16 {
-					let block = chunk.get_block(x,y,z);
+					let block = chunk.get_block(x.into(),y.into(),z.into());
 					if block > 0 {
 						let b = game.get_block_type(block);
 						let light = 0x0F;

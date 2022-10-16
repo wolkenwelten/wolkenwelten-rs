@@ -7,7 +7,7 @@ pub struct VBO {
 
 pub struct VAO {
 	id: GLuint,
-	_vbo: VBO,
+	vbo: VBO,
 }
 
 impl VBO {
@@ -21,6 +21,13 @@ impl VBO {
 			)
 		}
 	}
+
+	pub fn bind(&self) {
+		unsafe {
+			gl::BindBuffer(gl::ARRAY_BUFFER, self.id);
+		}
+	}
+
 	pub fn new(label:&str, vertices:*const GLvoid, vbo_size:u32) -> Self {
 		let id: GLuint = unsafe {
 			let mut vbo:GLuint = 0;
@@ -47,7 +54,7 @@ impl VAO {
 		let vao_label = CString::new(format!("{label} VAO {id}")).unwrap();
 		unsafe { gl::ObjectLabel(gl::VERTEX_ARRAY, id, -1, vao_label.as_ptr()); }
 		let vbo = VBO::new(label, vertices, vbo_size);
-		Self { id, _vbo:vbo }
+		Self { id, vbo:vbo }
 	}
 
 	pub fn new_empty(label:&str) -> Self {
@@ -56,6 +63,7 @@ impl VAO {
 
 	pub fn bind(&self) {
 		unsafe { gl::BindVertexArray(self.id) }
+		self.vbo.bind();
 	}
 
 	pub fn draw(&self, vertex_count:u32) {
