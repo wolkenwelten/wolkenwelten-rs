@@ -66,9 +66,9 @@ impl InputState {
 
     pub fn get_speed(&self) -> f32 {
         if self.button_states[Key::Sprint as usize] {
-            0.1
+            0.5
         } else {
-            0.01
+            0.05
         }
     }
     pub fn get_jump(&self) -> f32 {

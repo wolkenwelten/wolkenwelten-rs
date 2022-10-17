@@ -1,3 +1,6 @@
+use rand::prelude::*;
+use rand_chacha::ChaCha8Rng;
+
 #[derive(Copy, Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct ChunkPosition(i32, i32, i32);
 impl ChunkPosition {
@@ -17,23 +20,43 @@ impl ChunkBlockData {
         Self { data }
     }
 
+    fn worldgen_island(mut self, rng: &mut ChaCha8Rng) -> Self {
+        if rng.gen_range(0..4) == 0 {
+            self.set_block(3, (8, 15, 8));
+        }
+        self.set_sphere(2, (8, 10, 8), 5);
+        self.set_sphere(1, (8, 9, 8), 5);
+        self.set_sphere(3, (8, 8, 8), 5);
+        if rng.gen_range(0..4) == 0 {
+            self.set_box(15, (14, 3, 12), (2, 3, 3));
+        }
+
+        self
+    }
+
+    fn worldgen_block(mut self, rng: &mut ChaCha8Rng) -> Self {
+        let ox = rng.gen_range(0..=2);
+        let oy = rng.gen_range(0..=2);
+        let oz = rng.gen_range(0..=2);
+        let ow = rng.gen_range(0..=2);
+        let oh = rng.gen_range(0..=2);
+        let od = rng.gen_range(0..=2);
+        let block = rng.gen_range(4..16);
+        self.set_box(block, (8 + ox, 8 + oy, 8 + oz), (4 + ow, 4 + oh, 4 + od));
+        self
+    }
+
     pub fn worldgen(pos: &ChunkPosition) -> Self {
-        let mut ret = Self::new();
-        ret.set_block(3, (8, 15, 8));
-        ret.set_sphere(2, (8, 10, 8), 5);
-        ret.set_sphere(1, (8, 9, 8), 5);
-        ret.set_sphere(3, (8, 8, 8), 5);
-        ret.set_box(15, (14, 3, 12), (2, 3, 3));
-        if pos.0 & 2 == 0 {
-            ret.set_box(18, (14, 1, 4), (1, 4, 3));
+        let mut rng = ChaCha8Rng::seed_from_u64(
+            (pos.0 * pos.0 + pos.1 * pos.1 + pos.2 * pos.2)
+                .try_into()
+                .unwrap(),
+        );
+        match rng.gen_range(0..6) {
+            0 | 1 => Self::new().worldgen_island(&mut rng),
+            2 => Self::new().worldgen_block(&mut rng),
+            _ => Self::new(),
         }
-        if pos.1 & 2 == 0 {
-            ret.set_box(8, (1, 5, 3), (3, 3, 2));
-        }
-        if pos.2 & 2 == 0 {
-            ret.set_box(13, (2, 2, 14), (2, 5, 2));
-        }
-        ret
     }
 
     pub fn get_block(&self, (x, y, z): (i32, i32, i32)) -> u8 {

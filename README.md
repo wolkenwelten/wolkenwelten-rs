@@ -5,7 +5,7 @@ working whatsoever.
 # ToDo
 [X] Chunk fade
 [X] "Infinite" world
-[ ] Simple placeholder worldgen
+[X] Simple placeholder worldgen
 [ ] Remove hidden surfaces from BlockMeshes
 [ ] Chunk/BlockMesh GC
 [ ] Frustum culling

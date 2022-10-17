@@ -96,8 +96,8 @@ impl BlockType {
             BlockType::new("Spruce log").with_texture(4),
             BlockType::new("Spruce leaves").with_texture(5),
             BlockType::new("Dry grass")
-                .with_texture(6)
-                .with_texture_top(22)
+                .with_texture(22)
+                .with_texture_top(6)
                 .with_texture_bottom(1),
             BlockType::new("Roots").with_texture(7),
             BlockType::new("Obsidian").with_texture(8),

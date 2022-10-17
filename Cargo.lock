@@ -976,6 +976,7 @@ version = "0.0.1"
 dependencies = [
  "glam",
  "rand",
+ "rand_chacha",
 ]
 
 [[package]]
