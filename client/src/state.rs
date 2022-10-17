@@ -4,6 +4,8 @@ pub use self::static_textures::TextureList;
 use crate::input::InputState;
 use crate::meshes::{BlockMesh, TextMesh};
 use std::time::Instant;
+use std::collections::HashMap;
+use rostregen_game::ChunkPosition;
 
 pub mod static_meshes;
 pub mod static_shaders;
@@ -12,7 +14,7 @@ pub mod static_textures;
 pub struct ClientState {
     pub instant: Instant,
 
-    pub world_mesh: BlockMesh,
+    pub world_mesh: HashMap<ChunkPosition, BlockMesh>,
 
     pub window_width: u32,
     pub window_height: u32,
@@ -38,7 +40,7 @@ impl ClientState {
 
         Self {
             instant: Instant::now(),
-            world_mesh: BlockMesh::new(),
+            world_mesh: HashMap::new(),
 
             window_width,
             window_height,

@@ -1,6 +1,7 @@
 use crate::ClientState;
 use glam::f32::Mat4;
-use rostregen_game::{Entity, GameState};
+use rostregen_game::{Entity, GameState, ChunkPosition};
+use super::meshes::BlockMesh;
 
 pub fn set_viewport(fe: &ClientState) {
     unsafe {
@@ -46,6 +47,20 @@ pub fn render_init() {
     }
 }
 
+pub fn prepare_chunk(fe: &mut ClientState, game: &GameState, pos:&ChunkPosition) {
+    match fe.world_mesh.get(pos) {
+        Some(_) => {}
+        _ => match game.get_chunk_block(pos) {
+            Some(chnk) => {
+                let mut mesh = BlockMesh::new();
+                mesh.update(chnk, &game);
+                fe.world_mesh.insert(pos.clone(), mesh);
+            }
+            _ => {}
+        }
+    }
+}
+
 pub fn prepare_frame(fe: &mut ClientState, game: &GameState) {
     let fps_text = format!("FPS: {}", fe.fps());
     let pos_text = format!(
@@ -65,7 +80,14 @@ pub fn prepare_frame(fe: &mut ClientState, game: &GameState) {
 
     fe.calc_fps();
 
-    fe.world_mesh.update(&game.world, &game);
+    for x in -2..=2 {
+        for y in -2..=2 {
+            for z in -2..=2 {
+                let pos = ChunkPosition::new(x,y,z);
+                prepare_chunk(fe, game, &pos);
+            }
+        }
+    }
 }
 
 fn render_game(fe: &ClientState, game: &GameState) {
@@ -91,10 +113,21 @@ fn render_game(fe: &ClientState, game: &GameState) {
 
     fe.shaders.block.set_used();
     fe.shaders.block.set_mvp(&mvp);
-    fe.shaders.block.set_trans(-8.0, -8.0, -8.0);
     fe.shaders.block.set_alpha(1.0);
     fe.textures.blocks.bind();
-    fe.world_mesh.draw();
+
+    for x in -2..=2 {
+        for y in -2..=2 {
+            for z in -2..=2 {
+                fe.shaders.block.set_trans((x as f32)*16.0, (y as f32)*16.0, (z as f32)*16.0);
+                let pos = ChunkPosition::new(x,y,z);
+                match fe.world_mesh.get(&pos) {
+                    Some(mesh) => mesh.draw(),
+                    _ => ()
+                }
+            }
+        }
+    }
 }
 
 pub fn render_frame(fe: &ClientState, game: &GameState) {

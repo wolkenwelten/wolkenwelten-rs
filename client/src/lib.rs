@@ -1,3 +1,5 @@
+extern crate rostregen_game;
+
 use std::ffi::CString;
 
 pub static mut GL_VERSION:(i32, i32) = (0,0);

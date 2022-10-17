@@ -1,4 +1,5 @@
-use super::ChunkBlockData;
+use std::collections::HashMap;
+use super::{ChunkBlockData, ChunkPosition};
 use crate::BlockType;
 use crate::Entity;
 use glam::Vec3;
@@ -12,7 +13,8 @@ pub struct GameState {
 
     pub entities: Vec<Entity>,
     pub blocks: Vec<BlockType>,
-    pub world: ChunkBlockData,
+
+    pub world: HashMap<ChunkPosition, ChunkBlockData>,
 }
 
 impl GameState {
@@ -37,7 +39,7 @@ impl GameState {
             }
         }
         let blocks = BlockType::load_all();
-        let world = ChunkBlockData::test();
+        let world = HashMap::new();
 
         Self {
             running,
@@ -67,6 +69,30 @@ impl GameState {
         }
     }
 
+    pub fn worldgen_chunk(&mut self, pos:&ChunkPosition) {
+        let worldgen = || -> ChunkBlockData { ChunkBlockData::worldgen(pos) };
+        let chnk = self.world.get(pos);
+        match chnk {
+            None => { self.world.insert(pos.clone(), worldgen()); },
+            _ => ()
+        };
+    }
+
+    pub fn get_chunk_block(&self, pos:&ChunkPosition) -> Option<&ChunkBlockData> {
+        self.world.get(pos)
+    }
+
+    pub fn prepare_world(&mut self) {
+        for x in -2..=2 {
+            for y in -2..=2 {
+                for z in -2..=2 {
+                    let pos = ChunkPosition::new(x,y,z);
+                    self.worldgen_chunk(&pos);
+                }
+            }
+        }
+    }
+
     pub fn get_block_type(&self, i: u8) -> &BlockType {
         &self.blocks[i as usize]
     }
@@ -91,10 +117,11 @@ impl GameState {
             return false;
         }
 
-        let x: i32 = (pos.x as i32) + 8;
-        let y: i32 = (pos.y as i32) + 8;
-        let z: i32 = (pos.z as i32) + 8;
-        let block = self.world.get_block(x, y, z);
+        //let x: i32 = (pos.x as i32) + 8;
+        //let y: i32 = (pos.y as i32) + 8;
+        //let z: i32 = (pos.z as i32) + 8;
+        //let block = self.world.get_block(x, y, z);
+        let block = 0;
         block != 0
     }
 }

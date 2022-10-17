@@ -1,3 +1,9 @@
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
+pub struct ChunkPosition (i32, i32, i32);
+impl ChunkPosition {
+    pub fn new(x:i32, y:i32, z:i32) -> ChunkPosition { ChunkPosition(x,y,z) }
+}
+
 pub struct ChunkBlockData {
     data: [[[u8; 16]; 16]; 16],
 }
@@ -8,16 +14,22 @@ impl ChunkBlockData {
         Self { data }
     }
 
-    pub fn test() -> Self {
+    pub fn worldgen(pos:&ChunkPosition) -> Self {
         let mut ret = Self::new();
         ret.set_block(3, 8, 15, 8);
         ret.set_sphere(2, 8, 10, 8, 5);
         ret.set_sphere(1, 8, 9, 8, 5);
         ret.set_sphere(3, 8, 8, 8, 5);
-        ret.set_box(10, 14, 3, 12, 2, 3, 3);
-        ret.set_box(18, 14, 1, 4, 1, 4, 3);
-        ret.set_box(15, 1, 5, 3, 3, 3, 2);
-        ret.set_box(8, 2, 2, 14, 2, 5, 2);
+        ret.set_box(15, 14, 3, 12, 2, 3, 3);
+        if pos.0 & 2 == 0 {
+            ret.set_box(18, 14, 1, 4, 1, 4, 3);
+        }
+        if pos.1 & 2 == 0 {
+            ret.set_box(8, 1, 5, 3, 3, 3, 2);
+        }
+        if pos.2 & 2 == 0 {
+            ret.set_box(13, 2, 2, 14, 2, 5, 2);
+        }
         ret
     }
 

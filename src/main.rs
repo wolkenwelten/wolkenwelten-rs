@@ -130,6 +130,7 @@ pub fn main() {
             render_state.input.mouse_flush();
 
             game_state.tick();
+            game_state.prepare_world();
 
             prepare_frame(&mut render_state, &game_state);
             render_frame(&render_state, &game_state);
