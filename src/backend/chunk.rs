@@ -14,10 +14,10 @@ impl ChunkBlockData {
         ret.set_sphere(2, 8, 10, 8, 5);
         ret.set_sphere(1, 8, 9, 8, 5);
         ret.set_sphere(3, 8, 8, 8, 5);
-        ret.set_box(3, 14, 3, 12, 2, 3, 3);
-        ret.set_box(3, 14, 1, 4, 1, 4, 3);
-        ret.set_box(3, 1, 5, 3, 3, 3, 2);
-        ret.set_box(3, 2, 2, 14, 2, 5, 2);
+        ret.set_box(10, 14, 3, 12, 2, 3, 3);
+        ret.set_box(18, 14, 1, 4, 1, 4, 3);
+        ret.set_box(15, 1, 5, 3, 3, 3, 2);
+        ret.set_box(8, 2, 2, 14, 2, 5, 2);
         ret
     }
 

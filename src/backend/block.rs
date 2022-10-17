@@ -94,6 +94,35 @@ impl BlockType {
                 .with_texture_bottom(1),
         );
         blocks.push(BlockType::new("Stone").with_texture(2));
+        blocks.push(BlockType::new("Coal").with_texture(3));
+        blocks.push(BlockType::new("Spruce log").with_texture(4));
+        blocks.push(BlockType::new("Spruce leaves").with_texture(5));
+        blocks.push(
+            BlockType::new("Dry grass")
+                .with_texture(6)
+                .with_texture_top(22)
+                .with_texture_bottom(1),
+        );
+        blocks.push(BlockType::new("Roots").with_texture(7));
+        blocks.push(BlockType::new("Obsidian").with_texture(8));
+        blocks.push(BlockType::new("Oak log").with_texture(9));
+        blocks.push(BlockType::new("Oak leaves").with_texture(10));
+        blocks.push(BlockType::new("Iron ore (hematite)").with_texture(11));
+        blocks.push(BlockType::new("Marble block").with_texture(12));
+        blocks.push(
+            BlockType::new("Marble pillar")
+                .with_texture(13)
+                .with_texture_top(12)
+                .with_texture_bottom(12),
+        );
+        blocks.push(BlockType::new("Marble blocks").with_texture(14));
+        blocks.push(BlockType::new("Acacia leaves").with_texture(24));
+        blocks.push(BlockType::new("Boards").with_texture(17));
+        blocks.push(BlockType::new("Crystals").with_texture(18));
+        blocks.push(BlockType::new("Sakura leaves").with_texture(19));
+        blocks.push(BlockType::new("Birch log").with_texture(20));
+        blocks.push(BlockType::new("Flower bush").with_texture(21));
+        blocks.push(BlockType::new("Date bush").with_texture(23));
 
         blocks
     }
