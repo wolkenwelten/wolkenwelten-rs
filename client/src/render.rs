@@ -5,6 +5,9 @@ use gl::types::GLint;
 use glam::f32::Mat4;
 use rostregen_game::{ChunkPosition, Entity, GameState};
 
+const FADEOUT_START_DISTANCE: f32 = 48.0 * 48.0;
+const FADEOUT_DISTANCE: f32 = 16.0 * 16.0;
+
 pub fn set_viewport(fe: &ClientState) {
     unsafe {
         gl::Viewport(
@@ -94,10 +97,13 @@ pub fn prepare_frame(fe: &mut ClientState, game: &GameState) {
 
     fe.calc_fps();
 
-    for x in -2..=2 {
-        for y in -2..=2 {
-            for z in -2..=2 {
-                let pos = ChunkPosition::new(x, y, z);
+    let px = (game.player_position.x as i32) / 16;
+    let py = (game.player_position.y as i32) / 16;
+    let pz = (game.player_position.z as i32) / 16;
+    for cx in -4..=4 {
+        for cy in -4..=4 {
+            for cz in -4..=4 {
+                let pos = ChunkPosition::new(cx + px, cy + py, cz + pz);
                 prepare_chunk(fe, game, &pos);
             }
         }
@@ -130,14 +136,36 @@ fn render_game(fe: &ClientState, game: &GameState) {
     fe.shaders.block.set_alpha(1.0);
     fe.textures.blocks.bind();
 
-    for x in -2..=2 {
-        for y in -2..=2 {
-            for z in -2..=2 {
-                fe.shaders
-                    .block
-                    .set_trans((x as f32) * 16.0, (y as f32) * 16.0, (z as f32) * 16.0);
+    let px = (game.player_position.x as i32) / 16;
+    let py = (game.player_position.y as i32) / 16;
+    let pz = (game.player_position.z as i32) / 16;
+    for cx in -4..=4 {
+        for cy in -4..=4 {
+            for cz in -4..=4 {
+                let x = px + cx;
+                let y = py + cy;
+                let z = pz + cz;
+                let trans_x = x as f32 * 16.0;
+                let trans_y = y as f32 * 16.0;
+                let trans_z = z as f32 * 16.0;
+
+                let diff_x = trans_x - game.player_position.x;
+                let diff_y = trans_y - game.player_position.y;
+                let diff_z = trans_z - game.player_position.z;
+                let dist = diff_x * diff_x + diff_y * diff_y + diff_z * diff_z;
+                if dist > FADEOUT_DISTANCE + FADEOUT_START_DISTANCE {
+                    continue;
+                }
+                let alpha = if dist < FADEOUT_START_DISTANCE {
+                    1.0
+                } else {
+                    1.0 - ((dist - FADEOUT_START_DISTANCE) / FADEOUT_DISTANCE)
+                };
+
                 let pos = ChunkPosition::new(x, y, z);
                 if let Some(mesh) = fe.world_mesh.get(&pos) {
+                    fe.shaders.block.set_alpha(alpha);
+                    fe.shaders.block.set_trans(trans_x, trans_y, trans_z);
                     mesh.draw()
                 }
             }

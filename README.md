@@ -3,10 +3,11 @@ This is the rust port of the WolkenWelten codebase, everything is still super ea
 working whatsoever.
 
 # ToDo
-[ ] Chunk fade
-[ ] "Infinite" world
-[ ] Chunk/BlockMesh GC
+[X] Chunk fade
+[X] "Infinite" world
 [ ] Simple placeholder worldgen
+[ ] Remove hidden surfaces from BlockMeshes
+[ ] Chunk/BlockMesh GC
 [ ] Frustum culling
 [ ] Greedy meshing
 [ ] Lighting

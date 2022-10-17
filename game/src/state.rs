@@ -69,10 +69,9 @@ impl GameState {
     }
 
     pub fn worldgen_chunk(&mut self, pos: &ChunkPosition) {
-        let worldgen = || -> ChunkBlockData { ChunkBlockData::worldgen(pos) };
         let chnk = self.world.get(pos);
         if chnk.is_none() {
-            self.world.insert(*pos, worldgen());
+            self.world.insert(*pos, ChunkBlockData::worldgen(pos));
         };
     }
 
@@ -81,10 +80,13 @@ impl GameState {
     }
 
     pub fn prepare_world(&mut self) {
-        for x in -2..=2 {
-            for y in -2..=2 {
-                for z in -2..=2 {
-                    let pos = ChunkPosition::new(x, y, z);
+        let px = (self.player_position.x as i32) / 16;
+        let py = (self.player_position.y as i32) / 16;
+        let pz = (self.player_position.z as i32) / 16;
+        for cx in -4..=4 {
+            for cy in -4..=4 {
+                for cz in -4..=4 {
+                    let pos = ChunkPosition::new(cx + px, cy + py, cz + pz);
                     self.worldgen_chunk(&pos);
                 }
             }

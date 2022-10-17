@@ -40,7 +40,7 @@ pub unsafe fn vertex_attrib_int_pointer(
 }
 
 #[allow(non_camel_case_types)]
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Default)]
 #[repr(C, packed)]
 pub struct f32_f32_f32 {
     pub d0: f32,
@@ -61,7 +61,7 @@ impl From<(f32, f32, f32)> for f32_f32_f32 {
 }
 
 #[allow(non_camel_case_types)]
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Default)]
 #[repr(C, packed)]
 pub struct f32_f32 {
     pub d0: f32,
@@ -80,7 +80,7 @@ impl From<(f32, f32)> for f32_f32 {
     }
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Default)]
 #[repr(C, packed)]
 pub struct MeshVertex {
     pub pos: f32_f32_f32,
@@ -100,7 +100,7 @@ impl MeshVertex {
     }
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Default)]
 #[repr(C, packed)]
 pub struct Vertex2D {
     pub x: i16,
