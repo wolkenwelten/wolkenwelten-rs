@@ -17,15 +17,19 @@ gl = "0.14.0"
 #v8 = "0.52.0"
 #rapier3d = "0.15.0"
 
-[dependencies.rostregen-frontend]
-path = "frontend"
+[features]
+default = ["client"]
+client = []
 
-[dependencies.rostregen-backend]
-path = "backend"
+[dependencies.rostregen-client]
+path = "client"
+
+[dependencies.rostregen-server]
+path = "server"
 
 
 [workspace]
 members = [
-    "backend",
-    "frontend",
+    "server",
+    "client",
 ]

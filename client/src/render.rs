@@ -1,6 +1,6 @@
 use crate::FrontendState;
 use glam::f32::Mat4;
-use rostregen_backend::{Entity, GameState};
+use rostregen_server::{Entity, GameState};
 
 pub fn set_viewport(fe: &FrontendState) {
     unsafe {

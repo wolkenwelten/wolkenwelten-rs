@@ -1,7 +1,7 @@
 use super::vertex::vertex_attrib_int_pointer;
 use super::{VAO, VBO};
 use gl::types::GLvoid;
-use rostregen_backend::{ChunkBlockData, GameState, Side};
+use rostregen_server::{ChunkBlockData, GameState, Side};
 use std::fmt;
 
 pub struct BlockMesh {

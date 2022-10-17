@@ -1,10 +1,10 @@
 use glutin::event::{DeviceEvent, ElementState, Event, KeyboardInput, VirtualKeyCode, WindowEvent};
 use glutin::event_loop::ControlFlow;
-use rostregen_frontend::{
+use rostregen_client::{
     input_tick, prepare_frame, render_frame, render_init, set_viewport, FrontendState, Key,
 };
 
-use rostregen_backend::GameState;
+use rostregen_server::GameState;
 
 mod ui;
 
