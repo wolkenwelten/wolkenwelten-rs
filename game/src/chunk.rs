@@ -11,7 +11,7 @@ impl ChunkPosition {
 
 #[derive(Debug, Default)]
 pub struct ChunkBlockData {
-    data: [[[u8; 16]; 16]; 16],
+    pub data: [[[u8; 16]; 16]; 16],
 }
 
 impl ChunkBlockData {

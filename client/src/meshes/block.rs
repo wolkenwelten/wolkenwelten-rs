@@ -175,52 +175,66 @@ impl BlockMesh {
 
     pub fn update(&mut self, chunk: &ChunkBlockData, game: &GameState) {
         let mut vertices: Vec<BlockVertex> = Vec::with_capacity(65536);
-        for x in 0..16_u16 {
-            for y in 0..16_u16 {
-                for z in 0..16_u16 {
-                    let block = chunk.get_block((x.into(), y.into(), z.into()));
-                    if block > 0 {
-                        let b = game.get_block_type(block);
-                        let light = 0x0F;
+        let size = (1, 1, 1);
+        let light = 0x0F;
+        for x in 0..16 {
+            for y in 0..16 {
+                for z in 0..16 {
+                    let block = chunk.data[x][y][z];
+                    if block == 0 { continue };
+                    let pos = (x as u16, y as u16, z as u16);
+                    let b = game.get_block_type(block);
+
+                    if (z >= 15) || (chunk.data[x][y][z+1] == 0) {
                         BlockVertex::add_front(
                             &mut vertices,
-                            (x, y, z),
-                            (1, 1, 1),
+                            pos,
+                            size,
                             b.tex_front(),
                             light,
                         );
+                    }
+                    if (z == 0) || (chunk.data[x][y][z-1] == 0) {
                         BlockVertex::add_back(
                             &mut vertices,
-                            (x, y, z),
-                            (1, 1, 1),
+                            pos,
+                            size,
                             b.tex_back(),
                             light,
                         );
+                    }
+                    if (y >= 15) || (chunk.data[x][y+1][z] == 0) {
                         BlockVertex::add_top(
                             &mut vertices,
-                            (x, y, z),
-                            (1, 1, 1),
+                            pos,
+                            size,
                             b.tex_top(),
                             light,
                         );
+                    }
+                    if (y == 0) || (chunk.data[x][y-1][z] == 0) {
                         BlockVertex::add_bottom(
                             &mut vertices,
-                            (x, y, z),
-                            (1, 1, 1),
+                            pos,
+                            size,
                             b.tex_bottom(),
                             light,
                         );
+                    }
+                    if (x == 0) || (chunk.data[x-1][y][z] == 0) {
                         BlockVertex::add_left(
                             &mut vertices,
-                            (x, y, z),
-                            (1, 1, 1),
+                            pos,
+                            size,
                             b.tex_left(),
                             light,
                         );
+                    }
+                    if (x >= 15) || (chunk.data[x+1][y][z] == 0) {
                         BlockVertex::add_right(
                             &mut vertices,
-                            (x, y, z),
-                            (1, 1, 1),
+                            pos,
+                            size,
                             b.tex_right(),
                             light,
                         );

@@ -6,7 +6,7 @@ working whatsoever.
 [X] Chunk fade
 [X] "Infinite" world
 [X] Simple placeholder worldgen
-[ ] Remove hidden surfaces from BlockMeshes
+[X] Remove hidden surfaces from BlockMeshes
 [ ] Chunk/BlockMesh GC
 [ ] Frustum culling
 [ ] Greedy meshing
