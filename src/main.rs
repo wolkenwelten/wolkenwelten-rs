@@ -1,17 +1,17 @@
 use glutin::event::{DeviceEvent, ElementState, Event, KeyboardInput, VirtualKeyCode, WindowEvent};
 use glutin::event_loop::ControlFlow;
 use rostregen_client::{
-    input_tick, prepare_frame, render_frame, render_init, set_viewport, FrontendState, Key,
+    input_tick, prepare_frame, render_frame, render_init, set_viewport, ClientState, Key,
 };
 
-use rostregen_server::GameState;
+use rostregen_game::GameState;
 
 mod ui;
 
 pub fn main() {
     let mut game_state = GameState::new();
     let (event_loop, windowed_context) = ui::init_glutin();
-    let mut render_state = FrontendState::new();
+    let mut render_state = ClientState::new();
     render_init();
 
     event_loop.run(move |event, _, control_flow| match event {

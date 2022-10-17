@@ -9,7 +9,7 @@ pub mod static_meshes;
 pub mod static_shaders;
 pub mod static_textures;
 
-pub struct FrontendState {
+pub struct ClientState {
     pub instant: Instant,
 
     pub world_mesh: BlockMesh,
@@ -30,7 +30,7 @@ pub struct FrontendState {
     pub last_ticks: u128,
 }
 
-impl FrontendState {
+impl ClientState {
     pub fn new() -> Self {
         let last_ticks = 0;
         let window_width = 640;

@@ -955,7 +955,7 @@ dependencies = [
  "gl",
  "glutin",
  "rostregen-client",
- "rostregen-server",
+ "rostregen-game",
 ]
 
 [[package]]
@@ -965,13 +965,13 @@ dependencies = [
  "gl",
  "glam",
  "image",
- "rostregen-server",
+ "rostregen-game",
  "tobj",
  "winit",
 ]
 
 [[package]]
-name = "rostregen-server"
+name = "rostregen-game"
 version = "0.0.1"
 dependencies = [
  "glam",

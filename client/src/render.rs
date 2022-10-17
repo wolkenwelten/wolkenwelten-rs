@@ -1,8 +1,8 @@
-use crate::FrontendState;
+use crate::ClientState;
 use glam::f32::Mat4;
-use rostregen_server::{Entity, GameState};
+use rostregen_game::{Entity, GameState};
 
-pub fn set_viewport(fe: &FrontendState) {
+pub fn set_viewport(fe: &ClientState) {
     unsafe {
         gl::Viewport(
             0,
@@ -13,7 +13,7 @@ pub fn set_viewport(fe: &FrontendState) {
     }
 }
 
-fn draw_entity(fe: &FrontendState, entity: &Entity, view: &Mat4, projection: &Mat4) {
+fn draw_entity(fe: &ClientState, entity: &Entity, view: &Mat4, projection: &Mat4) {
     let rot = entity.rot();
     let pos = entity.pos();
 
@@ -46,7 +46,7 @@ pub fn render_init() {
     }
 }
 
-pub fn prepare_frame(fe: &mut FrontendState, game: &GameState) {
+pub fn prepare_frame(fe: &mut ClientState, game: &GameState) {
     let fps_text = format!("FPS: {}", fe.fps());
     let pos_text = format!(
         "X:{:8.2} Y:{:8.2} Z:{:8.2}",
@@ -68,7 +68,7 @@ pub fn prepare_frame(fe: &mut FrontendState, game: &GameState) {
     fe.world_mesh.update(&game.world, &game);
 }
 
-fn render_game(fe: &FrontendState, game: &GameState) {
+fn render_game(fe: &ClientState, game: &GameState) {
     let projection = glam::Mat4::perspective_rh_gl(
         90.0_f32.to_radians(),
         (fe.window_width as f32) / (fe.window_height as f32),
@@ -97,7 +97,7 @@ fn render_game(fe: &FrontendState, game: &GameState) {
     fe.world_mesh.draw();
 }
 
-pub fn render_frame(fe: &FrontendState, game: &GameState) {
+pub fn render_frame(fe: &ClientState, game: &GameState) {
     unsafe { gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT) };
     render_game(&fe, &game);
 

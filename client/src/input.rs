@@ -1,6 +1,6 @@
-use crate::FrontendState;
+use crate::ClientState;
 use glam::Vec3;
-use rostregen_server::GameState;
+use rostregen_game::GameState;
 
 pub enum Key {
     Up = 0,
@@ -128,7 +128,7 @@ impl InputState {
     }
 }
 
-pub fn input_tick(game: &mut GameState, fe: &FrontendState) {
+pub fn input_tick(game: &mut GameState, fe: &ClientState) {
     let rot_vec = fe.input.get_rotation_movement_vector();
 
     game.player_rotation[0] += (rot_vec[0] * 0.2) + fe.input.xrel() * 16.0;

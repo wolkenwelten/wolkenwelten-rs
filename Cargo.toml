@@ -24,12 +24,12 @@ client = []
 [dependencies.rostregen-client]
 path = "client"
 
-[dependencies.rostregen-server]
-path = "server"
+[dependencies.rostregen-game]
+path = "game"
 
 
 [workspace]
 members = [
-    "server",
+    "game",
     "client",
 ]

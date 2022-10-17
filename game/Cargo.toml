@@ -1,5 +1,5 @@
 [package]
-name = "rostregen-server"
+name = "rostregen-game"
 version = "0.0.1"
 edition = "2021"
 license = "AGPL-3.0-or-later"
