@@ -1,5 +1,6 @@
 use gl::types::{GLuint, GLvoid};
 use std::ffi::CString;
+use crate::can_use_object_labels;
 
 pub struct VBO {
     id: GLuint,
@@ -36,8 +37,10 @@ impl VBO {
             vbo
         };
         let label = CString::new(format!("{label} VBO {id}")).unwrap();
-        unsafe {
-            gl::ObjectLabel(gl::BUFFER, id, -1, label.as_ptr());
+        if can_use_object_labels() {
+            unsafe {
+                gl::ObjectLabel(gl::BUFFER, id, -1, label.as_ptr());
+            }
         }
         Self::buffer_data(vertices, vbo_size);
         Self { id }
@@ -53,8 +56,10 @@ impl VAO {
             vao
         };
         let vao_label = CString::new(format!("{label} VAO {id}")).unwrap();
-        unsafe {
-            gl::ObjectLabel(gl::VERTEX_ARRAY, id, -1, vao_label.as_ptr());
+        if can_use_object_labels() {
+            unsafe {
+                gl::ObjectLabel(gl::VERTEX_ARRAY, id, -1, vao_label.as_ptr());
+            }
         }
         let vbo = VBO::new(label, vertices, vbo_size);
         Self { id, vbo: vbo }

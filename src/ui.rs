@@ -1,8 +1,9 @@
-use std::ffi::CStr;
-
+use gl::types::GLint;
 use glutin::event_loop::EventLoop;
 use glutin::window::{CursorGrabMode, Window, WindowBuilder};
 use glutin::{ContextBuilder, ContextWrapper, PossiblyCurrent};
+
+use rostregen_client::GL_VERSION;
 
 pub fn init_glutin() -> (EventLoop<()>, ContextWrapper<PossiblyCurrent, Window>) {
     let event_loop = EventLoop::new();
@@ -20,6 +21,20 @@ pub fn init_glutin() -> (EventLoop<()>, ContextWrapper<PossiblyCurrent, Window>)
     let windowed_context = unsafe { windowed_context.make_current().unwrap() };
     let _gl = gl::load_with(|ptr| windowed_context.get_proc_address(ptr) as *const _);
 
+    let major_version:i32 = unsafe {
+        let mut tmp:GLint = 0;
+        gl::GetIntegerv(gl::MAJOR_VERSION, std::ptr::addr_of_mut!(tmp));
+        tmp
+    };
+    let minor_version:i32 = unsafe {
+        let mut tmp:GLint = 0;
+        gl::GetIntegerv(gl::MINOR_VERSION, std::ptr::addr_of_mut!(tmp));
+        tmp
+    };
+    unsafe {
+        GL_VERSION = (major_version, minor_version);
+    }
+
     {
         let window = windowed_context.window();
         window
@@ -28,13 +43,6 @@ pub fn init_glutin() -> (EventLoop<()>, ContextWrapper<PossiblyCurrent, Window>)
             .unwrap();
         window.set_cursor_visible(false);
     }
-
-    let _version = unsafe {
-        let data = CStr::from_ptr(gl::GetString(gl::VERSION) as *const _)
-            .to_bytes()
-            .to_vec();
-        String::from_utf8(data).unwrap()
-    };
 
     (event_loop, windowed_context)
 }

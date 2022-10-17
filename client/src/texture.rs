@@ -1,4 +1,5 @@
 use std::ffi::{c_void, CString};
+use crate::can_use_object_labels;
 
 use gl;
 
@@ -25,7 +26,9 @@ impl Texture {
             let mut id = 0;
             gl::GenTextures(1, &mut id);
             gl::BindTexture(gl::TEXTURE_2D, id);
-            gl::ObjectLabel(gl::TEXTURE, id, -1, label.as_ptr());
+            if can_use_object_labels() {
+                gl::ObjectLabel(gl::TEXTURE, id, -1, label.as_ptr());
+            }
             gl::TexParameteri(
                 gl::TEXTURE_2D,
                 gl::TEXTURE_MIN_FILTER,
@@ -85,7 +88,9 @@ impl TextureArray {
             let mut id = 0;
             gl::GenTextures(1, &mut id);
             gl::BindTexture(gl::TEXTURE_2D_ARRAY, id);
-            gl::ObjectLabel(gl::TEXTURE, id, -1, label.as_ptr());
+            if can_use_object_labels() {
+                gl::ObjectLabel(gl::TEXTURE, id, -1, label.as_ptr());
+            }
             gl::TexParameteri(
                 gl::TEXTURE_2D_ARRAY,
                 gl::TEXTURE_MIN_FILTER,

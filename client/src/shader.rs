@@ -3,6 +3,7 @@ use gl::types::{GLint, GLuint};
 use glam::Mat4;
 use std;
 use std::ffi::{CStr, CString};
+use crate::can_use_object_labels;
 
 pub struct Program {
     id: GLuint,
@@ -150,9 +151,11 @@ impl Program {
 
         Program::bind_attrib_locations(program_id);
 
-        let label = CString::new(program_label).unwrap();
+        if can_use_object_labels() {
+            let label = CString::new(program_label).unwrap();
+            unsafe { gl::ObjectLabel(gl::PROGRAM, program_id, -1, label.as_ptr()) }
+        }
         unsafe {
-            gl::ObjectLabel(gl::PROGRAM, program_id, -1, label.as_ptr());
             gl::LinkProgram(program_id);
         }
 

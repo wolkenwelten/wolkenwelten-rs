@@ -1,7 +1,15 @@
 use std::ffi::CString;
 
-pub use self::meshes::Mesh;
+pub static mut GL_VERSION:(i32, i32) = (0,0);
 
+pub fn can_use_object_labels() -> bool {
+
+    unsafe {
+        (GL_VERSION.0 > 4) || ((GL_VERSION.0 == 4) && (GL_VERSION.1 >= 3))
+    }
+}
+
+pub use self::meshes::Mesh;
 pub use self::input::{input_tick, InputState, Key};
 pub use self::render::{prepare_frame, render_frame, render_init, set_viewport};
 pub use self::shader::Program;
