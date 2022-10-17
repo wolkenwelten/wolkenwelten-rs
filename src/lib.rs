@@ -7,7 +7,7 @@ use glutin::event_loop::ControlFlow;
 use glutin::event_loop::EventLoop;
 use glutin::window::{CursorGrabMode, Window, WindowBuilder};
 use glutin::{ContextBuilder, ContextWrapper, PossiblyCurrent};
-use rostregen_client::{input_tick, prepare_frame, render_frame, set_viewport, ClientState, Key};
+use rostregen_client::{input_tick, prepare_frame, render_frame, set_viewport, ClientState, Key, VIEW_STEPS};
 
 use rostregen_game::GameState;
 
@@ -168,7 +168,7 @@ pub fn run_event_loop(state: AppState) {
             render_state.input.mouse_flush();
 
             game_state.tick();
-            game_state.prepare_world();
+            game_state.prepare_world(VIEW_STEPS);
 
             prepare_frame(&mut render_state, &game_state);
             render_frame(&render_state, &game_state);

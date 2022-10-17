@@ -5,8 +5,9 @@ use gl::types::GLint;
 use glam::f32::Mat4;
 use rostregen_game::{ChunkPosition, Entity, GameState};
 
-const FADEOUT_START_DISTANCE: f32 = 48.0 * 48.0;
-const FADEOUT_DISTANCE: f32 = 16.0 * 16.0;
+pub const VIEW_STEPS:i32 = (128 / 16)+1;
+const FADEOUT_START_DISTANCE: f32 = 96.0 * 96.0;
+const FADEOUT_DISTANCE: f32 = 32.0 * 32.0;
 
 pub fn set_viewport(fe: &ClientState) {
     unsafe {
@@ -100,9 +101,9 @@ pub fn prepare_frame(fe: &mut ClientState, game: &GameState) {
     let px = (game.player_position.x as i32) / 16;
     let py = (game.player_position.y as i32) / 16;
     let pz = (game.player_position.z as i32) / 16;
-    for cx in -4..=4 {
-        for cy in -4..=4 {
-            for cz in -4..=4 {
+    for cx in -VIEW_STEPS..=VIEW_STEPS {
+        for cy in -VIEW_STEPS..=VIEW_STEPS {
+            for cz in -VIEW_STEPS..=VIEW_STEPS {
                 let pos = ChunkPosition::new(cx + px, cy + py, cz + pz);
                 prepare_chunk(fe, game, &pos);
             }
@@ -115,7 +116,7 @@ fn render_game(fe: &ClientState, game: &GameState) {
         90.0_f32.to_radians(),
         (fe.window_width as f32) / (fe.window_height as f32),
         0.1,
-        100.0,
+        178.0,
     );
 
     let view = glam::Mat4::from_rotation_x(game.player_rotation[1].to_radians());
@@ -139,9 +140,9 @@ fn render_game(fe: &ClientState, game: &GameState) {
     let px = (game.player_position.x as i32) / 16;
     let py = (game.player_position.y as i32) / 16;
     let pz = (game.player_position.z as i32) / 16;
-    for cx in -4..=4 {
-        for cy in -4..=4 {
-            for cz in -4..=4 {
+    for cx in -VIEW_STEPS..=VIEW_STEPS {
+        for cy in -VIEW_STEPS..=VIEW_STEPS {
+            for cz in -VIEW_STEPS..=VIEW_STEPS {
                 let x = px + cx;
                 let y = py + cy;
                 let z = pz + cz;

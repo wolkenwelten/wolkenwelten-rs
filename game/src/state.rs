@@ -79,13 +79,13 @@ impl GameState {
         self.world.get(pos)
     }
 
-    pub fn prepare_world(&mut self) {
+    pub fn prepare_world(&mut self, view_steps:i32) {
         let px = (self.player_position.x as i32) / 16;
         let py = (self.player_position.y as i32) / 16;
         let pz = (self.player_position.z as i32) / 16;
-        for cx in -4..=4 {
-            for cy in -4..=4 {
-                for cz in -4..=4 {
+        for cx in -view_steps..=view_steps {
+            for cy in -view_steps..=view_steps {
+                for cz in -view_steps..=view_steps {
                     let pos = ChunkPosition::new(cx + px, cy + py, cz + pz);
                     self.worldgen_chunk(&pos);
                 }
