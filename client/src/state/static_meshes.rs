@@ -1,5 +1,6 @@
 use crate::Mesh;
 
+#[derive(Debug, Default)]
 pub struct MeshList {
     pub pear: Mesh,
 }

@@ -1,3 +1,6 @@
+extern crate glam;
+extern crate rand;
+
 pub use self::block::{BlockType, Side};
 pub use self::chunk::{ChunkBlockData, ChunkPosition};
 pub use self::entity::Entity;

@@ -2,7 +2,9 @@ use crate::ClientState;
 use glam::Vec3;
 use rostregen_game::GameState;
 
+#[derive(Debug, Default)]
 pub enum Key {
+    #[default]
     Up = 0,
     Down,
     Left,
@@ -18,6 +20,7 @@ pub enum Key {
     RotateRight,
 }
 
+#[derive(Debug, Default)]
 pub struct InputState {
     button_states: [bool; 11],
     mouse_xrel: f32,

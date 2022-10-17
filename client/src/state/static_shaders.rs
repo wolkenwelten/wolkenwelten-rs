@@ -1,5 +1,6 @@
 use crate::Program;
 
+#[derive(Debug, Default)]
 pub struct ShaderList {
     pub block: Program,
     pub mesh: Program,

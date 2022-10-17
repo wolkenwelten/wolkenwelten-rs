@@ -1,17 +1,19 @@
+use crate::can_use_object_labels;
 use gl::types::{GLuint, GLvoid};
 use std::ffi::CString;
-use crate::can_use_object_labels;
 
-pub struct VBO {
+#[derive(Debug, Default)]
+pub struct Vbo {
     id: GLuint,
 }
 
-pub struct VAO {
+#[derive(Debug, Default)]
+pub struct Vao {
     id: GLuint,
-    vbo: VBO,
+    vbo: Vbo,
 }
 
-impl VBO {
+impl Vbo {
     pub fn buffer_data(vertices: *const GLvoid, vbo_size: u32) {
         unsafe {
             gl::BufferData(
@@ -36,7 +38,7 @@ impl VBO {
             gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
             vbo
         };
-        let label = CString::new(format!("{label} VBO {id}")).unwrap();
+        let label = CString::new(format!("{} VBO {}", label, id)).unwrap();
         if can_use_object_labels() {
             unsafe {
                 gl::ObjectLabel(gl::BUFFER, id, -1, label.as_ptr());
@@ -47,7 +49,7 @@ impl VBO {
     }
 }
 
-impl VAO {
+impl Vao {
     pub fn new(label: &str, vertices: *const GLvoid, vbo_size: u32) -> Self {
         let id: GLuint = unsafe {
             let mut vao: GLuint = 0;
@@ -55,18 +57,18 @@ impl VAO {
             gl::BindVertexArray(vao);
             vao
         };
-        let vao_label = CString::new(format!("{label} VAO {id}")).unwrap();
+        let vao_label = CString::new(format!("{} VAO {}", label, id)).unwrap();
         if can_use_object_labels() {
             unsafe {
                 gl::ObjectLabel(gl::VERTEX_ARRAY, id, -1, vao_label.as_ptr());
             }
         }
-        let vbo = VBO::new(label, vertices, vbo_size);
-        Self { id, vbo: vbo }
+        let vbo = Vbo::new(label, vertices, vbo_size);
+        Self { id, vbo }
     }
 
     pub fn new_empty(label: &str) -> Self {
-        Self::new(label, 0 as *const GLvoid, 0)
+        Self::new(label, std::ptr::null::<GLvoid>(), 0)
     }
 
     pub fn bind(&self) {
@@ -82,13 +84,13 @@ impl VAO {
     }
 }
 
-impl Drop for VAO {
+impl Drop for Vao {
     fn drop(&mut self) {
-        unsafe { gl::DeleteVertexArrays(1, &mut self.id) }
+        unsafe { gl::DeleteVertexArrays(1, &self.id) }
     }
 }
-impl Drop for VBO {
+impl Drop for Vbo {
     fn drop(&mut self) {
-        unsafe { gl::DeleteBuffers(1, &mut self.id) }
+        unsafe { gl::DeleteBuffers(1, &self.id) }
     }
 }

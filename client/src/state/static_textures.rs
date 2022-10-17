@@ -1,5 +1,6 @@
 use crate::{Texture, TextureArray};
 
+#[derive(Debug, Default)]
 pub struct TextureList {
     pub blocks: TextureArray,
     pub gui: Texture,

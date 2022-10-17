@@ -1,10 +1,9 @@
-use gl;
+use crate::can_use_object_labels;
 use gl::types::{GLint, GLuint};
 use glam::Mat4;
-use std;
 use std::ffi::{CStr, CString};
-use crate::can_use_object_labels;
 
+#[derive(Debug, Default)]
 pub struct Program {
     id: GLuint,
     location_mvp: GLint,
@@ -13,6 +12,7 @@ pub struct Program {
     location_alpha: GLint,
 }
 
+#[derive(Debug, Default)]
 struct Shader {
     id: GLuint,
 }
@@ -60,12 +60,12 @@ impl Shader {
     }
 
     fn from_vert_source(source: &str) -> Result<Self, String> {
-        let s: String = format!("{VERT_PREFIX}\n{source}");
+        let s: String = format!("{}\n{}", VERT_PREFIX, source);
         Self::from_source(&cstr_from_string(s), gl::VERTEX_SHADER)
     }
 
     fn from_frag_source(source: &str) -> Result<Self, String> {
-        let s: String = format!("{FRAG_PREFIX}\n{source}");
+        let s: String = format!("{}\n{}", FRAG_PREFIX, source);
         Self::from_source(&cstr_from_string(s), gl::FRAGMENT_SHADER)
     }
 

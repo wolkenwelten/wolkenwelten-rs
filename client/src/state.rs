@@ -3,14 +3,15 @@ pub use self::static_shaders::ShaderList;
 pub use self::static_textures::TextureList;
 use crate::input::InputState;
 use crate::meshes::{BlockMesh, TextMesh};
-use std::time::Instant;
-use std::collections::HashMap;
 use rostregen_game::ChunkPosition;
+use std::collections::HashMap;
+use std::time::Instant;
 
 pub mod static_meshes;
 pub mod static_shaders;
 pub mod static_textures;
 
+#[derive(Debug)]
 pub struct ClientState {
     pub instant: Instant,
 
@@ -32,8 +33,8 @@ pub struct ClientState {
     pub last_ticks: u128,
 }
 
-impl ClientState {
-    pub fn new() -> Self {
+impl Default for ClientState {
+    fn default() -> Self {
         let last_ticks = 0;
         let window_width = 640;
         let window_height = 480;
@@ -55,6 +56,12 @@ impl ClientState {
             frame_count: 0,
             last_ticks,
         }
+    }
+}
+
+impl ClientState {
+    pub fn new() -> Self {
+        Self::default()
     }
 
     pub fn fps(&self) -> u32 {

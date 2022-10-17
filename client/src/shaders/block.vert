@@ -10,14 +10,14 @@ out float lightValue;
 
 void main(){
     /* First we unpack the position out of the lowest 3x5-bits */
-	uvec4 pos = uvec4(pos & 0x1Fu, (pos >> 5) & 0x1Fu, (pos >> 10) & 0x1Fu, 1);
+	uvec4 opos = uvec4(pos & 0x1Fu, (pos >> 5) & 0x1Fu, (pos >> 10) & 0x1Fu, 1);
 
     /* Then we use the positional data as texture coordinates, since our
      | textures wrap around we get a tiling effect, as well as different
      | textures for each block depending on world position which should
      | help make things look slightly more interesting.
      */
-	uvec2 taxis[3] = uvec2[3](pos.xy, pos.xz, pos.zy);
+	uvec2 taxis[3] = uvec2[3](opos.xy, opos.xz, opos.zy);
 
     /* Now we unpack the side of the current vertex, the
      | side is used select the correct spatial axes for usage as texture
@@ -42,5 +42,5 @@ void main(){
      | a chunk can fit in 5-bits, without this step we would need 16-bit
      | values, per axis...
      */
-	gl_Position = matMVP * (vec4(pos) + vec4(transPos,0.0));
+	gl_Position = matMVP * (vec4(opos) + vec4(transPos,0.0));
 }

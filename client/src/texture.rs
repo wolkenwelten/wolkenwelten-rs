@@ -1,11 +1,11 @@
-use std::ffi::{c_void, CString};
 use crate::can_use_object_labels;
+use std::ffi::{c_void, CString};
 
-use gl;
-
+#[derive(Debug, Default)]
 pub struct Texture {
     id: gl::types::GLuint,
 }
+#[derive(Debug, Default)]
 pub struct TextureArray {
     id: gl::types::GLuint,
 }
@@ -65,7 +65,7 @@ impl Texture {
 impl TextureArray {
     pub fn from_bytes(label: &str, bytes: &'static [u8]) -> Result<Self, image::ImageError> {
         let mut img = image::load_from_memory(bytes)?;
-        let tile_size: u32 = (img.width() / 16).try_into().unwrap();
+        let tile_size: u32 = img.width() / 16;
 
         let mut atlas = image::RgbaImage::new(tile_size, tile_size * 256);
         for y in 0..16 {

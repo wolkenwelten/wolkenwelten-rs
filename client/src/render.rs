@@ -1,7 +1,9 @@
-use crate::ClientState;
-use glam::f32::Mat4;
-use rostregen_game::{Entity, GameState, ChunkPosition};
 use super::meshes::BlockMesh;
+use super::GL_VERSION;
+use crate::ClientState;
+use gl::types::GLint;
+use glam::f32::Mat4;
+use rostregen_game::{ChunkPosition, Entity, GameState};
 
 pub fn set_viewport(fe: &ClientState) {
     unsafe {
@@ -45,18 +47,30 @@ pub fn render_init() {
 
         gl::Enable(gl::PROGRAM_POINT_SIZE);
     }
+    let major_version: i32 = unsafe {
+        let mut tmp: GLint = 0;
+        gl::GetIntegerv(gl::MAJOR_VERSION, std::ptr::addr_of_mut!(tmp));
+        tmp
+    };
+    let minor_version: i32 = unsafe {
+        let mut tmp: GLint = 0;
+        gl::GetIntegerv(gl::MINOR_VERSION, std::ptr::addr_of_mut!(tmp));
+        tmp
+    };
+    unsafe {
+        GL_VERSION = (major_version, minor_version);
+    }
 }
 
-pub fn prepare_chunk(fe: &mut ClientState, game: &GameState, pos:&ChunkPosition) {
+pub fn prepare_chunk(fe: &mut ClientState, game: &GameState, pos: &ChunkPosition) {
     match fe.world_mesh.get(pos) {
         Some(_) => {}
-        _ => match game.get_chunk_block(pos) {
-            Some(chnk) => {
+        _ => {
+            if let Some(chunk) = game.get_chunk_block(pos) {
                 let mut mesh = BlockMesh::new();
-                mesh.update(chnk, &game);
-                fe.world_mesh.insert(pos.clone(), mesh);
+                mesh.update(chunk, game);
+                fe.world_mesh.insert(*pos, mesh);
             }
-            _ => {}
         }
     }
 }
@@ -83,7 +97,7 @@ pub fn prepare_frame(fe: &mut ClientState, game: &GameState) {
     for x in -2..=2 {
         for y in -2..=2 {
             for z in -2..=2 {
-                let pos = ChunkPosition::new(x,y,z);
+                let pos = ChunkPosition::new(x, y, z);
                 prepare_chunk(fe, game, &pos);
             }
         }
@@ -108,7 +122,7 @@ fn render_game(fe: &ClientState, game: &GameState) {
     fe.textures.pear.bind();
 
     for entity in &game.entities {
-        draw_entity(&fe, &entity, &view, &projection);
+        draw_entity(fe, entity, &view, &projection);
     }
 
     fe.shaders.block.set_used();
@@ -119,11 +133,12 @@ fn render_game(fe: &ClientState, game: &GameState) {
     for x in -2..=2 {
         for y in -2..=2 {
             for z in -2..=2 {
-                fe.shaders.block.set_trans((x as f32)*16.0, (y as f32)*16.0, (z as f32)*16.0);
-                let pos = ChunkPosition::new(x,y,z);
-                match fe.world_mesh.get(&pos) {
-                    Some(mesh) => mesh.draw(),
-                    _ => ()
+                fe.shaders
+                    .block
+                    .set_trans((x as f32) * 16.0, (y as f32) * 16.0, (z as f32) * 16.0);
+                let pos = ChunkPosition::new(x, y, z);
+                if let Some(mesh) = fe.world_mesh.get(&pos) {
+                    mesh.draw()
                 }
             }
         }
@@ -132,7 +147,7 @@ fn render_game(fe: &ClientState, game: &GameState) {
 
 pub fn render_frame(fe: &ClientState, game: &GameState) {
     unsafe { gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT) };
-    render_game(&fe, &game);
+    render_game(fe, game);
 
     let perspective = glam::Mat4::orthographic_rh_gl(
         0.0,

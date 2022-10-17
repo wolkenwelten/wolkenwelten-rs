@@ -1,10 +1,11 @@
-use std::collections::HashMap;
 use super::{ChunkBlockData, ChunkPosition};
 use crate::BlockType;
 use crate::Entity;
 use glam::Vec3;
 use rand::Rng;
+use std::collections::HashMap;
 
+#[derive(Debug, Default)]
 pub struct GameState {
     pub running: bool,
     pub ticks_elapsed: u64,
@@ -61,24 +62,21 @@ impl GameState {
         for index in (0..self.entities.len()).rev() {
             if self.entities[index].tick() {
                 self.entities.swap_remove(index);
-            } else {
-                if self.is_solid(&self.entities[index].pos()) {
-                    self.entities[index].set_vel(&Vec3::ZERO);
-                }
+            } else if self.is_solid(&self.entities[index].pos()) {
+                self.entities[index].set_vel(&Vec3::ZERO);
             }
         }
     }
 
-    pub fn worldgen_chunk(&mut self, pos:&ChunkPosition) {
+    pub fn worldgen_chunk(&mut self, pos: &ChunkPosition) {
         let worldgen = || -> ChunkBlockData { ChunkBlockData::worldgen(pos) };
         let chnk = self.world.get(pos);
-        match chnk {
-            None => { self.world.insert(pos.clone(), worldgen()); },
-            _ => ()
+        if chnk.is_none() {
+            self.world.insert(*pos, worldgen());
         };
     }
 
-    pub fn get_chunk_block(&self, pos:&ChunkPosition) -> Option<&ChunkBlockData> {
+    pub fn get_chunk_block(&self, pos: &ChunkPosition) -> Option<&ChunkBlockData> {
         self.world.get(pos)
     }
 
@@ -86,7 +84,7 @@ impl GameState {
         for x in -2..=2 {
             for y in -2..=2 {
                 for z in -2..=2 {
-                    let pos = ChunkPosition::new(x,y,z);
+                    let pos = ChunkPosition::new(x, y, z);
                     self.worldgen_chunk(&pos);
                 }
             }

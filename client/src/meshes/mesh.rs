@@ -1,10 +1,11 @@
 use gl::types::{GLuint, GLvoid};
 
-use super::util::VAO;
+use super::util::Vao;
 use crate::meshes::MeshVertex;
 
+#[derive(Debug, Default)]
 pub struct Mesh {
-    vao: VAO,
+    vao: Vao,
     vertex_count: u32,
 }
 
@@ -17,7 +18,7 @@ impl Mesh {
         let vbo_size: u32 = (vertices.len() * std::mem::size_of::<MeshVertex>())
             .try_into()
             .unwrap();
-        let vao = VAO::new("Block Mesh", vertices.as_ptr() as *const GLvoid, vbo_size);
+        let vao = Vao::new("Block Mesh", vertices.as_ptr() as *const GLvoid, vbo_size);
         MeshVertex::vertex_attrib_pointers();
         let vertex_count: GLuint = vertices.len().try_into().unwrap();
         Ok(Self { vao, vertex_count })
@@ -40,7 +41,6 @@ impl Mesh {
         let mut vertices: Vec<MeshVertex> = Vec::with_capacity(m.indices.len());
         for i in m.indices.iter() {
             let idx: usize = *i as usize;
-            m.positions[idx];
             vertices.push(MeshVertex {
                 pos: (
                     m.positions[idx * 3],

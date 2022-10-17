@@ -1,6 +1,6 @@
-use glam::f32::Vec3;
+use glam::Vec3;
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Default)]
 pub struct Entity {
     pos: Vec3,
     rot: Vec3,
@@ -21,10 +21,10 @@ impl Entity {
     }
 
     pub fn set_vel(&mut self, vel: &Vec3) {
-        self.vel = vel.clone();
+        self.vel = *vel;
     }
     pub fn _set_pos(&mut self, pos: &Vec3) {
-        self.pos = pos.clone();
+        self.pos = *pos;
     }
 
     pub fn tick(&mut self) -> bool {

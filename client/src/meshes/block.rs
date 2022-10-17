@@ -1,15 +1,16 @@
 use super::vertex::vertex_attrib_int_pointer;
-use super::{VAO, VBO};
+use super::{Vao, Vbo};
 use gl::types::GLvoid;
 use rostregen_game::{ChunkBlockData, GameState, Side};
 use std::fmt;
 
+#[derive(Debug, Default)]
 pub struct BlockMesh {
-    vao: VAO,
+    vao: Vao,
     vertex_count: u16,
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Default)]
 #[repr(C, packed)]
 struct BlockVertex {
     xyz: u16,           // We've got 1 bit left here
@@ -24,7 +25,11 @@ impl fmt::Display for BlockVertex {
         let z = (self.xyz >> 10) & 0x1F;
         let bt = self.texture_index;
         let l = self.side_and_light;
-        write!(f, "<BlockVertex X:{x} Y:{y} Z:{z} BT:{bt} L:{l} />")
+        write!(
+            f,
+            "<BlockVertex X:{} Y:{} Z:{} BT:{} L:{} />",
+            x, y, z, bt, l
+        )
     }
 }
 
@@ -41,12 +46,8 @@ impl BlockVertex {
 
     fn add_front(
         vertices: &mut Vec<Self>,
-        x: u16,
-        y: u16,
-        z: u16,
-        w: u16,
-        h: u16,
-        d: u16,
+        (x, y, z): (u16, u16, u16),
+        (w, h, d): (u16, u16, u16),
         texture_index: u8,
         light: u8,
     ) {
@@ -63,12 +64,8 @@ impl BlockVertex {
 
     fn add_back(
         vertices: &mut Vec<Self>,
-        x: u16,
-        y: u16,
-        z: u16,
-        w: u16,
-        h: u16,
-        _d: u16,
+        (x, y, z): (u16, u16, u16),
+        (w, h, _): (u16, u16, u16),
         texture_index: u8,
         light: u8,
     ) {
@@ -84,12 +81,8 @@ impl BlockVertex {
 
     fn add_top(
         vertices: &mut Vec<Self>,
-        x: u16,
-        y: u16,
-        z: u16,
-        w: u16,
-        h: u16,
-        d: u16,
+        (x, y, z): (u16, u16, u16),
+        (w, h, d): (u16, u16, u16),
         texture_index: u8,
         light: u8,
     ) {
@@ -106,12 +99,8 @@ impl BlockVertex {
 
     fn add_bottom(
         vertices: &mut Vec<Self>,
-        x: u16,
-        y: u16,
-        z: u16,
-        w: u16,
-        _h: u16,
-        d: u16,
+        (x, y, z): (u16, u16, u16),
+        (w, _, d): (u16, u16, u16),
         texture_index: u8,
         light: u8,
     ) {
@@ -127,12 +116,8 @@ impl BlockVertex {
 
     fn add_left(
         vertices: &mut Vec<Self>,
-        x: u16,
-        y: u16,
-        z: u16,
-        _w: u16,
-        h: u16,
-        d: u16,
+        (x, y, z): (u16, u16, u16),
+        (_, h, d): (u16, u16, u16),
         texture_index: u8,
         light: u8,
     ) {
@@ -148,12 +133,8 @@ impl BlockVertex {
 
     fn add_right(
         vertices: &mut Vec<Self>,
-        x: u16,
-        y: u16,
-        z: u16,
-        w: u16,
-        h: u16,
-        d: u16,
+        (x, y, z): (u16, u16, u16),
+        (w, h, d): (u16, u16, u16),
         texture_index: u8,
         light: u8,
     ) {
@@ -184,7 +165,7 @@ impl BlockMesh {
     }
 
     pub fn new() -> Self {
-        let vao = VAO::new_empty("BlockMesh");
+        let vao = Vao::new_empty("BlockMesh");
         BlockVertex::vertex_attrib_pointers();
         Self {
             vao,
@@ -197,43 +178,49 @@ impl BlockMesh {
         for x in 0..16_u16 {
             for y in 0..16_u16 {
                 for z in 0..16_u16 {
-                    let block = chunk.get_block(x.into(), y.into(), z.into());
+                    let block = chunk.get_block((x.into(), y.into(), z.into()));
                     if block > 0 {
                         let b = game.get_block_type(block);
                         let light = 0x0F;
                         BlockVertex::add_front(
                             &mut vertices,
-                            x,
-                            y,
-                            z,
-                            1,
-                            1,
-                            1,
+                            (x, y, z),
+                            (1, 1, 1),
                             b.tex_front(),
                             light,
                         );
-                        BlockVertex::add_back(&mut vertices, x, y, z, 1, 1, 1, b.tex_back(), light);
-                        BlockVertex::add_top(&mut vertices, x, y, z, 1, 1, 1, b.tex_top(), light);
+                        BlockVertex::add_back(
+                            &mut vertices,
+                            (x, y, z),
+                            (1, 1, 1),
+                            b.tex_back(),
+                            light,
+                        );
+                        BlockVertex::add_top(
+                            &mut vertices,
+                            (x, y, z),
+                            (1, 1, 1),
+                            b.tex_top(),
+                            light,
+                        );
                         BlockVertex::add_bottom(
                             &mut vertices,
-                            x,
-                            y,
-                            z,
-                            1,
-                            1,
-                            1,
+                            (x, y, z),
+                            (1, 1, 1),
                             b.tex_bottom(),
                             light,
                         );
-                        BlockVertex::add_left(&mut vertices, x, y, z, 1, 1, 1, b.tex_left(), light);
+                        BlockVertex::add_left(
+                            &mut vertices,
+                            (x, y, z),
+                            (1, 1, 1),
+                            b.tex_left(),
+                            light,
+                        );
                         BlockVertex::add_right(
                             &mut vertices,
-                            x,
-                            y,
-                            z,
-                            1,
-                            1,
-                            1,
+                            (x, y, z),
+                            (1, 1, 1),
                             b.tex_right(),
                             light,
                         );
@@ -245,7 +232,7 @@ impl BlockMesh {
         let vbo_size: u32 = (vertices.len() * std::mem::size_of::<BlockVertex>())
             .try_into()
             .unwrap();
-        VBO::buffer_data(vertices.as_ptr() as *const GLvoid, vbo_size);
+        Vbo::buffer_data(vertices.as_ptr() as *const GLvoid, vbo_size);
         BlockVertex::vertex_attrib_pointers();
         self.vertex_count = vertices.len().try_into().unwrap();
     }
