@@ -1,4 +1,4 @@
-use crate::frontend::Mesh;
+use crate::Mesh;
 
 pub struct MeshList {
     pub pear: Mesh,

@@ -1,0 +1,16 @@
+[package]
+name = "rostregen-frontend-lib"
+version = "0.0.1"
+edition = "2021"
+license = "AGPL-3.0-or-later"
+homepage = "https://wolkenwelten.net"
+
+[dependencies]
+winit = "0.27.4"
+gl = "0.14.0"
+glam = "0.21.3"
+tobj = "3.2.3"
+image = { version = "0.24.4", default-features = false, features = ["png"]}
+
+[dependencies.rostregen-backend-lib]
+path = "../backend-lib"

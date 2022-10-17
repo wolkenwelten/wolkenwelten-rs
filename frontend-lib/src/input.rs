@@ -1,6 +1,6 @@
-use crate::backend::GameState;
-use crate::frontend::FrontendState;
+use crate::FrontendState;
 use glam::Vec3;
+use rostregen_backend_lib::GameState;
 
 pub enum Key {
     Up = 0,

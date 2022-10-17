@@ -1,8 +1,8 @@
 pub use self::static_meshes::MeshList;
 pub use self::static_shaders::ShaderList;
 pub use self::static_textures::TextureList;
-use crate::frontend::input::InputState;
-use crate::frontend::meshes::{BlockMesh, TextMesh};
+use crate::input::InputState;
+use crate::meshes::{BlockMesh, TextMesh};
 use std::time::Instant;
 
 pub mod static_meshes;

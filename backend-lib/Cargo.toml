@@ -1,0 +1,10 @@
+[package]
+name = "rostregen-backend-lib"
+version = "0.0.1"
+edition = "2021"
+license = "AGPL-3.0-or-later"
+homepage = "https://wolkenwelten.net"
+
+[dependencies]
+rand = "0.8.5"
+glam = "0.21.3"

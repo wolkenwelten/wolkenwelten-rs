@@ -1,7 +1,7 @@
 use gl::types::{GLuint, GLvoid};
 
 use super::util::VAO;
-use crate::frontend::meshes::MeshVertex;
+use crate::meshes::MeshVertex;
 
 pub struct Mesh {
     vao: VAO,

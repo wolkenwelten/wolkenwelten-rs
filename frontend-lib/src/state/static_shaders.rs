@@ -1,4 +1,4 @@
-use crate::frontend::Program;
+use crate::Program;
 
 pub struct ShaderList {
     pub block: Program,

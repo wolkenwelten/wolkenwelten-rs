@@ -1,4 +1,4 @@
-use crate::frontend::{Texture, TextureArray};
+use crate::{Texture, TextureArray};
 
 pub struct TextureList {
     pub blocks: TextureArray,

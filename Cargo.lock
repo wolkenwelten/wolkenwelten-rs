@@ -953,10 +953,27 @@ name = "rostregen"
 version = "0.0.1"
 dependencies = [
  "gl",
- "glam",
  "glutin",
- "image",
+ "rostregen-backend-lib",
+ "rostregen-frontend-lib",
+]
+
+[[package]]
+name = "rostregen-backend-lib"
+version = "0.0.1"
+dependencies = [
+ "glam",
  "rand",
+]
+
+[[package]]
+name = "rostregen-frontend-lib"
+version = "0.0.1"
+dependencies = [
+ "gl",
+ "glam",
+ "image",
+ "rostregen-backend-lib",
  "tobj",
  "winit",
 ]

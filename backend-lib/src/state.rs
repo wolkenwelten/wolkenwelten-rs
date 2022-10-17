@@ -1,6 +1,6 @@
 use super::ChunkBlockData;
-use crate::backend::BlockType;
-use crate::backend::Entity;
+use crate::BlockType;
+use crate::Entity;
 use glam::Vec3;
 use rand::Rng;
 

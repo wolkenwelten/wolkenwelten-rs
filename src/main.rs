@@ -1,16 +1,15 @@
-use crate::backend::GameState;
-use crate::frontend::FrontendState;
 use std::ffi::CStr;
 
-use crate::frontend::{input_tick, Key};
-use frontend::{prepare_frame, render_frame, render_init, set_viewport};
 use glutin::event::{DeviceEvent, ElementState, Event, KeyboardInput, VirtualKeyCode, WindowEvent};
 use glutin::event_loop::{ControlFlow, EventLoop};
 use glutin::window::{CursorGrabMode, WindowBuilder};
 use glutin::ContextBuilder;
+use rostregen_frontend_lib::{
+    input_tick, prepare_frame, render_frame, render_init, set_viewport, Key,
+};
 
-mod backend;
-mod frontend;
+use rostregen_backend_lib::GameState;
+use rostregen_frontend_lib::FrontendState;
 
 pub fn main() {
     let event_loop = EventLoop::new();
