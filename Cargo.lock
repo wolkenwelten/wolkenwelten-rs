@@ -954,12 +954,12 @@ version = "0.0.1"
 dependencies = [
  "gl",
  "glutin",
- "rostregen-backend-lib",
- "rostregen-frontend-lib",
+ "rostregen-backend",
+ "rostregen-frontend",
 ]
 
 [[package]]
-name = "rostregen-backend-lib"
+name = "rostregen-backend"
 version = "0.0.1"
 dependencies = [
  "glam",
@@ -967,13 +967,13 @@ dependencies = [
 ]
 
 [[package]]
-name = "rostregen-frontend-lib"
+name = "rostregen-frontend"
 version = "0.0.1"
 dependencies = [
  "gl",
  "glam",
  "image",
- "rostregen-backend-lib",
+ "rostregen-backend",
  "tobj",
  "winit",
 ]

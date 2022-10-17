@@ -17,15 +17,15 @@ gl = "0.14.0"
 #v8 = "0.52.0"
 #rapier3d = "0.15.0"
 
-[dependencies.rostregen-frontend-lib]
-path = "frontend-lib"
+[dependencies.rostregen-frontend]
+path = "frontend"
 
-[dependencies.rostregen-backend-lib]
-path = "backend-lib"
+[dependencies.rostregen-backend]
+path = "backend"
 
 
 [workspace]
 members = [
-    "backend-lib",
-    "frontend-lib",
+    "backend",
+    "frontend",
 ]

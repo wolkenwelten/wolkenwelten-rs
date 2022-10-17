@@ -1,5 +1,5 @@
 [package]
-name = "rostregen-frontend-lib"
+name = "rostregen-frontend"
 version = "0.0.1"
 edition = "2021"
 license = "AGPL-3.0-or-later"
@@ -12,5 +12,5 @@ glam = "0.21.3"
 tobj = "3.2.3"
 image = { version = "0.24.4", default-features = false, features = ["png"]}
 
-[dependencies.rostregen-backend-lib]
-path = "../backend-lib"
+[dependencies.rostregen-backend]
+path = "../backend"
