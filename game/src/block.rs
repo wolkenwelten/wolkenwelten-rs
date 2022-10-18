@@ -1,4 +1,4 @@
-#[derive(Copy, Clone, Debug, Default)]
+#[derive(Copy, Clone, Debug, Default, Eq, PartialEq)]
 pub enum Side {
     #[default]
     Front = 0,
@@ -45,18 +45,6 @@ impl BlockType {
         self
     }
 
-    pub fn _with_texture_front(self, tex: u8) -> Self {
-        self.with_texture_side(tex, Side::Front)
-    }
-    pub fn _with_texture_back(self, tex: u8) -> Self {
-        self.with_texture_side(tex, Side::Back)
-    }
-    pub fn _with_texture_left(self, tex: u8) -> Self {
-        self.with_texture_side(tex, Side::Left)
-    }
-    pub fn _with_texture_right(self, tex: u8) -> Self {
-        self.with_texture_side(tex, Side::Right)
-    }
     pub fn with_texture_top(self, tex: u8) -> Self {
         self.with_texture_side(tex, Side::Top)
     }
@@ -125,5 +113,44 @@ impl std::fmt::Display for BlockType {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         let name = &self.name;
         write!(f, "<BlockType name={} />", name)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_side() {
+        assert_eq!(u8::from(Side::Front), 0);
+        assert_eq!(u8::from(Side::Back), 1);
+        assert_eq!(u8::from(Side::Right), 5);
+        assert_eq!(Side::Left, Side::Left);
+        assert_eq!(Side::Left, Side::Left.clone());
+        assert_ne!(Side::Left, Side::Right);
+        assert_eq!(Side::default(), Side::Front);
+    }
+
+    #[test]
+    fn test_block_types() {
+        let blocks = BlockType::load_all();
+        assert_eq!(blocks[1].tex_right(), 1);
+        assert_eq!(blocks[1].tex_left(), 1);
+        assert_eq!(blocks[1].tex_top(), 1);
+        assert_eq!(blocks[1].tex_bottom(), 1);
+        assert_eq!(blocks[1].tex_front(), 1);
+        assert_eq!(blocks[1].tex_back(), 1);
+        let b = blocks[1].clone().with_texture_bottom(2);
+        assert_eq!(b.tex_bottom(), 2);
+        assert_eq!(b.tex_top(), 1);
+        let b = b.with_texture_top(2);
+        assert_eq!(b.tex_bottom(), 2);
+        assert_eq!(b.tex_top(), 2);
+        assert_eq!(b.tex_left(), 1);
+        assert!(blocks.len() > 8);
+        assert_eq!(blocks[1].name, "Dirt");
+        assert_ne!(blocks[2].tex_top(), blocks[2].tex_left());
+        let dis = format!("{}", blocks[3]);
+        assert_eq!(dis, "<BlockType name=Stone />");
     }
 }

@@ -81,3 +81,40 @@ impl ChunkBlockData {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn sum(chunk: &ChunkBlockData) -> i32 {
+        let mut acc: i32 = 0;
+        for x in chunk.data.iter() {
+            for y in x.iter() {
+                for z in y.iter() {
+                    acc += *z as i32;
+                }
+            }
+        }
+        acc
+    }
+
+    #[test]
+    fn test_chunk() {
+        let chunk = ChunkBlockData::new();
+        assert_eq!(sum(&chunk), 0);
+        let chunk = chunk.clone();
+        assert_eq!(sum(&chunk), 0);
+        let mut chunk = ChunkBlockData::default();
+        assert_eq!(sum(&chunk), 0);
+        chunk.data[0][0][0] = 1;
+        assert_eq!(sum(&chunk), 1);
+        assert_eq!(chunk.get_block((0, 0, 0)), 1);
+        chunk.set_block(4, (1, 1, 1));
+        assert_eq!(sum(&chunk), 5);
+        assert_eq!(chunk.get_block((1, 1, 1)), 4);
+        chunk.set_box(1, (0, 0, 0), (2, 2, 2));
+        assert_eq!(sum(&chunk), 8);
+        chunk.set_sphere(1, (8, 8, 8), 4);
+        assert_eq!(sum(&chunk), 259);
+    }
+}

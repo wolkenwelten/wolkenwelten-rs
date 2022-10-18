@@ -1,8 +1,8 @@
 use super::vertex::vertex_attrib_int_pointer;
 use super::{Vao, Vbo};
 use gl::types::GLvoid;
-use rostregen_game::{ChunkBlockData, GameState, Side};
 use std::fmt;
+use wolkenwelten_game::{ChunkBlockData, GameState, Side};
 
 #[derive(Debug, Default)]
 pub struct BlockMesh {

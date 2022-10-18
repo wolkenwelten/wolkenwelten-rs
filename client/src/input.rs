@@ -1,7 +1,7 @@
 use crate::ClientState;
 use glam::swizzles::Vec4Swizzles;
 use glam::Vec3;
-use rostregen_game::GameState;
+use wolkenwelten_game::GameState;
 
 #[derive(Debug, Default)]
 pub enum Key {

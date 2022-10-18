@@ -1,8 +1,8 @@
-extern crate rostregen_client;
-extern crate rostregen_game;
+extern crate wolkenwelten_client;
+extern crate wolkenwelten_game;
 
-use rostregen_client::{render_init, ClientState};
-use rostregen_game::GameState;
+use wolkenwelten_client::{render_init, ClientState};
+use wolkenwelten_game::GameState;
 
 mod lib;
 

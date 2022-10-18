@@ -3,17 +3,17 @@ pub use self::static_shaders::ShaderList;
 pub use self::static_textures::TextureList;
 use crate::input::InputState;
 use crate::meshes::{BlockMesh, TextMesh};
-use glam::i32::IVec3;
 use glam::f32::Vec3;
+use glam::i32::IVec3;
 use std::collections::HashMap;
 use std::time::Instant;
-use rostregen_game::Character;
+use wolkenwelten_game::Character;
 
 pub mod static_meshes;
 pub mod static_shaders;
 pub mod static_textures;
 
-const MAX_DROPS_PER_FRAME:usize = 32;
+const MAX_DROPS_PER_FRAME: usize = 32;
 
 #[derive(Debug)]
 pub struct ClientState {
@@ -86,14 +86,16 @@ impl ClientState {
         self.window_height = new_height;
     }
 
-    pub fn gc(&mut self, player:&Character) {
-        let mut removal_queue:Vec<IVec3> = Vec::with_capacity(MAX_DROPS_PER_FRAME);
+    pub fn gc(&mut self, player: &Character) {
+        let mut removal_queue: Vec<IVec3> = Vec::with_capacity(MAX_DROPS_PER_FRAME);
         for pos in self.world_mesh.keys() {
-            let diff:Vec3 = (pos.as_vec3() * 16.0) - player.pos;
+            let diff: Vec3 = (pos.as_vec3() * 16.0) - player.pos;
             let d = diff.dot(diff);
-            if  d > (256.0*256.0) {
-                removal_queue.push(pos.clone());
-                if removal_queue.len() >= MAX_DROPS_PER_FRAME { break } // Don't remove too many at once, may stutter
+            if d > (256.0 * 256.0) {
+                removal_queue.push(*pos);
+                if removal_queue.len() >= MAX_DROPS_PER_FRAME {
+                    break;
+                } // Don't remove too many at once, may stutter
             }
         }
         for pos in removal_queue {

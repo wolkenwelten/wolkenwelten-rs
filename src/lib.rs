@@ -1,17 +1,17 @@
 extern crate glutin;
-extern crate rostregen_client;
-extern crate rostregen_game;
+extern crate wolkenwelten_client;
+extern crate wolkenwelten_game;
 
 use glutin::event::{DeviceEvent, ElementState, Event, KeyboardInput, VirtualKeyCode, WindowEvent};
 use glutin::event_loop::ControlFlow;
 use glutin::event_loop::EventLoop;
 use glutin::window::{CursorGrabMode, Window, WindowBuilder};
 use glutin::{ContextBuilder, ContextWrapper, PossiblyCurrent};
-use rostregen_client::{
+use wolkenwelten_client::{
     input_tick, prepare_frame, render_frame, set_viewport, ClientState, Key, VIEW_STEPS,
 };
 
-use rostregen_game::GameState;
+use wolkenwelten_game::GameState;
 
 pub struct AppState {
     pub game_state: GameState,

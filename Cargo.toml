@@ -1,5 +1,5 @@
 [package]
-name = "rostregen"
+name = "wolkenwelten"
 version = "0.0.1"
 edition = "2021"
 license = "AGPL-3.0-or-later"
@@ -21,15 +21,20 @@ gl = "0.14.0"
 default = ["client"]
 client = []
 
-[dependencies.rostregen-client]
+[dependencies.wolkenwelten-client]
 path = "client"
 
-[dependencies.rostregen-game]
+[dependencies.wolkenwelten-game]
 path = "game"
-
 
 [workspace]
 members = [
+    "./",
+    "game",
+    "client",
+]
+default-members = [
+    "./",
     "game",
     "client",
 ]

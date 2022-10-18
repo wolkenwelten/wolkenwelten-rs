@@ -1,5 +1,5 @@
 extern crate glam;
-extern crate rostregen_game;
+extern crate wolkenwelten_game;
 
 use std::ffi::CString;
 

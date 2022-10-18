@@ -949,37 +949,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "rostregen"
-version = "0.0.1"
-dependencies = [
- "gl",
- "glutin",
- "rostregen-client",
- "rostregen-game",
-]
-
-[[package]]
-name = "rostregen-client"
-version = "0.0.1"
-dependencies = [
- "gl",
- "glam",
- "image",
- "rostregen-game",
- "tobj",
- "winit",
-]
-
-[[package]]
-name = "rostregen-game"
-version = "0.0.1"
-dependencies = [
- "glam",
- "rand",
- "rand_chacha",
-]
-
-[[package]]
 name = "safe_arch"
 version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1450,6 +1419,37 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5d129932f4644ac2396cb456385cbf9e63b5b30c6e8dc4820bdca4eb082037a5"
 dependencies = [
  "winapi",
+]
+
+[[package]]
+name = "wolkenwelten"
+version = "0.0.1"
+dependencies = [
+ "gl",
+ "glutin",
+ "wolkenwelten-client",
+ "wolkenwelten-game",
+]
+
+[[package]]
+name = "wolkenwelten-client"
+version = "0.0.1"
+dependencies = [
+ "gl",
+ "glam",
+ "image",
+ "tobj",
+ "winit",
+ "wolkenwelten-game",
+]
+
+[[package]]
+name = "wolkenwelten-game"
+version = "0.0.1"
+dependencies = [
+ "glam",
+ "rand",
+ "rand_chacha",
 ]
 
 [[package]]

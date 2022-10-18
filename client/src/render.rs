@@ -4,7 +4,7 @@ use crate::ClientState;
 use gl::types::GLint;
 use glam::f32::Mat4;
 use glam::IVec3;
-use rostregen_game::{Entity, GameState};
+use wolkenwelten_game::{Entity, GameState};
 
 pub const VIEW_STEPS: i32 = (128 / 16) + 1;
 const FADEOUT_START_DISTANCE: f32 = 96.0 * 96.0;
