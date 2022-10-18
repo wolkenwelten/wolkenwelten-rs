@@ -90,21 +90,22 @@ pub fn prepare_frame(fe: &mut ClientState, game: &GameState) {
         "Y:{:8.2} P:{:8.2} R:{:8.2}",
         game.player.rot[0], game.player.rot[1], game.player.rot[2]
     );
-    let ent_text = format!("Entities: {}", game.get_entity_count());
     let col_text = format!(
-        "Player {}",
-        if game.player.no_clip() { "NO-CLIP" } else { "" }
+        "Entities: {}   Chunks: {}   BlockMeshes: {}",
+        game.get_entity_count(),
+        game.world.block_data.len(),
+        fe.world_mesh.len(),
     );
 
     fe.ui_mesh
         .push_string(8, 8, 2, 0xFFFFFFFF, fps_text.as_str())
         .push_string(8, 40, 1, 0xFFFFFFFF, pos_text.as_str())
         .push_string(8, 50, 1, 0xFFFFFFFF, rot_text.as_str())
-        .push_string(8, 70, 1, 0xFFFFFFFF, ent_text.as_str())
-        .push_string(8, 90, 1, 0xFFFFFFFF, col_text.as_str())
+        .push_string(8, 70, 2, 0xFFFFFFFF, col_text.as_str())
         .prepare();
 
     fe.calc_fps();
+    fe.gc(&game.player);
 
     let px = (game.player.pos.x as i32) / 16;
     let py = (game.player.pos.y as i32) / 16;

@@ -156,11 +156,11 @@ pub fn input_tick(game: &mut GameState, fe: &ClientState) {
     let view = glam::Mat4::from_rotation_y(-game.player.rot[0].to_radians());
     let view = view * glam::Mat4::from_rotation_x(-game.player.rot[1].to_radians());
     let v = glam::Vec4::from((fe.input.get_movement_vector(), 1.0_f32));
-    let move_vec = view * v;
+    let move_vec = (view * v).xyz();
     let speed = fe.input.get_speed();
 
     if game.player.no_clip() {
-        game.player.vel = move_vec.xyz() * speed;
+        game.player.vel = move_vec * speed;
         game.player.vel.y += fe.input.get_jump() * speed;
     } else {
         game.player.vel.x = ((move_vec.x * speed * 0.05) + (game.player.vel.x * 0.95)) / 2.0;

@@ -54,6 +54,7 @@ impl GameState {
         self.ticks_elapsed += 1;
         Entity::tick(&mut self.entities, &self.player, &self.world);
         self.player.tick(&self.world);
+        self.world.gc(&self.player);
     }
 
     pub fn worldgen_chunk(&mut self, pos: IVec3) {

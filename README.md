@@ -8,7 +8,7 @@ working whatsoever.
 [X] Simple placeholder worldgen
 [X] Remove hidden surfaces from BlockMeshes
 [X] Simple player controls (gravity/collision with the world)
-[ ] Chunk/BlockMesh GC
+[X] Chunk/BlockMesh GC
 [ ] Frustum culling
 [ ] Greedy meshing
 [ ] Lighting
