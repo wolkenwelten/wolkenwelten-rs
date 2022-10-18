@@ -1,6 +1,3 @@
-use rand::prelude::*;
-use rand_chacha::ChaCha8Rng;
-
 #[derive(Copy, Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct ChunkPosition(i32, i32, i32);
 impl ChunkPosition {
@@ -9,7 +6,7 @@ impl ChunkPosition {
     }
 }
 
-#[derive(Clone, Debug, Default)]
+#[derive(Debug)]
 pub struct ChunkBlockData {
     pub data: [[[u8; 16]; 16]; 16],
 }

@@ -30,9 +30,9 @@ impl GameState {
             for z in -2..=2 {
                 let y: f32 = (rng.gen::<f32>() * 5.0) + 8.5;
                 let mut e = Entity::new(Vec3::new(x as f32, y, z as f32));
-                let vx: f32 = (rng.gen::<f32>() - 0.5) * 0.05;
-                let vy: f32 = (rng.gen::<f32>() - 0.1) * 0.01;
-                let vz: f32 = (rng.gen::<f32>() - 0.5) * 0.05;
+                let vx: f32 = (rng.gen::<f32>() - 0.5) * 0.5;
+                let vy: f32 = (rng.gen::<f32>() - 0.1) * 0.1;
+                let vz: f32 = (rng.gen::<f32>() - 0.5) * 0.5;
                 let vel = Vec3::new(vx, vy, vz);
                 e.set_vel(&vel);
 
@@ -57,13 +57,25 @@ impl GameState {
         self.entities.push(e);
     }
 
+    pub fn get_entity_count(&self) -> usize { self.entities.len() }
+
     pub fn tick(&mut self) {
         self.ticks_elapsed += 1;
         for index in (0..self.entities.len()).rev() {
-            if self.entities[index].tick() {
+            {
+                let v = self.entities[index].vel;
+                self.entities[index].pos += v;
+                self.entities[index].vel.y -= 0.001;
+                self.entities[index].rot.y += 0.05;
+            }
+
+            let dist = self.entities[index].pos - self.player_position;
+            let dd = dist.x*dist.x + dist.y*dist.y + dist.z*dist.z;
+
+            if dd > (128.0*128.0) { // Remove when far enough away
                 self.entities.swap_remove(index);
             } else if self.is_solid(&self.entities[index].pos()) {
-                self.entities[index].set_vel(&Vec3::ZERO);
+                self.entities[index].vel = Vec3::ZERO;
             }
         }
     }
@@ -77,6 +89,16 @@ impl GameState {
 
     pub fn get_chunk_block(&self, pos: &ChunkPosition) -> Option<&ChunkBlockData> {
         self.world.get(pos)
+    }
+
+    pub fn get_single_block(&self, (x,y,z):(i32,i32,i32)) -> u8 {
+        let pos = ChunkPosition::new(x/4,y/4,z/4);
+        let chunk = self.get_chunk_block(&pos);
+        if let Some(chnk) = chunk {
+            chnk.data[(x&15) as usize][(y&15) as usize][(z&15) as usize]
+        } else {
+            0
+        }
     }
 
     pub fn prepare_world(&mut self, view_steps:i32) {
@@ -97,31 +119,20 @@ impl GameState {
         &self.blocks[i as usize]
     }
     pub fn is_solid(&self, pos: &Vec3) -> bool {
-        if pos.x < -8.0 {
-            return false;
+        let x: i32 = (pos.x as i32)/16;
+        let y: i32 = (pos.y as i32)/16;
+        let z: i32 = (pos.z as i32)/16;
+        let cp = ChunkPosition::new(x,y,z);
+        let chnk = self.world.get(&cp);
+        if let Some(chnk) = chnk {
+            let cx = (pos.x as usize)&15;
+            let cy = (pos.y as usize)&15;
+            let cz = (pos.z as usize)&15;
+            let b = chnk.data[cx][cy][cz];
+            println!("({x},{y},{z})({cx}|{cy}|{cz}) => {b}");
+            b != 0
+        } else {
+            false
         }
-        if pos.y < -8.0 {
-            return false;
-        }
-        if pos.z < -8.0 {
-            return false;
-        }
-
-        if pos.x > 8.0 {
-            return false;
-        }
-        if pos.y > 8.0 {
-            return false;
-        }
-        if pos.z > 8.0 {
-            return false;
-        }
-
-        //let x: i32 = (pos.x as i32) + 8;
-        //let y: i32 = (pos.y as i32) + 8;
-        //let z: i32 = (pos.z as i32) + 8;
-        //let block = self.world.get_block(x, y, z);
-        let block = 0;
-        block != 0
     }
 }

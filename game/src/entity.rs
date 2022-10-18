@@ -1,10 +1,10 @@
 use glam::Vec3;
 
-#[derive(Copy, Clone, Debug, Default)]
+#[derive(Clone, Debug, Default)]
 pub struct Entity {
-    pos: Vec3,
-    rot: Vec3,
-    vel: Vec3,
+    pub pos: Vec3,
+    pub rot: Vec3,
+    pub vel: Vec3,
 }
 
 impl Entity {
@@ -25,13 +25,5 @@ impl Entity {
     }
     pub fn _set_pos(&mut self, pos: &Vec3) {
         self.pos = *pos;
-    }
-
-    pub fn tick(&mut self) -> bool {
-        self.pos += self.vel;
-        self.vel.y -= 0.001;
-        self.rot.y += 0.05;
-
-        self.pos.y < -16.0
     }
 }

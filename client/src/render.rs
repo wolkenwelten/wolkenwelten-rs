@@ -89,11 +89,15 @@ pub fn prepare_frame(fe: &mut ClientState, game: &GameState) {
         "Y:{:8.2} P:{:8.2} R:{:8.2}",
         game.player_rotation[0], game.player_rotation[1], game.player_rotation[2]
     );
+    let ent_text = format!("Entities: {}", game.get_entity_count());
+    let col_text = format!("Player Collide: {}", if game.is_solid(&game.player_position) { "COLLIDE" } else { "" });
 
     fe.ui_mesh
         .push_string(8, 8, 2, 0xFFFFFFFF, fps_text.as_str())
         .push_string(8, 40, 1, 0xFFFFFFFF, pos_text.as_str())
         .push_string(8, 50, 1, 0xFFFFFFFF, rot_text.as_str())
+        .push_string(8, 70, 1, 0xFFFFFFFF, ent_text.as_str())
+        .push_string(8, 90, 1, 0xFFFFFFFF, col_text.as_str())
         .prepare();
 
     fe.calc_fps();
