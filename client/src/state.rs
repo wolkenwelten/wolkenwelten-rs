@@ -3,7 +3,7 @@ pub use self::static_shaders::ShaderList;
 pub use self::static_textures::TextureList;
 use crate::input::InputState;
 use crate::meshes::{BlockMesh, TextMesh};
-use rostregen_game::ChunkPosition;
+use glam::IVec3;
 use std::collections::HashMap;
 use std::time::Instant;
 
@@ -15,7 +15,7 @@ pub mod static_textures;
 pub struct ClientState {
     pub instant: Instant,
 
-    pub world_mesh: HashMap<ChunkPosition, BlockMesh>,
+    pub world_mesh: HashMap<IVec3, BlockMesh>,
 
     pub window_width: u32,
     pub window_height: u32,

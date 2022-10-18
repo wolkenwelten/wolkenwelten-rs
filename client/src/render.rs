@@ -3,9 +3,10 @@ use super::GL_VERSION;
 use crate::ClientState;
 use gl::types::GLint;
 use glam::f32::Mat4;
-use rostregen_game::{ChunkPosition, Entity, GameState};
+use glam::IVec3;
+use rostregen_game::{Entity, GameState};
 
-pub const VIEW_STEPS:i32 = (128 / 16)+1;
+pub const VIEW_STEPS: i32 = (128 / 16) + 1;
 const FADEOUT_START_DISTANCE: f32 = 96.0 * 96.0;
 const FADEOUT_DISTANCE: f32 = 32.0 * 32.0;
 
@@ -66,14 +67,14 @@ pub fn render_init() {
     }
 }
 
-pub fn prepare_chunk(fe: &mut ClientState, game: &GameState, pos: &ChunkPosition) {
-    match fe.world_mesh.get(pos) {
+pub fn prepare_chunk(fe: &mut ClientState, game: &GameState, pos: IVec3) {
+    match fe.world_mesh.get(&pos) {
         Some(_) => {}
         _ => {
             if let Some(chunk) = game.get_chunk_block(pos) {
                 let mut mesh = BlockMesh::new();
                 mesh.update(chunk, game);
-                fe.world_mesh.insert(*pos, mesh);
+                fe.world_mesh.insert(pos, mesh);
             }
         }
     }
@@ -90,7 +91,14 @@ pub fn prepare_frame(fe: &mut ClientState, game: &GameState) {
         game.player_rotation[0], game.player_rotation[1], game.player_rotation[2]
     );
     let ent_text = format!("Entities: {}", game.get_entity_count());
-    let col_text = format!("Player Collide: {}", if game.is_solid(&game.player_position) { "COLLIDE" } else { "" });
+    let col_text = format!(
+        "Player Collide: {}",
+        if game.is_solid(game.player_position) {
+            "COLLIDE"
+        } else {
+            ""
+        }
+    );
 
     fe.ui_mesh
         .push_string(8, 8, 2, 0xFFFFFFFF, fps_text.as_str())
@@ -108,8 +116,8 @@ pub fn prepare_frame(fe: &mut ClientState, game: &GameState) {
     for cx in -VIEW_STEPS..=VIEW_STEPS {
         for cy in -VIEW_STEPS..=VIEW_STEPS {
             for cz in -VIEW_STEPS..=VIEW_STEPS {
-                let pos = ChunkPosition::new(cx + px, cy + py, cz + pz);
-                prepare_chunk(fe, game, &pos);
+                let pos = IVec3::new(cx + px, cy + py, cz + pz);
+                prepare_chunk(fe, game, pos);
             }
         }
     }
@@ -167,7 +175,7 @@ fn render_game(fe: &ClientState, game: &GameState) {
                     1.0 - ((dist - FADEOUT_START_DISTANCE) / FADEOUT_DISTANCE)
                 };
 
-                let pos = ChunkPosition::new(x, y, z);
+                let pos = IVec3::new(x, y, z);
                 if let Some(mesh) = fe.world_mesh.get(&pos) {
                     fe.shaders.block.set_alpha(alpha);
                     fe.shaders.block.set_trans(trans_x, trans_y, trans_z);

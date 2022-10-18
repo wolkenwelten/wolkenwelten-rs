@@ -1,12 +1,8 @@
-#[derive(Copy, Clone, Debug, Default, PartialEq, Eq, Hash)]
-pub struct ChunkPosition(i32, i32, i32);
-impl ChunkPosition {
-    pub fn new(x: i32, y: i32, z: i32) -> ChunkPosition {
-        ChunkPosition(x, y, z)
-    }
-}
+use glam::IVec3;
+use rand::prelude::*;
+use rand_chacha::ChaCha8Rng;
 
-#[derive(Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct ChunkBlockData {
     pub data: [[[u8; 16]; 16]; 16],
 }
@@ -43,9 +39,9 @@ impl ChunkBlockData {
         self
     }
 
-    pub fn worldgen(pos: &ChunkPosition) -> Self {
+    pub fn worldgen(pos: IVec3) -> Self {
         let mut rng = ChaCha8Rng::seed_from_u64(
-            (pos.0 * pos.0 + pos.1 * pos.1 + pos.2 * pos.2)
+            (pos.x * pos.x + pos.y * pos.y + pos.z * pos.z)
                 .try_into()
                 .unwrap(),
         );

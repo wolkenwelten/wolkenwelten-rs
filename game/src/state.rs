@@ -1,7 +1,8 @@
-use super::{ChunkBlockData, ChunkPosition};
+use super::ChunkBlockData;
 use crate::BlockType;
 use crate::Entity;
-use glam::Vec3;
+use glam::f32::Vec3;
+use glam::i32::IVec3;
 use rand::Rng;
 use std::collections::HashMap;
 
@@ -15,7 +16,7 @@ pub struct GameState {
     pub entities: Vec<Entity>,
     pub blocks: Vec<BlockType>,
 
-    pub world: HashMap<ChunkPosition, ChunkBlockData>,
+    pub world: HashMap<IVec3, ChunkBlockData>,
 }
 
 impl GameState {
@@ -57,7 +58,9 @@ impl GameState {
         self.entities.push(e);
     }
 
-    pub fn get_entity_count(&self) -> usize { self.entities.len() }
+    pub fn get_entity_count(&self) -> usize {
+        self.entities.len()
+    }
 
     pub fn tick(&mut self) {
         self.ticks_elapsed += 1;
@@ -70,46 +73,47 @@ impl GameState {
             }
 
             let dist = self.entities[index].pos - self.player_position;
-            let dd = dist.x*dist.x + dist.y*dist.y + dist.z*dist.z;
+            let dd = dist.x * dist.x + dist.y * dist.y + dist.z * dist.z;
 
-            if dd > (128.0*128.0) { // Remove when far enough away
+            if dd > (128.0 * 128.0) {
+                // Remove when far enough away
                 self.entities.swap_remove(index);
-            } else if self.is_solid(&self.entities[index].pos()) {
+            } else if self.is_solid(self.entities[index].pos()) {
                 self.entities[index].vel = Vec3::ZERO;
             }
         }
     }
 
-    pub fn worldgen_chunk(&mut self, pos: &ChunkPosition) {
-        let chnk = self.world.get(pos);
+    pub fn worldgen_chunk(&mut self, pos: IVec3) {
+        let chnk = self.world.get(&pos);
         if chnk.is_none() {
-            self.world.insert(*pos, ChunkBlockData::worldgen(pos));
+            self.world.insert(pos, ChunkBlockData::worldgen(pos));
         };
     }
 
-    pub fn get_chunk_block(&self, pos: &ChunkPosition) -> Option<&ChunkBlockData> {
-        self.world.get(pos)
+    pub fn get_chunk_block(&self, pos: IVec3) -> Option<&ChunkBlockData> {
+        self.world.get(&pos)
     }
 
-    pub fn get_single_block(&self, (x,y,z):(i32,i32,i32)) -> u8 {
-        let pos = ChunkPosition::new(x/4,y/4,z/4);
-        let chunk = self.get_chunk_block(&pos);
+    pub fn get_single_block(&self, (x, y, z): (i32, i32, i32)) -> u8 {
+        let pos = IVec3::new(x / 16, y / 16, z / 16);
+        let chunk = self.get_chunk_block(pos);
         if let Some(chnk) = chunk {
-            chnk.data[(x&15) as usize][(y&15) as usize][(z&15) as usize]
+            chnk.data[(x & 15) as usize][(y & 15) as usize][(z & 15) as usize]
         } else {
             0
         }
     }
 
-    pub fn prepare_world(&mut self, view_steps:i32) {
+    pub fn prepare_world(&mut self, view_steps: i32) {
         let px = (self.player_position.x as i32) / 16;
         let py = (self.player_position.y as i32) / 16;
         let pz = (self.player_position.z as i32) / 16;
         for cx in -view_steps..=view_steps {
             for cy in -view_steps..=view_steps {
                 for cz in -view_steps..=view_steps {
-                    let pos = ChunkPosition::new(cx + px, cy + py, cz + pz);
-                    self.worldgen_chunk(&pos);
+                    let pos = IVec3::new(cx + px, cy + py, cz + pz);
+                    self.worldgen_chunk(pos);
                 }
             }
         }
@@ -118,18 +122,14 @@ impl GameState {
     pub fn get_block_type(&self, i: u8) -> &BlockType {
         &self.blocks[i as usize]
     }
-    pub fn is_solid(&self, pos: &Vec3) -> bool {
-        let x: i32 = (pos.x as i32)/16;
-        let y: i32 = (pos.y as i32)/16;
-        let z: i32 = (pos.z as i32)/16;
-        let cp = ChunkPosition::new(x,y,z);
+    pub fn is_solid(&self, pos: Vec3) -> bool {
+        let cp = IVec3::new(pos.x as i32 >> 4, pos.y as i32 >> 4, pos.z as i32 >> 4);
         let chnk = self.world.get(&cp);
         if let Some(chnk) = chnk {
-            let cx = (pos.x as usize)&15;
-            let cy = (pos.y as usize)&15;
-            let cz = (pos.z as usize)&15;
+            let cx = (pos.x as i32 & 15) as usize;
+            let cy = (pos.y as i32 & 15) as usize;
+            let cz = (pos.z as i32 & 15) as usize;
             let b = chnk.data[cx][cy][cz];
-            println!("({x},{y},{z})({cx}|{cy}|{cz}) => {b}");
             b != 0
         } else {
             false
