@@ -72,6 +72,17 @@ pub fn run_event_loop(state: AppState) {
 
             KeyboardInput {
                 state: ElementState::Pressed,
+                virtual_keycode: Some(VirtualKeyCode::N),
+                ..
+            } => game_state.player.set_no_clip(true),
+            KeyboardInput {
+                state: ElementState::Pressed,
+                virtual_keycode: Some(VirtualKeyCode::M),
+                ..
+            } => game_state.player.set_no_clip(false),
+
+            KeyboardInput {
+                state: ElementState::Pressed,
                 virtual_keycode: Some(VirtualKeyCode::W),
                 ..
             } => render_state.input.key_down(Key::Up),

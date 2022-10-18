@@ -185,7 +185,7 @@ impl BlockMesh {
                         continue;
                     };
                     let pos = (x as u16, y as u16, z as u16);
-                    let b = game.get_block_type(block);
+                    let b = game.world.get_block_type(block);
 
                     if (z >= 15) || (chunk.data[x][y][z + 1] == 0) {
                         BlockVertex::add_front(&mut vertices, pos, size, b.tex_front(), light);

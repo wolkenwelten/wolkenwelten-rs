@@ -84,20 +84,16 @@ pub fn prepare_frame(fe: &mut ClientState, game: &GameState) {
     let fps_text = format!("FPS: {}", fe.fps());
     let pos_text = format!(
         "X:{:8.2} Y:{:8.2} Z:{:8.2}",
-        game.player_position[0], game.player_position[1], game.player_position[2]
+        game.player.pos[0], game.player.pos[1], game.player.pos[2]
     );
     let rot_text = format!(
         "Y:{:8.2} P:{:8.2} R:{:8.2}",
-        game.player_rotation[0], game.player_rotation[1], game.player_rotation[2]
+        game.player.rot[0], game.player.rot[1], game.player.rot[2]
     );
     let ent_text = format!("Entities: {}", game.get_entity_count());
     let col_text = format!(
-        "Player Collide: {}",
-        if game.is_solid(game.player_position) {
-            "COLLIDE"
-        } else {
-            ""
-        }
+        "Player {}",
+        if game.player.no_clip() { "NO-CLIP" } else { "" }
     );
 
     fe.ui_mesh
@@ -110,9 +106,9 @@ pub fn prepare_frame(fe: &mut ClientState, game: &GameState) {
 
     fe.calc_fps();
 
-    let px = (game.player_position.x as i32) / 16;
-    let py = (game.player_position.y as i32) / 16;
-    let pz = (game.player_position.z as i32) / 16;
+    let px = (game.player.pos.x as i32) / 16;
+    let py = (game.player.pos.y as i32) / 16;
+    let pz = (game.player.pos.z as i32) / 16;
     for cx in -VIEW_STEPS..=VIEW_STEPS {
         for cy in -VIEW_STEPS..=VIEW_STEPS {
             for cz in -VIEW_STEPS..=VIEW_STEPS {
@@ -131,9 +127,9 @@ fn render_game(fe: &ClientState, game: &GameState) {
         178.0,
     );
 
-    let view = glam::Mat4::from_rotation_x(game.player_rotation[1].to_radians());
-    let view = view * glam::Mat4::from_rotation_y(game.player_rotation[0].to_radians());
-    let view = view * glam::Mat4::from_translation(-game.player_position);
+    let view = glam::Mat4::from_rotation_x(game.player.rot[1].to_radians());
+    let view = view * glam::Mat4::from_rotation_y(game.player.rot[0].to_radians());
+    let view = view * glam::Mat4::from_translation(-game.player.pos);
     let mvp = projection * view;
 
     fe.shaders.mesh.set_used();
@@ -149,9 +145,9 @@ fn render_game(fe: &ClientState, game: &GameState) {
     fe.shaders.block.set_alpha(1.0);
     fe.textures.blocks.bind();
 
-    let px = (game.player_position.x as i32) / 16;
-    let py = (game.player_position.y as i32) / 16;
-    let pz = (game.player_position.z as i32) / 16;
+    let px = (game.player.pos.x as i32) / 16;
+    let py = (game.player.pos.y as i32) / 16;
+    let pz = (game.player.pos.z as i32) / 16;
     for cx in -VIEW_STEPS..=VIEW_STEPS {
         for cy in -VIEW_STEPS..=VIEW_STEPS {
             for cz in -VIEW_STEPS..=VIEW_STEPS {
@@ -162,9 +158,9 @@ fn render_game(fe: &ClientState, game: &GameState) {
                 let trans_y = y as f32 * 16.0;
                 let trans_z = z as f32 * 16.0;
 
-                let diff_x = trans_x - game.player_position.x;
-                let diff_y = trans_y - game.player_position.y;
-                let diff_z = trans_z - game.player_position.z;
+                let diff_x = trans_x - game.player.pos.x;
+                let diff_y = trans_y - game.player.pos.y;
+                let diff_z = trans_z - game.player.pos.z;
                 let dist = diff_x * diff_x + diff_y * diff_y + diff_z * diff_z;
                 if dist > FADEOUT_DISTANCE + FADEOUT_START_DISTANCE {
                     continue;

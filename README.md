@@ -7,6 +7,7 @@ working whatsoever.
 [X] "Infinite" world
 [X] Simple placeholder worldgen
 [X] Remove hidden surfaces from BlockMeshes
+[X] Simple player controls (gravity/collision with the world)
 [ ] Chunk/BlockMesh GC
 [ ] Frustum culling
 [ ] Greedy meshing

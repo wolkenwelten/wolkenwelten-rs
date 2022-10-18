@@ -1,4 +1,5 @@
 use crate::ClientState;
+use glam::swizzles::Vec4Swizzles;
 use glam::Vec3;
 use rostregen_game::GameState;
 
@@ -66,9 +67,9 @@ impl InputState {
 
     pub fn get_speed(&self) -> f32 {
         if self.button_states[Key::Sprint as usize] {
-            0.5
+            4.0
         } else {
-            0.05
+            1.0
         }
     }
     pub fn get_jump(&self) -> f32 {
@@ -134,30 +135,38 @@ impl InputState {
 pub fn input_tick(game: &mut GameState, fe: &ClientState) {
     let rot_vec = fe.input.get_rotation_movement_vector();
 
-    game.player_rotation[0] += (rot_vec[0] * 0.2) + fe.input.xrel() * 16.0;
-    game.player_rotation[1] += (rot_vec[1] * 0.2) + fe.input.yrel() * 16.0;
-    game.player_rotation[2] += rot_vec[2] * 0.2;
+    game.player.rot[0] += (rot_vec[0] * 0.2) + fe.input.xrel() * 16.0;
+    game.player.rot[1] += (rot_vec[1] * 0.2) + fe.input.yrel() * 16.0;
+    game.player.rot[2] += rot_vec[2] * 0.2;
 
-    if game.player_rotation[0] < 0.0 {
-        game.player_rotation[0] += 360.0;
+    if game.player.rot[0] < 0.0 {
+        game.player.rot[0] += 360.0;
     }
-    if game.player_rotation[0] > 360.0 {
-        game.player_rotation[0] -= 360.0;
-    }
-
-    if game.player_rotation[1] < -90.0 {
-        game.player_rotation[1] = -90.0;
-    }
-    if game.player_rotation[1] > 90.0 {
-        game.player_rotation[1] = 90.0;
+    if game.player.rot[0] > 360.0 {
+        game.player.rot[0] -= 360.0;
     }
 
-    let view = glam::Mat4::from_rotation_y(-game.player_rotation[0].to_radians());
-    let view = view * glam::Mat4::from_rotation_x(-game.player_rotation[1].to_radians());
+    if game.player.rot[1] < -90.0 {
+        game.player.rot[1] = -90.0;
+    }
+    if game.player.rot[1] > 90.0 {
+        game.player.rot[1] = 90.0;
+    }
+
+    let view = glam::Mat4::from_rotation_y(-game.player.rot[0].to_radians());
+    let view = view * glam::Mat4::from_rotation_x(-game.player.rot[1].to_radians());
     let v = glam::Vec4::from((fe.input.get_movement_vector(), 1.0_f32));
     let move_vec = view * v;
     let speed = fe.input.get_speed();
-    game.player_position[0] += move_vec[0] * speed;
-    game.player_position[1] += (move_vec[1] * speed) + (fe.input.get_jump() * speed);
-    game.player_position[2] += move_vec[2] * speed;
+
+    if game.player.no_clip() {
+        game.player.vel = move_vec.xyz() * speed;
+        game.player.vel.y += fe.input.get_jump() * speed;
+    } else {
+        game.player.vel.x = ((move_vec.x * speed * 0.05) + (game.player.vel.x * 0.95)) / 2.0;
+        game.player.vel.z = ((move_vec.z * speed * 0.05) + (game.player.vel.z * 0.95)) / 2.0;
+        if (fe.input.get_jump() > 0.0) && game.player.may_jump(&game.world) {
+            game.player.vel.y = 0.1;
+        }
+    }
 }
