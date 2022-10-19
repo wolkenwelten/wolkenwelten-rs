@@ -20,13 +20,13 @@ use crate::ClientState;
 use gl::types::GLint;
 use glam::f32::{Mat4, Vec3};
 use glam::IVec3;
-use wolkenwelten_game::{Entity, GameState, Character};
+use wolkenwelten_game::{Character, Entity, GameState};
 
 pub const VIEW_STEPS: i32 = (128 / 16) + 1;
 const FADEOUT_START_DISTANCE: f32 = 96.0 * 96.0;
 const FADEOUT_DISTANCE: f32 = 32.0 * 32.0;
 
-fn calc_fov(fov:f32, player:&Character) -> f32 {
+fn calc_fov(fov: f32, player: &Character) -> f32 {
     let new = 90.0 + ((player.vel.length() - 0.025) * 40.0).clamp(0.0, 90.0);
     (fov + (new - fov) / 32.0).clamp(90.0, 170.0)
 }

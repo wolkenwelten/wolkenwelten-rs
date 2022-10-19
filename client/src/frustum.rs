@@ -51,30 +51,17 @@ impl Frustum {
 
     pub fn contains_cube(&self, pos: Vec3, size: f32) -> bool {
         let pos = pos.extend(1.0);
-        for i in 0..6 {
-            if self.planes[i].dot(pos + Vec4::new(0.0, 0.0, 0.0, 0.0)) > 0.0 {
-                continue;
-            }
-            if self.planes[i].dot(pos + Vec4::new(size, 0.0, 0.0, 0.0)) > 0.0 {
-                continue;
-            }
-            if self.planes[i].dot(pos + Vec4::new(0.0, size, 0.0, 0.0)) > 0.0 {
-                continue;
-            }
-            if self.planes[i].dot(pos + Vec4::new(size, size, 0.0, 0.0)) > 0.0 {
-                continue;
-            }
-            if self.planes[i].dot(pos + Vec4::new(0.0, 0.0, size, 0.0)) > 0.0 {
-                continue;
-            }
-            if self.planes[i].dot(pos + Vec4::new(size, 0.0, size, 0.0)) > 0.0 {
-                continue;
-            }
-            if self.planes[i].dot(pos + Vec4::new(0.0, size, size, 0.0)) > 0.0 {
-                continue;
-            }
-            if self.planes[i].dot(pos + Vec4::new(size, size, size, 0.0)) > 0.0 {
-                continue;
+        'planes: for i in 0..6 {
+            for x in 0..=1 {
+                for y in 0..=1 {
+                    for z in 0..=1 {
+                        let pos =
+                            pos + Vec4::new(x as f32 * size, y as f32 * size, z as f32 * size, 0.0);
+                        if self.planes[i].dot(pos + Vec4::new(0.0, 0.0, 0.0, 0.0)) > 0.0 {
+                            continue 'planes;
+                        }
+                    }
+                }
             }
             return false;
         }
