@@ -6,12 +6,23 @@ Also keep in mind that this is the first Rust I've ever written, so if you spot 
 be sure to open a PR so as to improve the quality of the codebase :)
 
 
+# How to build/run it
+You need a rust toolchain installed, preferrably the latest stable one using `rustup`,
+then just checking out this repository and running `cargo run --release` in it should get you going.
+
+
+# Platform support
+I am regularly testing it on X86_64 FreeBSD/Arch Linux/MacOS/Win10 with Intel/AMD/Nvidia GPUs (no nouveau though) and on a RaspberryPI 4 running Raspbian 64-bit.
+
+Web/WASM is intentionally NOT a supported platform for the foreseeable future, since WebGL has been quite the pain to support in the past.
+
+
 # General direction
 I'm currently porting over most of the nice bits and pieces from the C engine, after that is done and things have settled
 down a bit I'll be looking into integrating v8, by either using deno_core or hooking into rusty_v8 directly.      
 
 
-# Current ToDo
+# Current ToDo's
 - [X] Chunk fade
 - [X] "Infinite" world
 - [X] Simple placeholder worldgen
@@ -20,7 +31,7 @@ down a bit I'll be looking into integrating v8, by either using deno_core or hoo
 - [X] Chunk/BlockMesh GC
 - [X] Unit Tests
 - [X] Frustum culling (port from WW)
-- [ ] CI running tests/fmt/clippy
+- [X] CI running tests/fmt/clippy
 - [ ] Greedy meshing (port from WW)
 - [ ] Lighting (port from WW, without ASM/SIMD (for now))
 - [ ] Nicer player movement (port from WW)
