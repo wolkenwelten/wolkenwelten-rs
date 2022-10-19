@@ -45,6 +45,7 @@ pub struct ClientState {
 
     pub input: InputState,
 
+    pub cur_fov: f32,
     pub cur_fps: u32,
     pub frame_count: u32,
     pub last_ticks: u128,
@@ -69,6 +70,7 @@ impl Default for ClientState {
             textures: TextureList::new(),
             ui_mesh: TextMesh::new(),
 
+            cur_fov: 90.0,
             cur_fps: 0,
             frame_count: 0,
             last_ticks,

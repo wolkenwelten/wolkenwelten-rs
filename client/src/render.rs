@@ -20,11 +20,16 @@ use crate::ClientState;
 use gl::types::GLint;
 use glam::f32::{Mat4, Vec3};
 use glam::IVec3;
-use wolkenwelten_game::{Entity, GameState};
+use wolkenwelten_game::{Entity, GameState, Character};
 
 pub const VIEW_STEPS: i32 = (128 / 16) + 1;
 const FADEOUT_START_DISTANCE: f32 = 96.0 * 96.0;
 const FADEOUT_DISTANCE: f32 = 32.0 * 32.0;
+
+fn calc_fov(fov:f32, player:&Character) -> f32 {
+    let new = 90.0 + ((player.vel.length() - 0.025) * 40.0).clamp(0.0, 90.0);
+    (fov + (new - fov) / 32.0).clamp(90.0, 170.0)
+}
 
 pub fn set_viewport(fe: &ClientState) {
     unsafe {
@@ -122,6 +127,7 @@ pub fn prepare_frame(fe: &mut ClientState, game: &GameState) {
 
     fe.calc_fps();
     fe.gc(&game.player);
+    fe.cur_fov = calc_fov(fe.cur_fov, &game.player);
 
     let px = (game.player.pos.x as i32) / 16;
     let py = (game.player.pos.y as i32) / 16;
@@ -138,7 +144,7 @@ pub fn prepare_frame(fe: &mut ClientState, game: &GameState) {
 
 fn render_game(fe: &ClientState, game: &GameState) {
     let projection = glam::Mat4::perspective_rh_gl(
-        90.0_f32.to_radians(),
+        fe.cur_fov.to_radians(),
         (fe.window_width as f32) / (fe.window_height as f32),
         0.1,
         178.0,
