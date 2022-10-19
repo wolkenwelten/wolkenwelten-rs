@@ -1,6 +1,31 @@
 use gl::types::*;
 
-use crate::meshes::{Vao, Vbo, Vertex2D};
+use super::util;
+use super::util::{Vao, Vbo};
+
+#[derive(Copy, Clone, Debug, Default)]
+#[repr(C, packed)]
+struct Vertex2D {
+    pub x: i16,
+    pub y: i16,
+
+    pub u: i16,
+    pub v: i16,
+
+    pub rgba: u32,
+}
+
+impl Vertex2D {
+    pub fn vertex_attrib_pointers() {
+        let stride = std::mem::size_of::<Self>();
+
+        unsafe {
+            let offset = util::vertex_attrib_pointer(stride, 0, 0, 2, gl::SHORT, 2, false);
+            let offset = util::vertex_attrib_pointer(stride, 1, offset, 2, gl::SHORT, 2, false);
+            util::vertex_attrib_pointer(stride, 2, offset, 4, gl::UNSIGNED_BYTE, 1, true);
+        }
+    }
+}
 
 #[derive(Debug, Default)]
 pub struct TextMesh {

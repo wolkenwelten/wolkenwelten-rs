@@ -1,4 +1,4 @@
-use super::vertex::vertex_attrib_int_pointer;
+use super::util;
 use super::{Vao, Vbo};
 use gl::types::GLvoid;
 use std::fmt;
@@ -152,9 +152,9 @@ impl BlockVertex {
     fn vertex_attrib_pointers() {
         let stride = std::mem::size_of::<Self>();
         unsafe {
-            let offset = vertex_attrib_int_pointer(stride, 0, 0, gl::UNSIGNED_SHORT, 2);
-            let offset = vertex_attrib_int_pointer(stride, 1, offset, gl::UNSIGNED_BYTE, 1);
-            vertex_attrib_int_pointer(stride, 2, offset, gl::UNSIGNED_BYTE, 1);
+            let offset = util::vertex_attrib_int_pointer(stride, 0, 0, gl::UNSIGNED_SHORT, 2);
+            let offset = util::vertex_attrib_int_pointer(stride, 1, offset, gl::UNSIGNED_BYTE, 1);
+            util::vertex_attrib_int_pointer(stride, 2, offset, gl::UNSIGNED_BYTE, 1);
         }
     }
 }

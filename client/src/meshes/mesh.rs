@@ -1,7 +1,28 @@
 use gl::types::{GLuint, GLvoid};
+use glam::f32::{Vec2, Vec3};
 
+use super::util;
 use super::util::Vao;
-use crate::meshes::MeshVertex;
+
+#[derive(Copy, Clone, Debug, Default)]
+#[repr(C, packed)]
+struct MeshVertex {
+    pub pos: Vec3,
+    pub tex: Vec2,
+    pub c: f32,
+}
+
+impl MeshVertex {
+    pub fn vertex_attrib_pointers() {
+        let stride = std::mem::size_of::<Self>();
+
+        unsafe {
+            let offset = util::vertex_attrib_pointer(stride, 0, 0, 3, gl::FLOAT, 4, false);
+            let offset = util::vertex_attrib_pointer(stride, 1, offset, 2, gl::FLOAT, 4, true);
+            util::vertex_attrib_pointer(stride, 2, offset, 1, gl::FLOAT, 4, false);
+        }
+    }
+}
 
 #[derive(Debug, Default)]
 pub struct Mesh {
@@ -14,7 +35,7 @@ impl Mesh {
         self.vao.draw(self.vertex_count);
     }
 
-    pub fn from_vec(vertices: &Vec<MeshVertex>) -> Result<Self, String> {
+    fn from_vec(vertices: &Vec<MeshVertex>) -> Result<Self, String> {
         let vbo_size: u32 = (vertices.len() * std::mem::size_of::<MeshVertex>())
             .try_into()
             .unwrap();

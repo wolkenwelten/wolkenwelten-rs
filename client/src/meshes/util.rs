@@ -94,3 +94,44 @@ impl Drop for Vbo {
         unsafe { gl::DeleteBuffers(1, &self.id) }
     }
 }
+
+use gl;
+
+pub unsafe fn vertex_attrib_pointer(
+    stride: usize,
+    location: usize,
+    offset: usize,
+    components: usize,
+    data_type: u32,
+    size: usize,
+    normalized: bool,
+) -> usize {
+    gl::EnableVertexAttribArray(location as gl::types::GLuint);
+    gl::VertexAttribPointer(
+        location as gl::types::GLuint,
+        components as i32, // the number of components per generic vertex attribute
+        data_type,         // data type
+        if normalized { gl::TRUE } else { gl::FALSE }, // normalized (int-to-float conversion)
+        stride as gl::types::GLint,
+        offset as *const gl::types::GLvoid,
+    );
+    offset + (size * components)
+}
+
+pub unsafe fn vertex_attrib_int_pointer(
+    stride: usize,
+    location: usize,
+    offset: usize,
+    data_type: u32,
+    size: usize,
+) -> usize {
+    gl::EnableVertexAttribArray(location as gl::types::GLuint);
+    gl::VertexAttribIPointer(
+        location as gl::types::GLuint,
+        1,
+        data_type, // data type
+        stride as gl::types::GLint,
+        offset as *const gl::types::GLvoid,
+    );
+    offset + size
+}
