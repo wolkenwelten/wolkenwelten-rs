@@ -9,6 +9,7 @@ pub fn can_use_object_labels() -> bool {
     unsafe { (GL_VERSION.0 > 4) || ((GL_VERSION.0 == 4) && (GL_VERSION.1 >= 3)) }
 }
 
+pub use self::frustum::Frustum;
 pub use self::input::{input_tick, InputState, Key};
 pub use self::meshes::Mesh;
 pub use self::render::{prepare_frame, render_frame, render_init, set_viewport, VIEW_STEPS};
@@ -16,6 +17,7 @@ pub use self::shader::Program;
 pub use self::state::ClientState;
 pub use self::texture::{Texture, TextureArray};
 
+mod frustum;
 mod input;
 mod meshes;
 mod render;

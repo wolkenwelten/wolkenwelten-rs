@@ -19,7 +19,7 @@ down a bit I'll be looking into integrating v8, by either using deno_core or hoo
 - [X] Simple player controls (gravity/collision with the world)
 - [X] Chunk/BlockMesh GC
 - [X] Unit Tests
-- [ ] Frustum culling (port from WW)
+- [X] Frustum culling (port from WW)
 - [ ] CI running tests/fmt/clippy
 - [ ] Greedy meshing (port from WW)
 - [ ] Lighting (port from WW, without ASM/SIMD (for now))

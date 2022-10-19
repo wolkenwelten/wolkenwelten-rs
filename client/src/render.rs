@@ -1,8 +1,9 @@
 use super::meshes::BlockMesh;
+use super::Frustum;
 use super::GL_VERSION;
 use crate::ClientState;
 use gl::types::GLint;
-use glam::f32::Mat4;
+use glam::f32::{Mat4, Vec3};
 use glam::IVec3;
 use wolkenwelten_game::{Entity, GameState};
 
@@ -146,6 +147,8 @@ fn render_game(fe: &ClientState, game: &GameState) {
     fe.shaders.block.set_alpha(1.0);
     fe.textures.blocks.bind();
 
+    let frustum = Frustum::extract(&mvp);
+
     let px = (game.player.pos.x as i32) / 16;
     let py = (game.player.pos.y as i32) / 16;
     let pz = (game.player.pos.z as i32) / 16;
@@ -158,6 +161,9 @@ fn render_game(fe: &ClientState, game: &GameState) {
                 let trans_x = x as f32 * 16.0;
                 let trans_y = y as f32 * 16.0;
                 let trans_z = z as f32 * 16.0;
+                if !frustum.contains_cube(Vec3::new(trans_x, trans_y, trans_z), 16.0) {
+                    continue;
+                }
 
                 let diff_x = trans_x - game.player.pos.x;
                 let diff_y = trans_y - game.player.pos.y;
