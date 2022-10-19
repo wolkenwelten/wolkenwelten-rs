@@ -34,11 +34,11 @@ impl GameState {
             for z in -2..=2 {
                 let y: f32 = (rng.gen::<f32>() * 5.0) + 8.5;
                 let mut e = Entity::new();
-                e.set_pos(&Vec3::new(x as f32, y, z as f32));
+                e.set_pos(Vec3::new(x as f32, y, z as f32));
                 let vx: f32 = (rng.gen::<f32>() - 0.5) * 0.5;
                 let vy: f32 = (rng.gen::<f32>() - 0.1) * 0.1;
                 let vz: f32 = (rng.gen::<f32>() - 0.5) * 0.5;
-                e.set_vel(&Vec3::new(vx, vy, vz));
+                e.set_vel(Vec3::new(vx, vy, vz));
 
                 entities.push(e);
             }

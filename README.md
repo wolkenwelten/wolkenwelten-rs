@@ -18,7 +18,9 @@ down a bit I'll be looking into integrating v8, by either using deno_core or hoo
 - [X] Remove hidden surfaces from BlockMeshes
 - [X] Simple player controls (gravity/collision with the world)
 - [X] Chunk/BlockMesh GC
-- [ ] Unit Tests
-- [ ] Frustum culling
-- [ ] Greedy meshing
-- [ ] Lighting
+- [X] Unit Tests
+- [ ] Frustum culling (port from WW)
+- [ ] CI running tests/fmt/clippy
+- [ ] Greedy meshing (port from WW)
+- [ ] Lighting (port from WW, without ASM/SIMD (for now))
+- [ ] Nicer player movement (port from WW)

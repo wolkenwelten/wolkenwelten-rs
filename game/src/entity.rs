@@ -21,12 +21,15 @@ impl Entity {
     pub fn rot(&self) -> Vec3 {
         self.rot
     }
-
-    pub fn set_vel(&mut self, vel: &Vec3) {
-        self.vel = *vel;
+    pub fn vel(&self) -> Vec3 {
+        self.vel
     }
-    pub fn set_pos(&mut self, pos: &Vec3) {
-        self.pos = *pos;
+
+    pub fn set_vel(&mut self, vel: Vec3) {
+        self.vel = vel;
+    }
+    pub fn set_pos(&mut self, pos: Vec3) {
+        self.pos = pos;
     }
 
     pub fn tick(entities: &mut Vec<Self>, player: &Character, world: &Chungus) {
@@ -48,5 +51,22 @@ impl Entity {
                 entities[index].vel = Vec3::ZERO;
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_entity() {
+        let mut e = Entity::new();
+        assert_eq!(e.pos(), Vec3::new(0.0, 0.0, 0.0));
+        assert_eq!(e.rot(), Vec3::new(0.0, 0.0, 0.0));
+        assert_eq!(e.vel(), Vec3::new(0.0, 0.0, 0.0));
+        e.set_pos(Vec3::new(1.0, 2.0, 3.0));
+        assert_eq!(e.pos(), Vec3::new(1.0, 2.0, 3.0));
+        assert_eq!(e.pos(), e.clone().pos());
+        e.set_vel(Vec3::new(1.0, 1.0, 1.0));
     }
 }
