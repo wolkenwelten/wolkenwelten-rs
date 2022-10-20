@@ -15,6 +15,7 @@
  */
 use super::Chungus;
 use glam::Vec3;
+use std::f32::consts::PI;
 
 #[derive(Clone, Debug, Default)]
 pub struct Character {
@@ -23,26 +24,22 @@ pub struct Character {
     pub vel: Vec3,
 
     pub no_clip: bool,
+    pub cooldown: u64,
 }
+
+const COL_WIDTH: f32 = 0.3;
+const COL_DEPTH: f32 = 0.3;
 
 const COL_POINT_TOP: Vec3 = Vec3::new(0.0, 0.7, 0.0);
 const COL_POINT_BOTTOM: Vec3 = Vec3::new(0.0, -1.7, 0.0);
-const COL_POINT_LEFT: Vec3 = Vec3::new(-0.3, -1.2, 0.0);
-const COL_POINT_RIGHT: Vec3 = Vec3::new(0.3, -1.2, 0.0);
-const COL_POINT_FRONT: Vec3 = Vec3::new(0.0, -1.2, 0.3);
-const COL_POINT_BACK: Vec3 = Vec3::new(0.0, -1.2, -0.3);
+const COL_POINT_LEFT: Vec3 = Vec3::new(-COL_WIDTH, -1.2, 0.0);
+const COL_POINT_RIGHT: Vec3 = Vec3::new(COL_WIDTH, -1.2, 0.0);
+const COL_POINT_FRONT: Vec3 = Vec3::new(0.0, -1.2, COL_DEPTH);
+const COL_POINT_BACK: Vec3 = Vec3::new(0.0, -1.2, -COL_DEPTH);
 
 impl Character {
     pub fn new() -> Self {
-        let pos = Vec3::ZERO;
-        let rot = Vec3::ZERO;
-        let vel = Vec3::ZERO;
-        Self {
-            pos,
-            rot,
-            vel,
-            no_clip: false,
-        }
+        Self::default()
     }
     pub fn pos(&self) -> Vec3 {
         self.pos
@@ -67,6 +64,21 @@ impl Character {
 
     pub fn may_jump(&self, world: &Chungus) -> bool {
         world.is_solid(self.pos + COL_POINT_BOTTOM)
+    }
+    pub fn may_act(&self, now: u64) -> bool {
+        self.cooldown < now
+    }
+    pub fn set_cooldown(&mut self, until: u64) {
+        self.cooldown = until;
+    }
+
+    pub fn direction(&self) -> Vec3 {
+        let a = self.rot;
+        Vec3::new(
+            ((a.x - 90.0) * PI / 180.0).cos() * (-a.y * PI / 180.0).cos(),
+            (-a.y * PI / 180.0).sin(),
+            ((a.x - 90.0) * PI / 180.0).sin() * (-a.y * PI / 180.0).cos(),
+        )
     }
 
     pub fn tick(&mut self, world: &Chungus) {

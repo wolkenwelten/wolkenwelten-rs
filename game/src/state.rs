@@ -17,9 +17,11 @@ use super::{Character, Chungus, ChunkBlockData, Entity};
 use glam::f32::Vec3;
 use glam::i32::IVec3;
 use rand::Rng;
+use std::time::Instant;
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct GameState {
+    pub clock: Instant,
     pub running: bool,
     pub ticks_elapsed: u64,
     pub player: Character,
@@ -27,19 +29,31 @@ pub struct GameState {
     pub world: Chungus,
 }
 
-impl GameState {
-    pub fn new() -> Self {
+impl Default for GameState {
+    fn default() -> Self {
         let running = true;
         let entities = Self::test_entities();
         let mut player = Character::new();
         player.set_pos(&Vec3::new(9.0, 9.0, 25.0));
 
         Self {
+            clock: Instant::now(),
             running,
             player,
             entities,
-            ..Default::default()
+            ticks_elapsed: 0,
+            world: Chungus::default(),
         }
+    }
+}
+
+impl GameState {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn get_millis(&self) -> u64 {
+        self.clock.elapsed().as_millis().try_into().unwrap()
     }
 
     fn test_entities() -> Vec<Entity> {
@@ -63,6 +77,9 @@ impl GameState {
 
     pub fn get_entity_count(&self) -> usize {
         self.entities.len()
+    }
+    pub fn push_entity(&mut self, e: Entity) {
+        self.entities.push(e);
     }
 
     pub fn tick(&mut self) {

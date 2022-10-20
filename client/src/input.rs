@@ -16,7 +16,7 @@
 use crate::ClientState;
 use glam::swizzles::Vec4Swizzles;
 use glam::{Vec3, Vec3Swizzles};
-use wolkenwelten_game::GameState;
+use wolkenwelten_game::{Entity, GameState};
 
 const CHARACTER_ACCELERATION: f32 = 0.08;
 const CHARACTER_STOP_RATE: f32 = CHARACTER_ACCELERATION * 3.0;
@@ -40,25 +40,25 @@ pub enum Key {
 }
 
 #[derive(Debug, Default)]
+struct MouseState {
+    left: bool,
+    _middle: bool,
+    _right: bool,
+}
+
+#[derive(Debug, Default)]
 pub struct InputState {
     button_states: [bool; 11],
     mouse_xrel: f32,
     mouse_yrel: f32,
+    mouse: MouseState,
 }
 
 const MOUSE_ACCELERATION: f32 = 0.03;
 
 impl InputState {
     pub fn new() -> Self {
-        let button_states = [false; 11];
-        let mouse_xrel = 0.0;
-        let mouse_yrel = 0.0;
-
-        Self {
-            button_states,
-            mouse_xrel,
-            mouse_yrel,
-        }
+        Self::default()
     }
 
     pub fn mouse_motion(&mut self, xrel: f32, yrel: f32) {
@@ -81,6 +81,10 @@ impl InputState {
     }
     pub fn key_up(&mut self, code: Key) {
         self.button_states[code as usize] = false;
+    }
+
+    pub fn set_left_mouse_button(&mut self, pressed: bool) {
+        self.mouse.left = pressed;
     }
 
     pub fn get_speed(&self) -> f32 {
@@ -188,6 +192,7 @@ fn input_tick_default(game: &mut GameState, fe: &ClientState) {
 
 pub fn input_tick(game: &mut GameState, fe: &ClientState) {
     let rot_vec = fe.input.get_rotation_movement_vector();
+    let now = game.get_millis();
 
     game.player.rot[0] += (rot_vec[0] * 0.2) + fe.input.xrel() * 16.0;
     game.player.rot[1] += (rot_vec[1] * 0.2) + fe.input.yrel() * 16.0;
@@ -211,5 +216,13 @@ pub fn input_tick(game: &mut GameState, fe: &ClientState) {
         input_tick_no_clip(game, fe);
     } else {
         input_tick_default(game, fe);
+    }
+
+    if fe.input.mouse.left && game.player.may_act(now) {
+        game.player.set_cooldown(now + 100);
+        let mut e = Entity::new();
+        e.set_pos(game.player.pos());
+        e.set_vel(game.player.direction() * 0.5);
+        game.push_entity(e);
     }
 }

@@ -16,6 +16,9 @@
 use super::{Character, Chungus};
 use glam::Vec3;
 
+const ENTITY_SIZE: f32 = 0.6;
+const ENTITY_BOUNCE_RATE: f32 = 0.6;
+
 #[derive(Clone, Debug, Default)]
 pub struct Entity {
     pub pos: Vec3,
@@ -47,8 +50,35 @@ impl Entity {
         self.pos = pos;
     }
 
+    pub fn is_colliding(&self, world: &Chungus) -> bool {
+        world.is_solid(self.pos() + Vec3::new(-ENTITY_SIZE, 0.0, 0.0))
+            | world.is_solid(self.pos() + Vec3::new(ENTITY_SIZE, 0.0, 0.0))
+            | world.is_solid(self.pos() + Vec3::new(0.0, -ENTITY_SIZE, 0.0))
+            | world.is_solid(self.pos() + Vec3::new(0.0, ENTITY_SIZE, 0.0))
+            | world.is_solid(self.pos() + Vec3::new(0.0, 0.0, -ENTITY_SIZE))
+            | world.is_solid(self.pos() + Vec3::new(0.0, 0.0, ENTITY_SIZE))
+    }
+
     pub fn tick(entities: &mut Vec<Self>, player: &Character, world: &Chungus) {
         for index in (0..entities.len()).rev() {
+            if world.is_solid(entities[index].pos() + Vec3::new(-ENTITY_SIZE, 0.0, 0.0))
+                | world.is_solid(entities[index].pos() + Vec3::new(-ENTITY_SIZE, 0.0, 0.0))
+            {
+                entities[index].vel.x *= -ENTITY_BOUNCE_RATE;
+                entities[index].pos.x += entities[index].vel.x;
+            }
+            if world.is_solid(entities[index].pos() + Vec3::new(0.0, -ENTITY_SIZE, 0.0))
+                | world.is_solid(entities[index].pos() + Vec3::new(0.0, -ENTITY_SIZE, 0.0))
+            {
+                entities[index].vel.y *= -ENTITY_BOUNCE_RATE;
+                entities[index].pos.y += entities[index].vel.y;
+            }
+            if world.is_solid(entities[index].pos() + Vec3::new(0.0, 0.0, -ENTITY_SIZE))
+                | world.is_solid(entities[index].pos() + Vec3::new(0.0, 0.0, -ENTITY_SIZE))
+            {
+                entities[index].vel.z *= -ENTITY_BOUNCE_RATE;
+                entities[index].pos.z += entities[index].vel.z;
+            }
             {
                 let v = entities[index].vel;
                 entities[index].pos += v;
@@ -60,10 +90,7 @@ impl Entity {
             let dd = dist.x * dist.x + dist.y * dist.y + dist.z * dist.z;
 
             if dd > (128.0 * 128.0) {
-                // Remove when far enough away
-                entities.swap_remove(index);
-            } else if world.is_solid(entities[index].pos()) {
-                entities[index].vel = Vec3::ZERO;
+                entities.swap_remove(index); // Remove when far enough away
             }
         }
     }

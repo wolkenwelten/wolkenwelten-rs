@@ -14,6 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 extern crate glam;
+extern crate winit;
 extern crate wolkenwelten_game;
 
 use std::ffi::CString;

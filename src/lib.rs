@@ -17,7 +17,10 @@ extern crate glutin;
 extern crate wolkenwelten_client;
 extern crate wolkenwelten_game;
 
-use glutin::event::{DeviceEvent, ElementState, Event, KeyboardInput, VirtualKeyCode, WindowEvent};
+use glutin::dpi::PhysicalPosition;
+use glutin::event::{
+    DeviceEvent, ElementState, Event, KeyboardInput, MouseButton, VirtualKeyCode, WindowEvent,
+};
 use glutin::event_loop::ControlFlow;
 use glutin::event_loop::EventLoop;
 use glutin::window::{CursorGrabMode, Window, WindowBuilder};
@@ -71,6 +74,38 @@ pub fn run_event_loop(state: AppState) {
 
     event_loop.run(move |event, _, control_flow| match event {
         Event::LoopDestroyed => (),
+
+        Event::WindowEvent {
+            event: WindowEvent::CursorMoved { position, .. },
+            ..
+        } => {
+            let diffx = position.x as i32 - (render_state.window_width / 2) as i32;
+            let diffy = position.y as i32 - (render_state.window_height / 2) as i32;
+            game_state.player.rot.x += diffx as f32 * 0.005;
+            game_state.player.rot.y += diffy as f32 * 0.005;
+            let new_pos = PhysicalPosition::new(
+                render_state.window_width / 2,
+                render_state.window_height / 2,
+            );
+            windowed_context
+                .window()
+                .set_cursor_position(new_pos)
+                .unwrap();
+        }
+
+        Event::WindowEvent {
+            event:
+                WindowEvent::MouseInput {
+                    button: MouseButton::Left,
+                    state,
+                    ..
+                },
+            ..
+        } => {
+            render_state
+                .input
+                .set_left_mouse_button(state == ElementState::Pressed);
+        }
 
         Event::DeviceEvent {
             event: DeviceEvent::Key(input),
@@ -182,14 +217,6 @@ pub fn run_event_loop(state: AppState) {
             windowed_context.resize(physical_size);
             render_state.set_window_size(physical_size.width, physical_size.height);
             set_viewport(&render_state);
-        }
-        Event::DeviceEvent {
-            event: DeviceEvent::MouseMotion { delta },
-            ..
-        } => {
-            render_state
-                .input
-                .mouse_motion(delta.0 as f32, delta.1 as f32);
         }
         Event::MainEventsCleared => {
             input_tick(&mut game_state, &render_state);
