@@ -1,3 +1,5 @@
+[![WolkenWelten CI](https://github.com/wolkenwelten/wolkenwelten/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/wolkenwelten/wolkenwelten/actions/workflows/ci.yml)
+
 # WolkenWelten
 This is the rust port of the WolkenWelten codebase, everything is still super early so prepare for pretty much nothing
 working whatsoever.
