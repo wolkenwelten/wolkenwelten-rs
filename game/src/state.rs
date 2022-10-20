@@ -110,7 +110,7 @@ impl GameState {
         }
     }
 
-    pub fn prepare_world(&mut self, view_steps: i32) {
+    pub fn prepare_world(&mut self, view_steps: i32, render_distance: f32) {
         let px = (self.player.pos.x as i32) / 16;
         let py = (self.player.pos.y as i32) / 16;
         let pz = (self.player.pos.z as i32) / 16;
@@ -118,7 +118,11 @@ impl GameState {
             for cy in -view_steps..=view_steps {
                 for cz in -view_steps..=view_steps {
                     let pos = IVec3::new(cx + px, cy + py, cz + pz);
-                    self.worldgen_chunk(pos);
+                    let d = (pos.as_vec3() * 16.0) - self.player.pos;
+                    let d = d.dot(d);
+                    if d < render_distance {
+                        self.worldgen_chunk(pos);
+                    }
                 }
             }
         }

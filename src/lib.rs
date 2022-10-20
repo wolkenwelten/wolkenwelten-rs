@@ -223,7 +223,7 @@ pub fn run_event_loop(state: AppState) {
             render_state.input.mouse_flush();
 
             game_state.tick();
-            game_state.prepare_world(VIEW_STEPS);
+            game_state.prepare_world(VIEW_STEPS, 128.0 * 128.0);
 
             prepare_frame(&mut render_state, &game_state);
             render_frame(&render_state, &game_state);

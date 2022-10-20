@@ -200,7 +200,9 @@ impl BlockMesh {
         }
     }
 
-    pub fn last_updated_at(&self) -> u64 { self.last_updated_at }
+    pub fn last_updated_at(&self) -> u64 {
+        self.last_updated_at
+    }
 
     fn update_front(
         vertices: &mut Vec<BlockVertex>,
