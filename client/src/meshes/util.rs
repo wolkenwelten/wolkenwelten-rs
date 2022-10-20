@@ -108,7 +108,12 @@ impl Vao {
     pub fn draw_elements(&self, element_count: u32) {
         self.bind();
         unsafe {
-            gl::DrawElements(gl::TRIANGLES, element_count.try_into().unwrap(), gl::UNSIGNED_SHORT, std::ptr::null::<GLvoid>());
+            gl::DrawElements(
+                gl::TRIANGLES,
+                element_count.try_into().unwrap(),
+                gl::UNSIGNED_SHORT,
+                std::ptr::null::<GLvoid>(),
+            );
         }
     }
 }

@@ -56,7 +56,7 @@ impl Default for ClientState {
     fn default() -> Self {
         Self {
             instant: Instant::now(),
-            block_index_buffer: BlockMesh::gen_index_buffer(65536/4),
+            block_index_buffer: BlockMesh::gen_index_buffer(65536 / 4),
             world_mesh: HashMap::new(),
 
             window_width: 640,

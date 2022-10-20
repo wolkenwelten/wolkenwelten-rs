@@ -141,31 +141,37 @@ impl BlockVertex {
 }
 
 impl BlockMesh {
-    pub fn gen_index_buffer(square_count:usize) -> Vbo {
-        let mut v:Vec<u16> = Vec::with_capacity(square_count*6);
+    pub fn gen_index_buffer(square_count: usize) -> Vbo {
+        let mut v: Vec<u16> = Vec::with_capacity(square_count * 6);
         for i in 0..square_count {
-            v.push((i*4) as u16);
-            v.push((i*4+1) as u16);
-            v.push((i*4+2) as u16);
+            v.push((i * 4) as u16);
+            v.push((i * 4 + 1) as u16);
+            v.push((i * 4 + 2) as u16);
 
-            v.push((i*4+2) as u16);
-            v.push((i*4+3) as u16);
-            v.push((i*4) as u16);
+            v.push((i * 4 + 2) as u16);
+            v.push((i * 4 + 3) as u16);
+            v.push((i * 4) as u16);
         }
-        let vbo_size:u32 = square_count as u32 * 6 * 2;
-        Vbo::new("BlockMesh Index Buffer", v.as_ptr() as *const GLvoid, vbo_size)
+        let vbo_size: u32 = square_count as u32 * 6 * 2;
+        Vbo::new(
+            "BlockMesh Index Buffer",
+            v.as_ptr() as *const GLvoid,
+            vbo_size,
+        )
     }
 
     pub fn draw(&self) {
         self.vao.draw_elements(self.element_count);
     }
 
-    pub fn new(index_vbo:&Vbo) -> Self {
+    pub fn new(index_vbo: &Vbo) -> Self {
         let vao = Vao::new_empty("BlockMesh");
         BlockVertex::vertex_attrib_pointers();
         index_vbo.bind_element();
-        Self { vao, element_count: 0 }
-
+        Self {
+            vao,
+            element_count: 0,
+        }
     }
 
     pub fn update(&mut self, chunk: &ChunkBlockData, game: &GameState) {
@@ -209,6 +215,6 @@ impl BlockMesh {
             .unwrap();
         Vbo::buffer_data(vertices.as_ptr() as *const GLvoid, vbo_size);
         BlockVertex::vertex_attrib_pointers();
-        self.element_count = (vertices.len() as u32 / 4)*6;
+        self.element_count = (vertices.len() as u32 / 4) * 6;
     }
 }
