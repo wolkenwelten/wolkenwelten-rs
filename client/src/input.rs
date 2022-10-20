@@ -15,8 +15,11 @@
  */
 use crate::ClientState;
 use glam::swizzles::Vec4Swizzles;
-use glam::Vec3;
+use glam::{Vec3, Vec3Swizzles};
 use wolkenwelten_game::GameState;
+
+const CHARACTER_ACCELERATION: f32 = 0.08;
+const CHARACTER_STOP_RATE: f32 = CHARACTER_ACCELERATION * 3.0;
 
 #[derive(Debug, Default)]
 pub enum Key {
@@ -84,7 +87,7 @@ impl InputState {
         if self.button_states[Key::Sprint as usize] {
             4.0
         } else {
-            1.0
+            2.0
         }
     }
     pub fn get_jump(&self) -> f32 {
@@ -147,6 +150,42 @@ impl InputState {
     }
 }
 
+fn input_tick_no_clip(game: &mut GameState, fe: &ClientState) {
+    let view = glam::Mat4::from_rotation_y(-game.player.rot[0].to_radians());
+    let view = view * glam::Mat4::from_rotation_x(-game.player.rot[1].to_radians());
+    let v = glam::Vec4::from((fe.input.get_movement_vector(), 1.0_f32));
+    let move_vec = (view * v).xyz();
+    let speed = fe.input.get_speed();
+    game.player.vel = move_vec * speed;
+    game.player.vel.y += fe.input.get_jump() * speed;
+}
+
+fn input_tick_default(game: &mut GameState, fe: &ClientState) {
+    let view = glam::Mat4::from_rotation_y(-game.player.rot[0].to_radians());
+    let view = view * glam::Mat4::from_rotation_x(-game.player.rot[1].to_radians());
+    let v = glam::Vec4::from((fe.input.get_movement_vector(), 1.0_f32));
+    let move_vec = (view * v).xyz() * fe.input.get_speed() * 0.05;
+    // Different rates for moving/stopping since this makes the player feel more responsive
+    let acc = if move_vec.xz().length() > 0.001 {
+        CHARACTER_ACCELERATION
+    } else {
+        CHARACTER_STOP_RATE
+    };
+
+    let acc = if game.player.may_jump(&game.world) {
+        acc
+    } else {
+        acc * 0.2
+    };
+
+    game.player.vel.x += (move_vec.x - game.player.vel.x) * acc;
+    game.player.vel.z += (move_vec.z - game.player.vel.z) * acc;
+
+    if (fe.input.get_jump() > 0.0) && game.player.may_jump(&game.world) {
+        game.player.vel.y = 0.1;
+    }
+}
+
 pub fn input_tick(game: &mut GameState, fe: &ClientState) {
     let rot_vec = fe.input.get_rotation_movement_vector();
 
@@ -168,20 +207,9 @@ pub fn input_tick(game: &mut GameState, fe: &ClientState) {
         game.player.rot[1] = 90.0;
     }
 
-    let view = glam::Mat4::from_rotation_y(-game.player.rot[0].to_radians());
-    let view = view * glam::Mat4::from_rotation_x(-game.player.rot[1].to_radians());
-    let v = glam::Vec4::from((fe.input.get_movement_vector(), 1.0_f32));
-    let move_vec = (view * v).xyz();
-    let speed = fe.input.get_speed();
-
     if game.player.no_clip() {
-        game.player.vel = move_vec * speed;
-        game.player.vel.y += fe.input.get_jump() * speed;
+        input_tick_no_clip(game, fe);
     } else {
-        game.player.vel.x = ((move_vec.x * speed * 0.05) + (game.player.vel.x * 0.95)) / 2.0;
-        game.player.vel.z = ((move_vec.z * speed * 0.05) + (game.player.vel.z * 0.95)) / 2.0;
-        if (fe.input.get_jump() > 0.0) && game.player.may_jump(&game.world) {
-            game.player.vel.y = 0.1;
-        }
+        input_tick_default(game, fe);
     }
 }

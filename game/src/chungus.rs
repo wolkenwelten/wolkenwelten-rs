@@ -50,12 +50,16 @@ impl Chungus {
     }
 
     pub fn is_solid(&self, pos: Vec3) -> bool {
-        let cp = IVec3::new(pos.x as i32 >> 4, pos.y as i32 >> 4, pos.z as i32 >> 4);
+        let cp = IVec3::new(
+            pos.x.floor() as i32 >> 4,
+            pos.y.floor() as i32 >> 4,
+            pos.z.floor() as i32 >> 4,
+        );
         let chnk = self.get(&cp);
         if let Some(chnk) = chnk {
-            let cx = (pos.x as i32 & 15) as usize;
-            let cy = (pos.y as i32 & 15) as usize;
-            let cz = (pos.z as i32 & 15) as usize;
+            let cx = (pos.x.floor() as i32 & 15) as usize;
+            let cy = (pos.y.floor() as i32 & 15) as usize;
+            let cz = (pos.z.floor() as i32 & 15) as usize;
             let b = chnk.data[cx][cy][cz];
             b != 0
         } else {

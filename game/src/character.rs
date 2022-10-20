@@ -25,12 +25,12 @@ pub struct Character {
     pub no_clip: bool,
 }
 
-const COL_POINT_TOP: Vec3 = Vec3::new(0.5, 1.0, 0.0);
-const COL_POINT_BOTTOM: Vec3 = Vec3::new(0.0, -2.5, 0.0);
-const COL_POINT_LEFT: Vec3 = Vec3::new(-0.5, -2.0, 0.0);
-const COL_POINT_RIGHT: Vec3 = Vec3::new(0.5, -2.0, 0.0);
-const COL_POINT_FRONT: Vec3 = Vec3::new(-0.5, -2.0, 1.0);
-const COL_POINT_BACK: Vec3 = Vec3::new(0.5, -2.0, -1.0);
+const COL_POINT_TOP: Vec3 = Vec3::new(0.0, 0.7, 0.0);
+const COL_POINT_BOTTOM: Vec3 = Vec3::new(0.0, -1.7, 0.0);
+const COL_POINT_LEFT: Vec3 = Vec3::new(-0.3, -1.2, 0.0);
+const COL_POINT_RIGHT: Vec3 = Vec3::new(0.3, -1.2, 0.0);
+const COL_POINT_FRONT: Vec3 = Vec3::new(0.0, -1.2, 0.3);
+const COL_POINT_BACK: Vec3 = Vec3::new(0.0, -1.2, -0.3);
 
 impl Character {
     pub fn new() -> Self {
