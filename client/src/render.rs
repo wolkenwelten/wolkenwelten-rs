@@ -20,6 +20,8 @@ use crate::ClientState;
 use gl::types::GLint;
 use glam::f32::{Mat4, Vec3};
 use glam::IVec3;
+use std::cmp::Ordering;
+use std::collections::BinaryHeap;
 use wolkenwelten_game::{Character, Entity, GameState};
 
 pub const VIEW_STEPS: i32 = (128 / 16) + 1;
@@ -106,7 +108,8 @@ pub fn prepare_frame(fe: &mut ClientState, game: &GameState) {
     fe.ui_mesh
         .push_string(8, 8, 2, 0xFFFFFFFF, fps_text.as_str());
 
-    #[cfg(debug_assertions)] {
+    #[cfg(debug_assertions)]
+    {
         let pos_text = format!(
             "X:{:8.2} Y:{:8.2} Z:{:8.2}",
             game.player.pos[0], game.player.pos[1], game.player.pos[2]
@@ -146,37 +149,52 @@ pub fn prepare_frame(fe: &mut ClientState, game: &GameState) {
     }
 }
 
-fn render_game(fe: &ClientState, game: &GameState) {
-    let projection = glam::Mat4::perspective_rh_gl(
-        fe.cur_fov.to_radians(),
-        (fe.window_width as f32) / (fe.window_height as f32),
-        0.1,
-        178.0,
-    );
+#[derive(Debug, Default)]
+struct QueueEntry {
+    dist: i64,
+    pos: IVec3,
+    trans: Vec3,
+    mask: u8,
+    alpha: f32,
+}
 
-    let view = glam::Mat4::from_rotation_x(game.player.rot[1].to_radians());
-    let view = view * glam::Mat4::from_rotation_y(game.player.rot[0].to_radians());
-    let view = view * glam::Mat4::from_translation(-game.player.pos);
-    let mvp = projection * view;
-
-    fe.shaders.mesh.set_used();
-    fe.shaders.mesh.set_color(1.0, 1.0, 1.0, 1.0);
-    fe.textures.pear.bind();
-
-    for entity in &game.entities {
-        draw_entity(fe, entity, &view, &projection);
+impl QueueEntry {
+    pub fn new(pos: IVec3, trans: Vec3, dist: i64, mask: u8, alpha: f32) -> Self {
+        Self {
+            dist,
+            pos,
+            trans,
+            mask,
+            alpha,
+        }
     }
+}
 
-    fe.shaders.block.set_used();
-    fe.shaders.block.set_mvp(&mvp);
-    fe.shaders.block.set_alpha(1.0);
-    fe.textures.blocks.bind();
+impl Ord for QueueEntry {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.dist.cmp(&other.dist)
+    }
+}
 
-    let frustum = Frustum::extract(&mvp);
+impl PartialOrd for QueueEntry {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
 
-    let px = (game.player.pos.x.floor() as i32) >> 4;
-    let py = (game.player.pos.y.floor() as i32) >> 4;
-    let pz = (game.player.pos.z.floor() as i32) >> 4;
+impl Eq for QueueEntry {}
+impl PartialEq for QueueEntry {
+    fn eq(&self, other: &Self) -> bool {
+        self.pos == other.pos
+    }
+}
+
+fn build_render_queue(player_pos: Vec3, frustum: &Frustum) -> BinaryHeap<QueueEntry> {
+    let mut render_queue: BinaryHeap<QueueEntry> = BinaryHeap::with_capacity(4096);
+    let px = (player_pos.x.floor() as i32) >> 4;
+    let py = (player_pos.y.floor() as i32) >> 4;
+    let pz = (player_pos.z.floor() as i32) >> 4;
+
     for cx in -VIEW_STEPS..=VIEW_STEPS {
         for cy in -VIEW_STEPS..=VIEW_STEPS {
             for cz in -VIEW_STEPS..=VIEW_STEPS {
@@ -188,38 +206,73 @@ fn render_game(fe: &ClientState, game: &GameState) {
                 let trans_z = z as f32 * 16.0;
                 if !frustum.contains_cube(Vec3::new(trans_x, trans_y, trans_z), 16.0) {
                     continue;
-                }
-
-                let diff_x = trans_x - game.player.pos.x;
-                let diff_y = trans_y - game.player.pos.y;
-                let diff_z = trans_z - game.player.pos.z;
-                let dist = diff_x * diff_x + diff_y * diff_y + diff_z * diff_z;
-                if dist > FADEOUT_DISTANCE + FADEOUT_START_DISTANCE {
-                    continue;
-                }
-                let alpha = if dist < FADEOUT_START_DISTANCE {
-                    1.0
                 } else {
-                    1.0 - ((dist - FADEOUT_START_DISTANCE) / FADEOUT_DISTANCE)
-                };
-
-                let pos = IVec3::new(x, y, z);
-                if let Some(mesh) = fe.world_mesh.get(&pos) {
-                    fe.shaders.block.set_alpha(alpha);
-                    fe.shaders.block.set_trans(trans_x, trans_y, trans_z);
-                    let mask = BlockMesh::calc_mask(cx,cy,cz);
-                    mesh.draw(mask)
+                    let trans = Vec3::new(trans_x, trans_y, trans_z);
+                    let dist = trans - player_pos;
+                    let dist = dist.dot(dist);
+                    if dist < FADEOUT_DISTANCE + FADEOUT_START_DISTANCE {
+                        let alpha = if dist < FADEOUT_START_DISTANCE {
+                            1.0
+                        } else {
+                            1.0 - ((dist - FADEOUT_START_DISTANCE) / FADEOUT_DISTANCE)
+                        };
+                        let dist = (dist * 8192.0) as i64;
+                        let pos = IVec3::new(x, y, z);
+                        let mask = BlockMesh::calc_mask(cx, cy, cz);
+                        render_queue.push(QueueEntry::new(pos, trans, dist, mask, alpha));
+                    }
                 }
             }
         }
     }
+    render_queue
+}
+
+fn render_chungus(fe: &ClientState, game: &GameState, mvp: &Mat4) {
+    let frustum = Frustum::extract(mvp);
+    let render_queue = build_render_queue(game.player.pos, &frustum);
+
+    fe.shaders.block.set_used();
+    fe.shaders.block.set_mvp(mvp);
+    fe.textures.blocks.bind();
+    for entry in render_queue.iter() {
+        if let Some(mesh) = fe.world_mesh.get(&entry.pos) {
+            fe.shaders.block.set_alpha(entry.alpha);
+            fe.shaders
+                .block
+                .set_trans(entry.trans.x, entry.trans.y, entry.trans.z);
+            mesh.draw(entry.mask)
+        }
+    }
+}
+
+fn render_game(fe: &ClientState, game: &GameState) {
+    let projection = Mat4::perspective_rh_gl(
+        fe.cur_fov.to_radians(),
+        (fe.window_width as f32) / (fe.window_height as f32),
+        0.1,
+        178.0,
+    );
+    let view = Mat4::from_rotation_x(game.player.rot[1].to_radians());
+    let view = view * Mat4::from_rotation_y(game.player.rot[0].to_radians());
+    let view = view * Mat4::from_translation(-game.player.pos);
+    let mvp = projection * view;
+
+    fe.shaders.mesh.set_used();
+    fe.shaders.mesh.set_color(1.0, 1.0, 1.0, 1.0);
+    fe.textures.pear.bind();
+    for entity in &game.entities {
+        draw_entity(fe, entity, &view, &projection);
+    }
+
+    render_chungus(fe, game, &mvp);
 }
 
 pub fn render_frame(fe: &ClientState, game: &GameState) {
     unsafe { gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT) };
     render_game(fe, game);
 
-    let perspective = glam::Mat4::orthographic_rh_gl(
+    let perspective = Mat4::orthographic_rh_gl(
         0.0,
         fe.window_width as f32,
         fe.window_height as f32,
