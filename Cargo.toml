@@ -38,3 +38,7 @@ default-members = [
     "game",
     "client",
 ]
+
+[profile.release]
+codegen-units = 1
+lto = true

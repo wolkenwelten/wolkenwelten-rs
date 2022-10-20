@@ -2,3 +2,4 @@
 /.idea
 /rostregen.iml
 *.core
+perf.data
