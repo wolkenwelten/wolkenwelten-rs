@@ -90,13 +90,13 @@ pub fn render_init() {
     }
 }
 
-pub fn prepare_chunk(fe: &mut ClientState, game: &GameState, pos: IVec3) {
+pub fn prepare_chunk(fe: &mut ClientState, game: &GameState, pos: IVec3, now: u64) {
     match fe.world_mesh.get(&pos) {
         Some(_) => {}
         _ => {
             if let Some(chunk) = game.get_chunk_block(pos) {
                 let mut mesh = BlockMesh::new(&fe.block_index_buffer);
-                mesh.update(chunk, game);
+                mesh.update(chunk, game, now);
                 fe.world_mesh.insert(pos, mesh);
             }
         }
@@ -135,6 +135,7 @@ pub fn prepare_frame(fe: &mut ClientState, game: &GameState) {
     fe.calc_fps();
     fe.gc(&game.player);
     fe.cur_fov = calc_fov(fe.cur_fov, &game.player);
+    let now = game.get_millis();
 
     let px = (game.player.pos.x as i32) / 16;
     let py = (game.player.pos.y as i32) / 16;
@@ -143,7 +144,11 @@ pub fn prepare_frame(fe: &mut ClientState, game: &GameState) {
         for cy in -VIEW_STEPS..=VIEW_STEPS {
             for cz in -VIEW_STEPS..=VIEW_STEPS {
                 let pos = IVec3::new(cx + px, cy + py, cz + pz);
-                prepare_chunk(fe, game, pos);
+                let d = (pos.as_vec3() * 16.0) - game.player.pos;
+                let d = d.dot(d);
+                if d < FADEOUT_DISTANCE + FADEOUT_START_DISTANCE {
+                    prepare_chunk(fe, game, pos, now);
+                }
             }
         }
     }
@@ -172,7 +177,8 @@ impl QueueEntry {
 
 impl Ord for QueueEntry {
     fn cmp(&self, other: &Self) -> Ordering {
-        self.dist.cmp(&other.dist)
+        //self.dist.cmp(&other.dist)
+        other.dist.cmp(&self.dist)
     }
 }
 
@@ -231,13 +237,17 @@ fn build_render_queue(player_pos: Vec3, frustum: &Frustum) -> BinaryHeap<QueueEn
 fn render_chungus(fe: &ClientState, game: &GameState, mvp: &Mat4) {
     let frustum = Frustum::extract(mvp);
     let render_queue = build_render_queue(game.player.pos, &frustum);
+    let now = game.get_millis();
 
     fe.shaders.block.set_used();
     fe.shaders.block.set_mvp(mvp);
     fe.textures.blocks.bind();
     for entry in render_queue.iter() {
         if let Some(mesh) = fe.world_mesh.get(&entry.pos) {
-            fe.shaders.block.set_alpha(entry.alpha);
+            let td = now - mesh.last_updated_at();
+            let fade_in = (td as f32 / 500.0).clamp(0.0, 1.0);
+            let alpha = entry.alpha * fade_in;
+            fe.shaders.block.set_alpha(alpha);
             fe.shaders
                 .block
                 .set_trans(entry.trans.x, entry.trans.y, entry.trans.z);

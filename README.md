@@ -38,7 +38,7 @@ down a bit I'll be looking into integrating v8, by either using deno_core or hoo
 - [X] Nicer player movement
 - [X] Simple voxel side occlusion-culling (port from WW)
 - [X] Proper chunk draw ordering, front to back due to fade-in (port from WW)
-- [ ] Chunk fade-in after generation
+- [X] Chunk fade-in after generation
 - [ ] Sky sphere (port from WW)
 - [ ] Frame-rate independent physics/gameplay (maybe try out rapier3d?)
 - [ ] Greedy meshing (port from WW)

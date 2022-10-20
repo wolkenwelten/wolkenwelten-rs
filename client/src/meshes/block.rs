@@ -21,6 +21,7 @@ use wolkenwelten_game::{ChunkBlockData, GameState, Side};
 #[derive(Debug, Default)]
 pub struct BlockMesh {
     vao: Vao,
+    last_updated_at: u64,
     side_square_count: [u32; 6],
     side_start: [u32; 6],
 }
@@ -195,8 +196,11 @@ impl BlockMesh {
             vao,
             side_square_count: [0; 6],
             side_start: [0; 6],
+            last_updated_at: 0,
         }
     }
+
+    pub fn last_updated_at(&self) -> u64 { self.last_updated_at }
 
     fn update_front(
         vertices: &mut Vec<BlockVertex>,
@@ -360,7 +364,8 @@ impl BlockMesh {
         (vertices.len() - start) / 4
     }
 
-    pub fn update(&mut self, chunk: &ChunkBlockData, game: &GameState) {
+    pub fn update(&mut self, chunk: &ChunkBlockData, game: &GameState, now: u64) {
+        self.last_updated_at = now;
         let mut vertices: Vec<BlockVertex> = Vec::with_capacity(65536);
         self.side_square_count[0] = Self::update_front(&mut vertices, chunk, game)
             .try_into()
