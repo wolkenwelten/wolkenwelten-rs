@@ -16,13 +16,12 @@
 use super::util;
 use super::{Vao, Vbo};
 use gl::types::GLvoid;
-use std::fmt;
 use wolkenwelten_game::{ChunkBlockData, GameState, Side};
 
 #[derive(Debug, Default)]
 pub struct BlockMesh {
     vao: Vao,
-    vertex_count: u16,
+    element_count: u32,
 }
 
 #[derive(Copy, Clone, Debug, Default)]
@@ -31,21 +30,6 @@ struct BlockVertex {
     xyz: u16,           // We've got 1 bit left here
     texture_index: u8, // Right now we don't really use 256 distinct block faces, ~32 should suffice for a long time
     side_and_light: u8, // And another one here as well
-}
-
-impl fmt::Display for BlockVertex {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let x = self.xyz & 0x1F;
-        let y = (self.xyz >> 5) & 0x1F;
-        let z = (self.xyz >> 10) & 0x1F;
-        let bt = self.texture_index;
-        let l = self.side_and_light;
-        write!(
-            f,
-            "<BlockVertex X:{} Y:{} Z:{} BT:{} L:{} />",
-            x, y, z, bt, l
-        )
-    }
 }
 
 impl BlockVertex {
@@ -71,10 +55,7 @@ impl BlockVertex {
         vertices.push(Self::new(x, y, z, texture_index, side, light));
         vertices.push(Self::new(x + w, y, z, texture_index, side, light));
         vertices.push(Self::new(x + w, y + h, z, texture_index, side, light));
-
-        vertices.push(Self::new(x + w, y + h, z, texture_index, side, light));
         vertices.push(Self::new(x, y + h, z, texture_index, side, light));
-        vertices.push(Self::new(x, y, z, texture_index, side, light));
     }
 
     fn add_back(
@@ -88,10 +69,7 @@ impl BlockVertex {
         vertices.push(Self::new(x, y, z, texture_index, side, light));
         vertices.push(Self::new(x, y + h, z, texture_index, side, light));
         vertices.push(Self::new(x + w, y + h, z, texture_index, side, light));
-
-        vertices.push(Self::new(x + w, y + h, z, texture_index, side, light));
         vertices.push(Self::new(x + w, y, z, texture_index, side, light));
-        vertices.push(Self::new(x, y, z, texture_index, side, light));
     }
 
     fn add_top(
@@ -106,10 +84,7 @@ impl BlockVertex {
         vertices.push(Self::new(x, y, z, texture_index, side, light));
         vertices.push(Self::new(x, y, z + d, texture_index, side, light));
         vertices.push(Self::new(x + w, y, z + d, texture_index, side, light));
-
-        vertices.push(Self::new(x + w, y, z + d, texture_index, side, light));
         vertices.push(Self::new(x + w, y, z, texture_index, side, light));
-        vertices.push(Self::new(x, y, z, texture_index, side, light));
     }
 
     fn add_bottom(
@@ -123,10 +98,7 @@ impl BlockVertex {
         vertices.push(Self::new(x, y, z, texture_index, side, light));
         vertices.push(Self::new(x + w, y, z, texture_index, side, light));
         vertices.push(Self::new(x + w, y, z + d, texture_index, side, light));
-
-        vertices.push(Self::new(x + w, y, z + d, texture_index, side, light));
         vertices.push(Self::new(x, y, z + d, texture_index, side, light));
-        vertices.push(Self::new(x, y, z, texture_index, side, light));
     }
 
     fn add_left(
@@ -140,10 +112,7 @@ impl BlockVertex {
         vertices.push(Self::new(x, y, z, texture_index, side, light));
         vertices.push(Self::new(x, y, z + d, texture_index, side, light));
         vertices.push(Self::new(x, y + h, z + d, texture_index, side, light));
-
-        vertices.push(Self::new(x, y + h, z + d, texture_index, side, light));
         vertices.push(Self::new(x, y + h, z, texture_index, side, light));
-        vertices.push(Self::new(x, y, z, texture_index, side, light));
     }
 
     fn add_right(
@@ -158,10 +127,7 @@ impl BlockVertex {
         vertices.push(Self::new(x, y, z, texture_index, side, light));
         vertices.push(Self::new(x, y + h, z, texture_index, side, light));
         vertices.push(Self::new(x, y + h, z + d, texture_index, side, light));
-
-        vertices.push(Self::new(x, y + h, z + d, texture_index, side, light));
         vertices.push(Self::new(x, y, z + d, texture_index, side, light));
-        vertices.push(Self::new(x, y, z, texture_index, side, light));
     }
 
     fn vertex_attrib_pointers() {
@@ -175,17 +141,31 @@ impl BlockVertex {
 }
 
 impl BlockMesh {
-    pub fn draw(&self) {
-        self.vao.draw(self.vertex_count.into());
+    pub fn gen_index_buffer(square_count:usize) -> Vbo {
+        let mut v:Vec<u16> = Vec::with_capacity(square_count*6);
+        for i in 0..square_count {
+            v.push((i*4) as u16);
+            v.push((i*4+1) as u16);
+            v.push((i*4+2) as u16);
+
+            v.push((i*4+2) as u16);
+            v.push((i*4+3) as u16);
+            v.push((i*4) as u16);
+        }
+        let vbo_size:u32 = square_count as u32 * 6 * 2;
+        Vbo::new("BlockMesh Index Buffer", v.as_ptr() as *const GLvoid, vbo_size)
     }
 
-    pub fn new() -> Self {
+    pub fn draw(&self) {
+        self.vao.draw_elements(self.element_count);
+    }
+
+    pub fn new(index_vbo:&Vbo) -> Self {
         let vao = Vao::new_empty("BlockMesh");
         BlockVertex::vertex_attrib_pointers();
-        Self {
-            vao,
-            vertex_count: 0,
-        }
+        index_vbo.bind_element();
+        Self { vao, element_count: 0 }
+
     }
 
     pub fn update(&mut self, chunk: &ChunkBlockData, game: &GameState) {
@@ -229,6 +209,6 @@ impl BlockMesh {
             .unwrap();
         Vbo::buffer_data(vertices.as_ptr() as *const GLvoid, vbo_size);
         BlockVertex::vertex_attrib_pointers();
-        self.vertex_count = vertices.len().try_into().unwrap();
+        self.element_count = (vertices.len() as u32 / 4)*6;
     }
 }

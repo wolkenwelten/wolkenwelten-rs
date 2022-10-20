@@ -14,6 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 use crate::can_use_object_labels;
+use gl;
 use gl::types::{GLuint, GLvoid};
 use std::ffi::CString;
 
@@ -43,6 +44,12 @@ impl Vbo {
     pub fn bind(&self) {
         unsafe {
             gl::BindBuffer(gl::ARRAY_BUFFER, self.id);
+        }
+    }
+
+    pub fn bind_element(&self) {
+        unsafe {
+            gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, self.id);
         }
     }
 
@@ -97,6 +104,13 @@ impl Vao {
             gl::DrawArrays(gl::TRIANGLES, 0, vertex_count.try_into().unwrap());
         }
     }
+
+    pub fn draw_elements(&self, element_count: u32) {
+        self.bind();
+        unsafe {
+            gl::DrawElements(gl::TRIANGLES, element_count.try_into().unwrap(), gl::UNSIGNED_SHORT, std::ptr::null::<GLvoid>());
+        }
+    }
 }
 
 impl Drop for Vao {
@@ -109,8 +123,6 @@ impl Drop for Vbo {
         unsafe { gl::DeleteBuffers(1, &self.id) }
     }
 }
-
-use gl;
 
 pub unsafe fn vertex_attrib_pointer(
     stride: usize,

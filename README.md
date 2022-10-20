@@ -32,7 +32,7 @@ down a bit I'll be looking into integrating v8, by either using deno_core or hoo
 - [X] Unit Tests
 - [X] Frustum culling (port from WW)
 - [X] CI running tests/fmt/clippy
-- [ ] Indexed BlockMeshes
+- [X] Indexed BlockMeshes
 - [ ] Simple voxel side occlusion-culling (port from WW)
 - [ ] Greedy meshing (port from WW)
 - [ ] Lighting (port from WW, without ASM/SIMD (for now))

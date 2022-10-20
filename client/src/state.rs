@@ -17,7 +17,7 @@ pub use self::static_meshes::MeshList;
 pub use self::static_shaders::ShaderList;
 pub use self::static_textures::TextureList;
 use crate::input::InputState;
-use crate::meshes::{BlockMesh, TextMesh};
+use crate::meshes::{BlockMesh, TextMesh, Vbo};
 use glam::f32::Vec3;
 use glam::i32::IVec3;
 use std::collections::HashMap;
@@ -32,6 +32,7 @@ pub mod static_textures;
 pub struct ClientState {
     pub instant: Instant,
 
+    pub block_index_buffer: Vbo,
     pub world_mesh: HashMap<IVec3, BlockMesh>,
 
     pub window_width: u32,
@@ -53,16 +54,13 @@ pub struct ClientState {
 
 impl Default for ClientState {
     fn default() -> Self {
-        let last_ticks = 0;
-        let window_width = 640;
-        let window_height = 480;
-
         Self {
             instant: Instant::now(),
+            block_index_buffer: BlockMesh::gen_index_buffer(65536/4),
             world_mesh: HashMap::new(),
 
-            window_width,
-            window_height,
+            window_width: 640,
+            window_height: 480,
 
             meshes: MeshList::new(),
             shaders: ShaderList::new(),
@@ -73,7 +71,7 @@ impl Default for ClientState {
             cur_fov: 90.0,
             cur_fps: 0,
             frame_count: 0,
-            last_ticks,
+            last_ticks: 0,
         }
     }
 }
