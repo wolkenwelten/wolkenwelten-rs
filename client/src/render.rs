@@ -103,27 +103,31 @@ pub fn prepare_chunk(fe: &mut ClientState, game: &GameState, pos: IVec3) {
 
 pub fn prepare_frame(fe: &mut ClientState, game: &GameState) {
     let fps_text = format!("FPS: {}", fe.fps());
-    let pos_text = format!(
-        "X:{:8.2} Y:{:8.2} Z:{:8.2}",
-        game.player.pos[0], game.player.pos[1], game.player.pos[2]
-    );
-    let rot_text = format!(
-        "Y:{:8.2} P:{:8.2} R:{:8.2}",
-        game.player.rot[0], game.player.rot[1], game.player.rot[2]
-    );
-    let col_text = format!(
-        "Entities: {}   Chunks: {}   BlockMeshes: {}",
-        game.get_entity_count(),
-        game.world.block_data.len(),
-        fe.world_mesh.len(),
-    );
-
     fe.ui_mesh
-        .push_string(8, 8, 2, 0xFFFFFFFF, fps_text.as_str())
-        .push_string(8, 40, 2, 0xFFFFFFFF, pos_text.as_str())
-        .push_string(8, 60, 2, 0xFFFFFFFF, rot_text.as_str())
-        .push_string(8, 100, 2, 0xFFFFFFFF, col_text.as_str())
-        .prepare();
+        .push_string(8, 8, 2, 0xFFFFFFFF, fps_text.as_str());
+
+    #[cfg(debug_assertions)] {
+        let pos_text = format!(
+            "X:{:8.2} Y:{:8.2} Z:{:8.2}",
+            game.player.pos[0], game.player.pos[1], game.player.pos[2]
+        );
+        let rot_text = format!(
+            "Y:{:8.2} P:{:8.2} R:{:8.2}",
+            game.player.rot[0], game.player.rot[1], game.player.rot[2]
+        );
+        let col_text = format!(
+            "Entities: {}   Chunks: {}   BlockMeshes: {}",
+            game.get_entity_count(),
+            game.world.block_data.len(),
+            fe.world_mesh.len(),
+        );
+        fe.ui_mesh
+            .push_string(8, 40, 2, 0xFFFFFFFF, pos_text.as_str())
+            .push_string(8, 60, 2, 0xFFFFFFFF, rot_text.as_str())
+            .push_string(8, 100, 2, 0xFFFFFFFF, col_text.as_str());
+    }
+
+    fe.ui_mesh.prepare();
 
     fe.calc_fps();
     fe.gc(&game.player);
@@ -170,9 +174,9 @@ fn render_game(fe: &ClientState, game: &GameState) {
 
     let frustum = Frustum::extract(&mvp);
 
-    let px = (game.player.pos.x as i32) / 16;
-    let py = (game.player.pos.y as i32) / 16;
-    let pz = (game.player.pos.z as i32) / 16;
+    let px = (game.player.pos.x.floor() as i32) >> 4;
+    let py = (game.player.pos.y.floor() as i32) >> 4;
+    let pz = (game.player.pos.z.floor() as i32) >> 4;
     for cx in -VIEW_STEPS..=VIEW_STEPS {
         for cy in -VIEW_STEPS..=VIEW_STEPS {
             for cz in -VIEW_STEPS..=VIEW_STEPS {
@@ -203,7 +207,8 @@ fn render_game(fe: &ClientState, game: &GameState) {
                 if let Some(mesh) = fe.world_mesh.get(&pos) {
                     fe.shaders.block.set_alpha(alpha);
                     fe.shaders.block.set_trans(trans_x, trans_y, trans_z);
-                    mesh.draw()
+                    let mask = BlockMesh::calc_mask(cx,cy,cz);
+                    mesh.draw(mask)
                 }
             }
         }

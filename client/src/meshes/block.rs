@@ -21,7 +21,8 @@ use wolkenwelten_game::{ChunkBlockData, GameState, Side};
 #[derive(Debug, Default)]
 pub struct BlockMesh {
     vao: Vao,
-    element_count: u32,
+    side_square_count: [u32; 6],
+    side_start: [u32; 6],
 }
 
 #[derive(Copy, Clone, Debug, Default)]
@@ -160,8 +161,29 @@ impl BlockMesh {
         )
     }
 
-    pub fn draw(&self) {
-        self.vao.draw_elements(self.element_count);
+    pub fn calc_mask(x_offset:i32, y_offset:i32, z_offset:i32) -> u8 {
+        (if z_offset <= 0 { 1<<0 } else { 0 }
+            | if z_offset >= 0 { 1<<1 } else { 0 }
+            | if y_offset <= 0 { 1<<2 } else { 0 }
+            | if y_offset >= 0 { 1<<3 } else { 0 }
+            | if x_offset >= 0 { 1<<4 } else { 0 }
+            | if x_offset <= 0 { 1<<5 } else { 0 })
+    }
+
+    pub fn draw(&self, mask:u8) {
+        if mask == 0b111111 {
+            self.vao.draw_elements(0, (self.side_start[5] + self.side_square_count[5]) * 6);
+        } else {
+            for i in 0..6 {
+                if (mask & (1<<i)) != 0 {
+                    let start_offset = self.side_start[i] * 6 * 2;
+                    let index_count = self.side_square_count[i] * 6;
+                    if index_count > 0 {
+                        self.vao.draw_elements(start_offset, index_count);
+                    }
+                }
+            }
+        }
     }
 
     pub fn new(index_vbo: &Vbo) -> Self {
@@ -170,51 +192,155 @@ impl BlockMesh {
         index_vbo.bind_element();
         Self {
             vao,
-            element_count: 0,
+            side_square_count: [0;6],
+            side_start: [0;6],
         }
     }
 
-    pub fn update(&mut self, chunk: &ChunkBlockData, game: &GameState) {
-        let mut vertices: Vec<BlockVertex> = Vec::with_capacity(65536);
+    fn update_front(vertices:&mut Vec<BlockVertex>, chunk: &ChunkBlockData, game: &GameState) -> usize {
+        let start = vertices.len();
         let size = (1, 1, 1);
         let light = 0x0F;
         for x in 0..16 {
             for y in 0..16 {
                 for z in 0..16 {
                     let block = chunk.data[x][y][z];
-                    if block == 0 {
-                        continue;
-                    };
+                    if block == 0 { continue; };
                     let pos = (x as u16, y as u16, z as u16);
                     let b = game.world.get_block_type(block);
 
                     if (z >= 15) || (chunk.data[x][y][z + 1] == 0) {
-                        BlockVertex::add_front(&mut vertices, pos, size, b.tex_front(), light);
-                    }
-                    if (z == 0) || (chunk.data[x][y][z - 1] == 0) {
-                        BlockVertex::add_back(&mut vertices, pos, size, b.tex_back(), light);
-                    }
-                    if (y >= 15) || (chunk.data[x][y + 1][z] == 0) {
-                        BlockVertex::add_top(&mut vertices, pos, size, b.tex_top(), light);
-                    }
-                    if (y == 0) || (chunk.data[x][y - 1][z] == 0) {
-                        BlockVertex::add_bottom(&mut vertices, pos, size, b.tex_bottom(), light);
-                    }
-                    if (x == 0) || (chunk.data[x - 1][y][z] == 0) {
-                        BlockVertex::add_left(&mut vertices, pos, size, b.tex_left(), light);
-                    }
-                    if (x >= 15) || (chunk.data[x + 1][y][z] == 0) {
-                        BlockVertex::add_right(&mut vertices, pos, size, b.tex_right(), light);
+                        BlockVertex::add_front(vertices, pos, size, b.tex_front(), light);
                     }
                 }
             }
         }
+        (vertices.len() - start) / 4
+    }
+
+    fn update_back(vertices:&mut Vec<BlockVertex>, chunk: &ChunkBlockData, game: &GameState) -> usize {
+        let start = vertices.len();
+        let size = (1, 1, 1);
+        let light = 0x0F;
+        for x in 0..16 {
+            for y in 0..16 {
+                for z in 0..16 {
+                    let block = chunk.data[x][y][z];
+                    if block == 0 { continue; };
+                    let pos = (x as u16, y as u16, z as u16);
+                    let b = game.world.get_block_type(block);
+
+                    if (z == 0) || (chunk.data[x][y][z - 1] == 0) {
+                        BlockVertex::add_back(vertices, pos, size, b.tex_back(), light);
+                    }
+                }
+            }
+        }
+        (vertices.len() - start) / 4
+    }
+
+    fn update_top(vertices:&mut Vec<BlockVertex>, chunk: &ChunkBlockData, game: &GameState) -> usize {
+        let start = vertices.len();
+        let size = (1, 1, 1);
+        let light = 0x0F;
+        for x in 0..16 {
+            for y in 0..16 {
+                for z in 0..16 {
+                    let block = chunk.data[x][y][z];
+                    if block == 0 { continue; };
+                    let pos = (x as u16, y as u16, z as u16);
+                    let b = game.world.get_block_type(block);
+
+                    if (y >= 15) || (chunk.data[x][y + 1][z] == 0) {
+                        BlockVertex::add_top(vertices, pos, size, b.tex_top(), light);
+                    }
+                }
+            }
+        }
+        (vertices.len() - start) / 4
+    }
+
+    fn update_bottom(vertices:&mut Vec<BlockVertex>, chunk: &ChunkBlockData, game: &GameState) -> usize {
+        let start = vertices.len();
+        let size = (1, 1, 1);
+        let light = 0x0F;
+        for x in 0..16 {
+            for y in 0..16 {
+                for z in 0..16 {
+                    let block = chunk.data[x][y][z];
+                    if block == 0 { continue; };
+                    let pos = (x as u16, y as u16, z as u16);
+                    let b = game.world.get_block_type(block);
+
+                    if (y == 0) || (chunk.data[x][y - 1][z] == 0) {
+                        BlockVertex::add_bottom(vertices, pos, size, b.tex_bottom(), light);
+                    }
+                }
+            }
+        }
+        (vertices.len() - start) / 4
+    }
+
+    fn update_left(vertices:&mut Vec<BlockVertex>, chunk: &ChunkBlockData, game: &GameState) -> usize {
+        let start = vertices.len();
+        let size = (1, 1, 1);
+        let light = 0x0F;
+        for x in 0..16 {
+            for y in 0..16 {
+                for z in 0..16 {
+                    let block = chunk.data[x][y][z];
+                    if block == 0 { continue; };
+                    let pos = (x as u16, y as u16, z as u16);
+                    let b = game.world.get_block_type(block);
+
+                    if (x == 0) || (chunk.data[x - 1][y][z] == 0) {
+                        BlockVertex::add_left(vertices, pos, size, b.tex_left(), light);
+                    }
+                }
+            }
+        }
+        (vertices.len() - start) / 4
+    }
+
+    fn update_right(vertices:&mut Vec<BlockVertex>, chunk: &ChunkBlockData, game: &GameState) -> usize {
+        let start = vertices.len();
+        let size = (1, 1, 1);
+        let light = 0x0F;
+        for x in 0..16 {
+            for y in 0..16 {
+                for z in 0..16 {
+                    let block = chunk.data[x][y][z];
+                    if block == 0 { continue; };
+                    let pos = (x as u16, y as u16, z as u16);
+                    let b = game.world.get_block_type(block);
+
+                    if (x >= 15) || (chunk.data[x + 1][y][z] == 0) {
+                        BlockVertex::add_right(vertices, pos, size, b.tex_right(), light);
+                    }
+                }
+            }
+        }
+        (vertices.len() - start) / 4
+    }
+
+    pub fn update(&mut self, chunk: &ChunkBlockData, game: &GameState) {
+        let mut vertices: Vec<BlockVertex> = Vec::with_capacity(65536);
+        self.side_square_count[0] = Self::update_front(&mut vertices, chunk, game).try_into().unwrap();
+        self.side_square_count[1] = Self::update_back(&mut vertices, chunk, game).try_into().unwrap();
+        self.side_square_count[2] = Self::update_top(&mut vertices, chunk, game).try_into().unwrap();
+        self.side_square_count[3] = Self::update_bottom(&mut vertices, chunk, game).try_into().unwrap();
+        self.side_square_count[4] = Self::update_left(&mut vertices, chunk, game).try_into().unwrap();
+        self.side_square_count[5] = Self::update_right(&mut vertices, chunk, game).try_into().unwrap();
+        self.side_start[0] = 0;
+        for i in 1..6 {
+            self.side_start[i] = self.side_start[i-1] + self.side_square_count[i-1];
+        }
+
         self.vao.bind();
         let vbo_size: u32 = (vertices.len() * std::mem::size_of::<BlockVertex>())
             .try_into()
             .unwrap();
         Vbo::buffer_data(vertices.as_ptr() as *const GLvoid, vbo_size);
         BlockVertex::vertex_attrib_pointers();
-        self.element_count = (vertices.len() as u32 / 4) * 6;
     }
 }

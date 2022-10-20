@@ -105,14 +105,14 @@ impl Vao {
         }
     }
 
-    pub fn draw_elements(&self, element_count: u32) {
+    pub fn draw_elements(&self, start_offset: u32, index_count: u32) {
         self.bind();
         unsafe {
             gl::DrawElements(
                 gl::TRIANGLES,
-                element_count.try_into().unwrap(),
+                index_count.try_into().unwrap(),
                 gl::UNSIGNED_SHORT,
-                std::ptr::null::<GLvoid>(),
+                start_offset as *const gl::types::GLvoid,
             );
         }
     }
