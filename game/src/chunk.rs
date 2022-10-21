@@ -17,14 +17,18 @@ use glam::IVec3;
 use rand::prelude::*;
 use rand_chacha::ChaCha8Rng;
 
+pub const CHUNK_BITS: i32 = 5;
+pub const CHUNK_SIZE: usize = 1 << CHUNK_BITS;
+pub const CHUNK_MASK: i32 = CHUNK_SIZE as i32 - 1;
+
 #[derive(Clone, Debug, Default)]
 pub struct ChunkBlockData {
-    pub data: [[[u8; 16]; 16]; 16],
+    pub data: [[[u8; CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE],
 }
 
 impl ChunkBlockData {
     pub fn new() -> Self {
-        let data = [[[0; 16]; 16]; 16];
+        let data = [[[0; CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE];
         Self { data }
     }
 
@@ -32,25 +36,58 @@ impl ChunkBlockData {
         if rng.gen_range(0..4) == 0 {
             self.set_block(3, (8, 15, 8));
         }
-        self.set_sphere(2, (8, 10, 8), 5);
-        self.set_sphere(1, (8, 9, 8), 5);
-        self.set_sphere(3, (8, 8, 8), 5);
+        self.set_sphere(
+            2,
+            (
+                CHUNK_SIZE as i32 / 2,
+                CHUNK_SIZE as i32 / 2 + 2,
+                CHUNK_SIZE as i32 / 2,
+            ),
+            CHUNK_SIZE as i32 / 3,
+        );
+        self.set_sphere(
+            1,
+            (
+                CHUNK_SIZE as i32 / 2,
+                CHUNK_SIZE as i32 / 2 + 1,
+                CHUNK_SIZE as i32 / 2,
+            ),
+            CHUNK_SIZE as i32 / 3,
+        );
+        self.set_sphere(
+            3,
+            (
+                CHUNK_SIZE as i32 / 2,
+                CHUNK_SIZE as i32 / 2,
+                CHUNK_SIZE as i32 / 2,
+            ),
+            CHUNK_SIZE as i32 / 3,
+        );
         if rng.gen_range(0..4) == 0 {
             self.set_box(15, (14, 3, 12), (2, 3, 3));
         }
-
         self
     }
 
     fn worldgen_block(mut self, rng: &mut ChaCha8Rng) -> Self {
-        let ox = rng.gen_range(0..=2);
-        let oy = rng.gen_range(0..=2);
-        let oz = rng.gen_range(0..=2);
-        let ow = rng.gen_range(0..=2);
-        let oh = rng.gen_range(0..=2);
-        let od = rng.gen_range(0..=2);
+        let ox = rng.gen_range(0..=CHUNK_SIZE / 8);
+        let oy = rng.gen_range(0..=CHUNK_SIZE / 8);
+        let oz = rng.gen_range(0..=CHUNK_SIZE / 8);
+        let ow = rng.gen_range(0..=CHUNK_SIZE / 8);
+        let oh = rng.gen_range(0..=CHUNK_SIZE / 8);
+        let od = rng.gen_range(0..=CHUNK_SIZE / 8);
         let block = rng.gen_range(4..16);
-        self.set_box(block, (8 + ox, 8 + oy, 8 + oz), (4 + ow, 4 + oh, 4 + od));
+        let pos = (
+            (CHUNK_SIZE / 2 + ox) as i32,
+            (CHUNK_SIZE / 2 + oy) as i32,
+            (CHUNK_SIZE / 2 + oz) as i32,
+        );
+        let size = (
+            (CHUNK_SIZE / 4 + ow) as i32,
+            (CHUNK_SIZE / 4 + oh) as i32,
+            (CHUNK_SIZE / 4 + od) as i32,
+        );
+        self.set_box(block, pos, size);
         self
     }
 

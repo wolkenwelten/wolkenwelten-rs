@@ -14,6 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 use super::{Character, Chungus, ChunkBlockData, Entity};
+use crate::{CHUNK_MASK, CHUNK_SIZE};
 use glam::f32::Vec3;
 use glam::i32::IVec3;
 use rand::Rng;
@@ -101,24 +102,29 @@ impl GameState {
     }
 
     pub fn get_single_block(&self, (x, y, z): (i32, i32, i32)) -> u8 {
-        let pos = IVec3::new(x / 16, y / 16, z / 16);
+        let pos = IVec3::new(
+            x / CHUNK_SIZE as i32,
+            y / CHUNK_SIZE as i32,
+            z / CHUNK_SIZE as i32,
+        );
         let chunk = self.get_chunk_block(pos);
         if let Some(chnk) = chunk {
-            chnk.data[(x & 15) as usize][(y & 15) as usize][(z & 15) as usize]
+            chnk.data[(x & CHUNK_MASK) as usize][(y & CHUNK_MASK) as usize]
+                [(z & CHUNK_MASK) as usize]
         } else {
             0
         }
     }
 
     pub fn prepare_world(&mut self, view_steps: i32, render_distance: f32) {
-        let px = (self.player.pos.x as i32) / 16;
-        let py = (self.player.pos.y as i32) / 16;
-        let pz = (self.player.pos.z as i32) / 16;
+        let px = (self.player.pos.x as i32) / CHUNK_SIZE as i32;
+        let py = (self.player.pos.y as i32) / CHUNK_SIZE as i32;
+        let pz = (self.player.pos.z as i32) / CHUNK_SIZE as i32;
         for cx in -view_steps..=view_steps {
             for cy in -view_steps..=view_steps {
                 for cz in -view_steps..=view_steps {
                     let pos = IVec3::new(cx + px, cy + py, cz + pz);
-                    let d = (pos.as_vec3() * 16.0) - self.player.pos;
+                    let d = (pos.as_vec3() * CHUNK_SIZE as f32) - self.player.pos;
                     let d = d.dot(d);
                     if d < render_distance {
                         self.worldgen_chunk(pos);

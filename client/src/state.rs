@@ -22,7 +22,7 @@ use glam::f32::Vec3;
 use glam::i32::IVec3;
 use std::collections::HashMap;
 use std::time::Instant;
-use wolkenwelten_game::Character;
+use wolkenwelten_game::{Character, CHUNK_SIZE};
 
 pub mod static_meshes;
 pub mod static_shaders;
@@ -102,9 +102,9 @@ impl ClientState {
     pub fn gc(&mut self, player: &Character) {
         let mut removal_queue: Vec<IVec3> = Vec::new();
         for pos in self.world_mesh.keys() {
-            let diff: Vec3 = (pos.as_vec3() * 16.0) - player.pos;
+            let diff: Vec3 = (pos.as_vec3() * CHUNK_SIZE as f32) - player.pos;
             let d = diff.dot(diff);
-            if d > (256.0 * 256.0) {
+            if d > (312.0 * 312.0) {
                 removal_queue.push(*pos);
             }
         }

@@ -18,7 +18,7 @@ Web/WASM is intentionally NOT a supported platform for the foreseeable future, s
 
 # Changes from the C version (these are 99% certain to happen if not checked already)
 - [X] No more WASM/Emscripten build (really liked that, but it was A LOT of work and broke all the time, so in the beginning WW will only support Lin/Mac/Win)
-- [X] No SDL2 (it worked quite well, but it's simpler to have as much be written in Rust as possible)
+- [X] No SDL2 (it worked quite well, but it simplifies the build process to have as much as possible be written in Rust)
 - [X] Bigger world Size (32-bit per axis, instead of 16, allowing for ~4 Billion Blocks per Axis as compared to ~65 thousand before)
 - [ ] OpenAL for sound output
 - [ ] Single executable for client/server (the client should be a feature that can be disabled though)
@@ -38,7 +38,7 @@ Web/WASM is intentionally NOT a supported platform for the foreseeable future, s
 - [X] Indexed BlockMeshes
 - [X] Nicer player movement
 - [X] Simple voxel side occlusion-culling (port from WW)
-- [X] Proper chunk draw ordering, front to back due to fade-in (port from WW)
+- [X] Proper chunk draw ordering, back to front due to fade-in (port from WW)
 - [X] Chunk fade-in after generation
 - [X] Sky sphere (port from WW)
 - [ ] Greedy meshing (port from WW)

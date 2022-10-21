@@ -13,7 +13,9 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+use super::chunk::CHUNK_SIZE;
 use super::{BlockType, Character, ChunkBlockData};
+use crate::{CHUNK_BITS, CHUNK_MASK};
 use glam::f32::Vec3;
 use glam::i32::IVec3;
 use std::collections::HashMap;
@@ -28,9 +30,9 @@ impl Chungus {
     pub fn gc(&mut self, player: &Character) {
         let mut removal_queue: Vec<IVec3> = Vec::new();
         for pos in self.block_data.keys() {
-            let diff: Vec3 = (pos.as_vec3() * 16.0) - player.pos;
+            let diff: Vec3 = (pos.as_vec3() * CHUNK_SIZE as f32) - player.pos;
             let d = diff.dot(diff);
-            if d > (256.0 * 256.0) {
+            if d > (384.0 * 384.0) {
                 removal_queue.push(*pos);
             }
         }
@@ -51,15 +53,15 @@ impl Chungus {
 
     pub fn is_solid(&self, pos: Vec3) -> bool {
         let cp = IVec3::new(
-            pos.x.floor() as i32 >> 4,
-            pos.y.floor() as i32 >> 4,
-            pos.z.floor() as i32 >> 4,
+            pos.x.floor() as i32 >> CHUNK_BITS,
+            pos.y.floor() as i32 >> CHUNK_BITS,
+            pos.z.floor() as i32 >> CHUNK_BITS,
         );
         let chnk = self.get(&cp);
         if let Some(chnk) = chnk {
-            let cx = (pos.x.floor() as i32 & 15) as usize;
-            let cy = (pos.y.floor() as i32 & 15) as usize;
-            let cz = (pos.z.floor() as i32 & 15) as usize;
+            let cx = (pos.x.floor() as i32 & CHUNK_MASK) as usize;
+            let cy = (pos.y.floor() as i32 & CHUNK_MASK) as usize;
+            let cz = (pos.z.floor() as i32 & CHUNK_MASK) as usize;
             let b = chnk.data[cx][cy][cz];
             b != 0
         } else {

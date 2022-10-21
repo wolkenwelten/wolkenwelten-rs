@@ -16,7 +16,7 @@
 use super::util;
 use super::{Vao, Vbo};
 use gl::types::GLvoid;
-use wolkenwelten_game::{ChunkBlockData, GameState, Side};
+use wolkenwelten_game::{ChunkBlockData, GameState, Side, CHUNK_SIZE};
 
 #[derive(Debug, Default)]
 pub struct BlockMesh {
@@ -40,7 +40,9 @@ impl BlockVertex {
     fn new(x: u8, y: u8, z: u8, texture_index: u8, side: u8, light: u8) -> Self {
         let side_and_light = side | (light << 4);
         Self {
-            x,y,z,
+            x,
+            y,
+            z,
             texture_index,
             side_and_light,
         }
@@ -137,7 +139,8 @@ impl BlockVertex {
         let stride = std::mem::size_of::<Self>();
         unsafe {
             let offset = util::vertex_attrib_int_pointer(stride, 0, 0, gl::UNSIGNED_BYTE, 3, 3);
-            let offset = util::vertex_attrib_int_pointer(stride, 1, offset, gl::UNSIGNED_BYTE, 1, 1);
+            let offset =
+                util::vertex_attrib_int_pointer(stride, 1, offset, gl::UNSIGNED_BYTE, 1, 1);
             util::vertex_attrib_int_pointer(stride, 2, offset, gl::UNSIGNED_BYTE, 1, 1);
         }
     }
@@ -213,9 +216,9 @@ impl BlockMesh {
         let start = vertices.len();
         let size = (1, 1, 1);
         let light = 0x0F;
-        for x in 0..16 {
-            for y in 0..16 {
-                for z in 0..16 {
+        for x in 0..CHUNK_SIZE {
+            for y in 0..CHUNK_SIZE {
+                for z in 0..CHUNK_SIZE {
                     let block = chunk.data[x][y][z];
                     if block == 0 {
                         continue;
@@ -223,7 +226,7 @@ impl BlockMesh {
                     let pos = (x as u8, y as u8, z as u8);
                     let b = game.world.get_block_type(block);
 
-                    if (z >= 15) || (chunk.data[x][y][z + 1] == 0) {
+                    if (z >= CHUNK_SIZE - 1) || (chunk.data[x][y][z + 1] == 0) {
                         BlockVertex::add_front(vertices, pos, size, b.tex_front(), light);
                     }
                 }
@@ -240,9 +243,9 @@ impl BlockMesh {
         let start = vertices.len();
         let size = (1, 1, 1);
         let light = 0x0F;
-        for x in 0..16 {
-            for y in 0..16 {
-                for z in 0..16 {
+        for x in 0..CHUNK_SIZE {
+            for y in 0..CHUNK_SIZE {
+                for z in 0..CHUNK_SIZE {
                     let block = chunk.data[x][y][z];
                     if block == 0 {
                         continue;
@@ -267,9 +270,9 @@ impl BlockMesh {
         let start = vertices.len();
         let size = (1, 1, 1);
         let light = 0x0F;
-        for x in 0..16 {
-            for y in 0..16 {
-                for z in 0..16 {
+        for x in 0..CHUNK_SIZE {
+            for y in 0..CHUNK_SIZE {
+                for z in 0..CHUNK_SIZE {
                     let block = chunk.data[x][y][z];
                     if block == 0 {
                         continue;
@@ -277,7 +280,7 @@ impl BlockMesh {
                     let pos = (x as u8, y as u8, z as u8);
                     let b = game.world.get_block_type(block);
 
-                    if (y >= 15) || (chunk.data[x][y + 1][z] == 0) {
+                    if (y >= CHUNK_SIZE - 1) || (chunk.data[x][y + 1][z] == 0) {
                         BlockVertex::add_top(vertices, pos, size, b.tex_top(), light);
                     }
                 }
@@ -294,9 +297,9 @@ impl BlockMesh {
         let start = vertices.len();
         let size = (1, 1, 1);
         let light = 0x0F;
-        for x in 0..16 {
-            for y in 0..16 {
-                for z in 0..16 {
+        for x in 0..CHUNK_SIZE {
+            for y in 0..CHUNK_SIZE {
+                for z in 0..CHUNK_SIZE {
                     let block = chunk.data[x][y][z];
                     if block == 0 {
                         continue;
@@ -321,9 +324,9 @@ impl BlockMesh {
         let start = vertices.len();
         let size = (1, 1, 1);
         let light = 0x0F;
-        for x in 0..16 {
-            for y in 0..16 {
-                for z in 0..16 {
+        for x in 0..CHUNK_SIZE {
+            for y in 0..CHUNK_SIZE {
+                for z in 0..CHUNK_SIZE {
                     let block = chunk.data[x][y][z];
                     if block == 0 {
                         continue;
@@ -348,9 +351,9 @@ impl BlockMesh {
         let start = vertices.len();
         let size = (1, 1, 1);
         let light = 0x0F;
-        for x in 0..16 {
-            for y in 0..16 {
-                for z in 0..16 {
+        for x in 0..CHUNK_SIZE {
+            for y in 0..CHUNK_SIZE {
+                for z in 0..CHUNK_SIZE {
                     let block = chunk.data[x][y][z];
                     if block == 0 {
                         continue;
@@ -358,7 +361,7 @@ impl BlockMesh {
                     let pos = (x as u8, y as u8, z as u8);
                     let b = game.world.get_block_type(block);
 
-                    if (x >= 15) || (chunk.data[x + 1][y][z] == 0) {
+                    if (x >= CHUNK_SIZE - 1) || (chunk.data[x + 1][y][z] == 0) {
                         BlockVertex::add_right(vertices, pos, size, b.tex_right(), light);
                     }
                 }
@@ -369,7 +372,7 @@ impl BlockMesh {
 
     pub fn update(&mut self, chunk: &ChunkBlockData, game: &GameState, now: u64) {
         self.last_updated_at = now;
-        let mut vertices: Vec<BlockVertex> = Vec::with_capacity(65536);
+        let mut vertices: Vec<BlockVertex> = Vec::with_capacity(8192);
         self.side_square_count[0] = Self::update_front(&mut vertices, chunk, game)
             .try_into()
             .unwrap();

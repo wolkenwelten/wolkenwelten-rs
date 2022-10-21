@@ -22,9 +22,9 @@ use glam::f32::{Mat4, Vec3};
 use glam::IVec3;
 use std::cmp::Ordering;
 use std::collections::BinaryHeap;
-use wolkenwelten_game::{Character, Entity, GameState};
+use wolkenwelten_game::{Character, Entity, GameState, CHUNK_BITS, CHUNK_SIZE};
 
-pub const VIEW_STEPS: i32 = (128 / 16) + 1;
+pub const VIEW_STEPS: i32 = (128 / CHUNK_SIZE as i32) + 1;
 const FADEOUT_START_DISTANCE: f32 = 96.0 * 96.0;
 const FADEOUT_DISTANCE: f32 = 32.0 * 32.0;
 
@@ -105,14 +105,14 @@ pub fn prepare_chunk(fe: &mut ClientState, game: &GameState, pos: IVec3, now: u6
 
 fn prepare_chunks(fe: &mut ClientState, game: &GameState) {
     let now = game.get_millis();
-    let px = (game.player.pos.x as i32) / 16;
-    let py = (game.player.pos.y as i32) / 16;
-    let pz = (game.player.pos.z as i32) / 16;
+    let px = (game.player.pos.x as i32) >> CHUNK_BITS;
+    let py = (game.player.pos.y as i32) >> CHUNK_BITS;
+    let pz = (game.player.pos.z as i32) >> CHUNK_BITS;
     for cx in -VIEW_STEPS..=VIEW_STEPS {
         for cy in -VIEW_STEPS..=VIEW_STEPS {
             for cz in -VIEW_STEPS..=VIEW_STEPS {
                 let pos = IVec3::new(cx + px, cy + py, cz + pz);
-                let d = (pos.as_vec3() * 16.0) - game.player.pos;
+                let d = (pos.as_vec3() * CHUNK_SIZE as f32) - game.player.pos;
                 let d = d.dot(d);
                 if d < FADEOUT_DISTANCE + FADEOUT_START_DISTANCE {
                     prepare_chunk(fe, game, pos, now);
@@ -213,9 +213,9 @@ impl PartialEq for QueueEntry {
 
 fn build_render_queue(player_pos: Vec3, frustum: &Frustum) -> BinaryHeap<QueueEntry> {
     let mut render_queue: BinaryHeap<QueueEntry> = BinaryHeap::with_capacity(4096);
-    let px = (player_pos.x.floor() as i32) >> 4;
-    let py = (player_pos.y.floor() as i32) >> 4;
-    let pz = (player_pos.z.floor() as i32) >> 4;
+    let px = (player_pos.x.floor() as i32) >> CHUNK_BITS;
+    let py = (player_pos.y.floor() as i32) >> CHUNK_BITS;
+    let pz = (player_pos.z.floor() as i32) >> CHUNK_BITS;
 
     for cx in -VIEW_STEPS..=VIEW_STEPS {
         for cy in -VIEW_STEPS..=VIEW_STEPS {
@@ -223,10 +223,10 @@ fn build_render_queue(player_pos: Vec3, frustum: &Frustum) -> BinaryHeap<QueueEn
                 let x = px + cx;
                 let y = py + cy;
                 let z = pz + cz;
-                let trans_x = x as f32 * 16.0;
-                let trans_y = y as f32 * 16.0;
-                let trans_z = z as f32 * 16.0;
-                if !frustum.contains_cube(Vec3::new(trans_x, trans_y, trans_z), 16.0) {
+                let trans_x = x as f32 * CHUNK_SIZE as f32;
+                let trans_y = y as f32 * CHUNK_SIZE as f32;
+                let trans_z = z as f32 * CHUNK_SIZE as f32;
+                if !frustum.contains_cube(Vec3::new(trans_x, trans_y, trans_z), CHUNK_SIZE as f32) {
                     continue;
                 } else {
                     let trans = Vec3::new(trans_x, trans_y, trans_z);
