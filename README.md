@@ -40,8 +40,8 @@ down a bit I'll be looking into integrating v8, by either using deno_core or hoo
 - [X] Proper chunk draw ordering, front to back due to fade-in (port from WW)
 - [X] Chunk fade-in after generation
 - [ ] Sky sphere (port from WW)
-- [ ] Frame-rate independent physics/gameplay (maybe try out rapier3d?)
 - [ ] Greedy meshing (port from WW)
 - [ ] Lighting (port from WW, without ASM/SIMD (for now))
+- [ ] Frame-rate independent physics/gameplay (maybe try out rapier3d?)
 - [ ] Block manipulation (simple removal/placement as well as block selection)
 - [ ] Block highlight (port from WW)
