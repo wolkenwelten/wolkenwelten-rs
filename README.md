@@ -7,22 +7,23 @@ working whatsoever.
 Also keep in mind that this is the first Rust I've ever written, so if you spot some ugly bits of code
 be sure to open a PR so as to improve the quality of the codebase :)
 
-
 # How to build/run it
 You need a rust toolchain installed, preferrably the latest stable one using `rustup`,
 then just checking out this repository and running `cargo run --release` in it should get you going.
-
 
 # Platform support
 I am regularly testing it on X86_64 FreeBSD/Arch Linux/MacOS/Win10 with Intel/AMD/Nvidia GPUs (no nouveau though) and on a RaspberryPI 4 running Raspbian 64-bit.
 
 Web/WASM is intentionally NOT a supported platform for the foreseeable future, since WebGL has been quite the pain to support in the past.
 
-
-# General direction
-I'm currently porting over most of the nice bits and pieces from the C engine, after that is done and things have settled
-down a bit I'll be looking into integrating v8, by either using deno_core or hooking into rusty_v8 directly.      
-
+# Changes from the C version (these are 99% certain to happen if not checked already)
+- [X] No more WASM/Emscripten build (really liked that, but it was A LOT of work and broke all the time, so in the beginning WW will only support Lin/Mac/Win)
+- [X] No SDL2 (it worked quite well, but it's simpler to have as much be written in Rust as possible)
+- [X] Bigger world Size (32-bit per axis, instead of 16, allowing for ~4 Billion Blocks per Axis as compared to ~65 thousand before)
+- [ ] OpenAL for sound output
+- [ ] Single executable for client/server (the client should be a feature that can be disabled though)
+- [ ] Meshes are voxel based, just like the world
+- [ ] Include V8 as a scripting runtime instead of Nujel
 
 # Current ToDo's
 - [X] Chunk fade
@@ -45,3 +46,4 @@ down a bit I'll be looking into integrating v8, by either using deno_core or hoo
 - [ ] Frame-rate independent physics/gameplay (maybe try out rapier3d?)
 - [ ] Block manipulation (simple removal/placement as well as block selection)
 - [ ] Block highlight (port from WW)
+- [ ] Import Models made with Goxel

@@ -130,6 +130,15 @@ pub fn prepare_frame(fe: &mut ClientState, game: &GameState) {
             .push_string(8, 100, 2, 0xFFFFFFFF, col_text.as_str());
     }
 
+    let pos = (
+        fe.window_width as i16 / 2 - 32,
+        fe.window_height as i16 / 2 - 32,
+        32,
+        32,
+    );
+    let tex = (200, 252, 4, 4);
+    fe.ui_mesh.push_box(pos, tex, 0x7FFFFFFF);
+
     fe.ui_mesh.prepare();
 
     fe.calc_fps();
