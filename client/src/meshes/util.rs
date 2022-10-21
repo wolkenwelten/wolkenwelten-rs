@@ -15,7 +15,7 @@
  */
 use crate::can_use_object_labels;
 use gl;
-use gl::types::{GLuint, GLvoid};
+use gl::types::{GLint, GLuint, GLvoid};
 use std::ffi::CString;
 
 #[derive(Debug, Default)]
@@ -112,7 +112,7 @@ impl Vao {
                 gl::TRIANGLES,
                 index_count.try_into().unwrap(),
                 gl::UNSIGNED_SHORT,
-                start_offset as *const gl::types::GLvoid,
+                start_offset as *const GLvoid,
             );
         }
     }
@@ -138,14 +138,14 @@ pub unsafe fn vertex_attrib_pointer(
     size: usize,
     normalized: bool,
 ) -> usize {
-    gl::EnableVertexAttribArray(location as gl::types::GLuint);
+    gl::EnableVertexAttribArray(location as GLuint);
     gl::VertexAttribPointer(
-        location as gl::types::GLuint,
+        location as GLuint,
         components as i32, // the number of components per generic vertex attribute
         data_type,         // data type
         if normalized { gl::TRUE } else { gl::FALSE }, // normalized (int-to-float conversion)
-        stride as gl::types::GLint,
-        offset as *const gl::types::GLvoid,
+        stride as GLint,
+        offset as *const GLvoid,
     );
     offset + (size * components)
 }
@@ -156,14 +156,15 @@ pub unsafe fn vertex_attrib_int_pointer(
     offset: usize,
     data_type: u32,
     size: usize,
+    components: GLint,
 ) -> usize {
-    gl::EnableVertexAttribArray(location as gl::types::GLuint);
+    gl::EnableVertexAttribArray(location as GLuint);
     gl::VertexAttribIPointer(
-        location as gl::types::GLuint,
-        1,
+        location as GLuint,
+        components,
         data_type, // data type
-        stride as gl::types::GLint,
-        offset as *const gl::types::GLvoid,
+        stride as GLint,
+        offset as *const GLvoid,
     );
     offset + size
 }

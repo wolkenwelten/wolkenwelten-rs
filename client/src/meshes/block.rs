@@ -29,17 +29,18 @@ pub struct BlockMesh {
 #[derive(Copy, Clone, Debug, Default)]
 #[repr(C, packed)]
 struct BlockVertex {
-    xyz: u16,           // We've got 1 bit left here
+    x: u8,
+    y: u8,
+    z: u8,
     texture_index: u8, // Right now we don't really use 256 distinct block faces, ~32 should suffice for a long time
     side_and_light: u8, // And another one here as well
 }
 
 impl BlockVertex {
-    fn new(x: u16, y: u16, z: u16, texture_index: u8, side: u8, light: u8) -> Self {
-        let xyz: u16 = x | (y << 5) | (z << 10);
+    fn new(x: u8, y: u8, z: u8, texture_index: u8, side: u8, light: u8) -> Self {
         let side_and_light = side | (light << 4);
         Self {
-            xyz,
+            x,y,z,
             texture_index,
             side_and_light,
         }
@@ -47,8 +48,8 @@ impl BlockVertex {
 
     fn add_front(
         vertices: &mut Vec<Self>,
-        (x, y, z): (u16, u16, u16),
-        (w, h, d): (u16, u16, u16),
+        (x, y, z): (u8, u8, u8),
+        (w, h, d): (u8, u8, u8),
         texture_index: u8,
         light: u8,
     ) {
@@ -62,8 +63,8 @@ impl BlockVertex {
 
     fn add_back(
         vertices: &mut Vec<Self>,
-        (x, y, z): (u16, u16, u16),
-        (w, h, _): (u16, u16, u16),
+        (x, y, z): (u8, u8, u8),
+        (w, h, _): (u8, u8, u8),
         texture_index: u8,
         light: u8,
     ) {
@@ -76,8 +77,8 @@ impl BlockVertex {
 
     fn add_top(
         vertices: &mut Vec<Self>,
-        (x, y, z): (u16, u16, u16),
-        (w, h, d): (u16, u16, u16),
+        (x, y, z): (u8, u8, u8),
+        (w, h, d): (u8, u8, u8),
         texture_index: u8,
         light: u8,
     ) {
@@ -91,8 +92,8 @@ impl BlockVertex {
 
     fn add_bottom(
         vertices: &mut Vec<Self>,
-        (x, y, z): (u16, u16, u16),
-        (w, _, d): (u16, u16, u16),
+        (x, y, z): (u8, u8, u8),
+        (w, _, d): (u8, u8, u8),
         texture_index: u8,
         light: u8,
     ) {
@@ -105,8 +106,8 @@ impl BlockVertex {
 
     fn add_left(
         vertices: &mut Vec<Self>,
-        (x, y, z): (u16, u16, u16),
-        (_, h, d): (u16, u16, u16),
+        (x, y, z): (u8, u8, u8),
+        (_, h, d): (u8, u8, u8),
         texture_index: u8,
         light: u8,
     ) {
@@ -119,8 +120,8 @@ impl BlockVertex {
 
     fn add_right(
         vertices: &mut Vec<Self>,
-        (x, y, z): (u16, u16, u16),
-        (w, h, d): (u16, u16, u16),
+        (x, y, z): (u8, u8, u8),
+        (w, h, d): (u8, u8, u8),
         texture_index: u8,
         light: u8,
     ) {
@@ -135,9 +136,9 @@ impl BlockVertex {
     fn vertex_attrib_pointers() {
         let stride = std::mem::size_of::<Self>();
         unsafe {
-            let offset = util::vertex_attrib_int_pointer(stride, 0, 0, gl::UNSIGNED_SHORT, 2);
-            let offset = util::vertex_attrib_int_pointer(stride, 1, offset, gl::UNSIGNED_BYTE, 1);
-            util::vertex_attrib_int_pointer(stride, 2, offset, gl::UNSIGNED_BYTE, 1);
+            let offset = util::vertex_attrib_int_pointer(stride, 0, 0, gl::UNSIGNED_BYTE, 3, 3);
+            let offset = util::vertex_attrib_int_pointer(stride, 1, offset, gl::UNSIGNED_BYTE, 1, 1);
+            util::vertex_attrib_int_pointer(stride, 2, offset, gl::UNSIGNED_BYTE, 1, 1);
         }
     }
 }
@@ -219,7 +220,7 @@ impl BlockMesh {
                     if block == 0 {
                         continue;
                     };
-                    let pos = (x as u16, y as u16, z as u16);
+                    let pos = (x as u8, y as u8, z as u8);
                     let b = game.world.get_block_type(block);
 
                     if (z >= 15) || (chunk.data[x][y][z + 1] == 0) {
@@ -246,7 +247,7 @@ impl BlockMesh {
                     if block == 0 {
                         continue;
                     };
-                    let pos = (x as u16, y as u16, z as u16);
+                    let pos = (x as u8, y as u8, z as u8);
                     let b = game.world.get_block_type(block);
 
                     if (z == 0) || (chunk.data[x][y][z - 1] == 0) {
@@ -273,7 +274,7 @@ impl BlockMesh {
                     if block == 0 {
                         continue;
                     };
-                    let pos = (x as u16, y as u16, z as u16);
+                    let pos = (x as u8, y as u8, z as u8);
                     let b = game.world.get_block_type(block);
 
                     if (y >= 15) || (chunk.data[x][y + 1][z] == 0) {
@@ -300,7 +301,7 @@ impl BlockMesh {
                     if block == 0 {
                         continue;
                     };
-                    let pos = (x as u16, y as u16, z as u16);
+                    let pos = (x as u8, y as u8, z as u8);
                     let b = game.world.get_block_type(block);
 
                     if (y == 0) || (chunk.data[x][y - 1][z] == 0) {
@@ -327,7 +328,7 @@ impl BlockMesh {
                     if block == 0 {
                         continue;
                     };
-                    let pos = (x as u16, y as u16, z as u16);
+                    let pos = (x as u8, y as u8, z as u8);
                     let b = game.world.get_block_type(block);
 
                     if (x == 0) || (chunk.data[x - 1][y][z] == 0) {
@@ -354,7 +355,7 @@ impl BlockMesh {
                     if block == 0 {
                         continue;
                     };
-                    let pos = (x as u16, y as u16, z as u16);
+                    let pos = (x as u8, y as u8, z as u8);
                     let b = game.world.get_block_type(block);
 
                     if (x >= 15) || (chunk.data[x + 1][y][z] == 0) {
