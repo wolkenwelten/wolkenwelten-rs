@@ -40,7 +40,7 @@ Web/WASM is intentionally NOT a supported platform for the foreseeable future, s
 - [X] Simple voxel side occlusion-culling (port from WW)
 - [X] Proper chunk draw ordering, front to back due to fade-in (port from WW)
 - [X] Chunk fade-in after generation
-- [ ] Sky sphere (port from WW)
+- [X] Sky sphere (port from WW)
 - [ ] Greedy meshing (port from WW)
 - [ ] Lighting (port from WW, without ASM/SIMD (for now))
 - [ ] Frame-rate independent physics/gameplay (maybe try out rapier3d?)

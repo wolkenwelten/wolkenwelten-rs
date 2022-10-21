@@ -103,49 +103,8 @@ pub fn prepare_chunk(fe: &mut ClientState, game: &GameState, pos: IVec3, now: u6
     }
 }
 
-pub fn prepare_frame(fe: &mut ClientState, game: &GameState) {
-    let fps_text = format!("FPS: {}", fe.fps());
-    fe.ui_mesh
-        .push_string(8, 8, 2, 0xFFFFFFFF, fps_text.as_str());
-
-    #[cfg(debug_assertions)]
-    {
-        let pos_text = format!(
-            "X:{:8.2} Y:{:8.2} Z:{:8.2}",
-            game.player.pos[0], game.player.pos[1], game.player.pos[2]
-        );
-        let rot_text = format!(
-            "Y:{:8.2} P:{:8.2} R:{:8.2}",
-            game.player.rot[0], game.player.rot[1], game.player.rot[2]
-        );
-        let col_text = format!(
-            "Entities: {}   Chunks: {}   BlockMeshes: {}",
-            game.get_entity_count(),
-            game.world.block_data.len(),
-            fe.world_mesh.len(),
-        );
-        fe.ui_mesh
-            .push_string(8, 40, 2, 0xFFFFFFFF, pos_text.as_str())
-            .push_string(8, 60, 2, 0xFFFFFFFF, rot_text.as_str())
-            .push_string(8, 100, 2, 0xFFFFFFFF, col_text.as_str());
-    }
-
-    let pos = (
-        fe.window_width as i16 / 2 - 32,
-        fe.window_height as i16 / 2 - 32,
-        32,
-        32,
-    );
-    let tex = (200, 252, 4, 4);
-    fe.ui_mesh.push_box(pos, tex, 0x7FFFFFFF);
-
-    fe.ui_mesh.prepare();
-
-    fe.calc_fps();
-    fe.gc(&game.player);
-    fe.cur_fov = calc_fov(fe.cur_fov, &game.player);
+fn prepare_chunks(fe: &mut ClientState, game: &GameState) {
     let now = game.get_millis();
-
     let px = (game.player.pos.x as i32) / 16;
     let py = (game.player.pos.y as i32) / 16;
     let pz = (game.player.pos.z as i32) / 16;
@@ -161,6 +120,54 @@ pub fn prepare_frame(fe: &mut ClientState, game: &GameState) {
             }
         }
     }
+}
+
+fn prepare_ui(fe: &mut ClientState, game: &GameState) {
+    let fps_text = format!("FPS: {}", fe.fps());
+    fe.ui_mesh
+        .push_string(8, 8, 2, 0xFFFFFFFF, fps_text.as_str());
+
+    let pos_text = format!(
+        "X:{:8.2} Y:{:8.2} Z:{:8.2}",
+        game.player.pos[0], game.player.pos[1], game.player.pos[2]
+    );
+    fe.ui_mesh
+        .push_string(8, 40, 2, 0xFFFFFFFF, pos_text.as_str());
+
+    #[cfg(debug_assertions)]
+    {
+        let rot_text = format!(
+            "Y:{:8.2} P:{:8.2} R:{:8.2}",
+            game.player.rot[0], game.player.rot[1], game.player.rot[2]
+        );
+        let col_text = format!(
+            "Entities: {}   Chunks: {}   BlockMeshes: {}",
+            game.get_entity_count(),
+            game.world.block_data.len(),
+            fe.world_mesh.len(),
+        );
+        fe.ui_mesh
+            .push_string(8, 60, 2, 0xFFFFFFFF, rot_text.as_str())
+            .push_string(8, 100, 2, 0xFFFFFFFF, col_text.as_str());
+    }
+
+    let pos = (
+        fe.window_width as i16 / 2 - 32,
+        fe.window_height as i16 / 2 - 32,
+        32,
+        32,
+    );
+    let tex = (200, 252, 4, 4);
+    fe.ui_mesh.push_box(pos, tex, 0x7FFFFFFF);
+    fe.ui_mesh.prepare();
+}
+
+pub fn prepare_frame(fe: &mut ClientState, game: &GameState) {
+    prepare_ui(fe, game);
+    fe.calc_fps();
+    fe.gc(&game.player);
+    fe.cur_fov = calc_fov(fe.cur_fov, &game.player);
+    prepare_chunks(fe, game);
 }
 
 #[derive(Debug, Default)]
@@ -265,25 +272,34 @@ fn render_chungus(fe: &ClientState, game: &GameState, mvp: &Mat4) {
     }
 }
 
+fn render_sky(fe: &ClientState, _game: &GameState, view: Mat4, projection: Mat4) {
+    let view = view * Mat4::from_scale(Vec3::new(192.0, 192.0, 192.0));
+    let mvp = projection * view;
+    fe.shaders.mesh.set_used();
+    fe.shaders.mesh.set_color(1.0, 1.0, 1.0, 1.0);
+    fe.textures.sky.bind();
+    fe.shaders.mesh.set_mvp(&mvp);
+    fe.meshes.dome.draw();
+}
+
 fn render_game(fe: &ClientState, game: &GameState) {
     let projection = Mat4::perspective_rh_gl(
         fe.cur_fov.to_radians(),
         (fe.window_width as f32) / (fe.window_height as f32),
         0.1,
-        178.0,
+        256.0,
     );
     let view = Mat4::from_rotation_x(game.player.rot[1].to_radians());
     let view = view * Mat4::from_rotation_y(game.player.rot[0].to_radians());
+    render_sky(fe, game, view, projection);
+
     let view = view * Mat4::from_translation(-game.player.pos);
     let mvp = projection * view;
 
-    fe.shaders.mesh.set_used();
-    fe.shaders.mesh.set_color(1.0, 1.0, 1.0, 1.0);
     fe.textures.pear.bind();
     for entity in &game.entities {
         draw_entity(fe, entity, &view, &projection);
     }
-
     render_chungus(fe, game, &mvp);
 }
 

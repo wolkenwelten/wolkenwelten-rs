@@ -26,7 +26,11 @@ pub struct TextureArray {
 }
 
 impl Texture {
-    pub fn from_bytes(label: &str, bytes: &'static [u8]) -> Result<Self, image::ImageError> {
+    pub fn from_bytes(
+        label: &str,
+        bytes: &'static [u8],
+        linear: bool,
+    ) -> Result<Self, image::ImageError> {
         let img = image::load_from_memory(bytes)?;
         let width: u16 = img.width().try_into().unwrap();
         let height: u16 = img.height().try_into().unwrap();
@@ -44,15 +48,16 @@ impl Texture {
             if can_use_object_labels() {
                 gl::ObjectLabel(gl::TEXTURE, id, -1, label.as_ptr());
             }
+            let filter = if linear { gl::LINEAR } else { gl::NEAREST };
             gl::TexParameteri(
                 gl::TEXTURE_2D,
                 gl::TEXTURE_MIN_FILTER,
-                gl::NEAREST.try_into().unwrap(),
+                filter.try_into().unwrap(),
             );
             gl::TexParameteri(
                 gl::TEXTURE_2D,
                 gl::TEXTURE_MAG_FILTER,
-                gl::NEAREST.try_into().unwrap(),
+                filter.try_into().unwrap(),
             );
             gl::TexImage2D(
                 gl::TEXTURE_2D,
