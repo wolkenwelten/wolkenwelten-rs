@@ -13,7 +13,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-use crate::can_use_object_labels;
+use crate::render;
 use std::ffi::{c_void, CString};
 
 #[derive(Debug, Default)]
@@ -45,7 +45,7 @@ impl Texture {
             let mut id = 0;
             gl::GenTextures(1, &mut id);
             gl::BindTexture(gl::TEXTURE_2D, id);
-            if can_use_object_labels() {
+            if render::can_use_object_labels() {
                 gl::ObjectLabel(gl::TEXTURE, id, -1, label.as_ptr());
             }
             let filter = if linear { gl::LINEAR } else { gl::NEAREST };
@@ -98,7 +98,7 @@ impl TextureArray {
             let mut id = 0;
             gl::GenTextures(1, &mut id);
             gl::BindTexture(gl::TEXTURE_2D_ARRAY, id);
-            if can_use_object_labels() {
+            if render::can_use_object_labels() {
                 gl::ObjectLabel(gl::TEXTURE, id, -1, label.as_ptr());
             }
             gl::TexParameteri(

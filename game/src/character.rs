@@ -27,8 +27,8 @@ pub struct Character {
     pub cooldown: u64,
 }
 
-const COL_WIDTH: f32 = 0.3;
-const COL_DEPTH: f32 = 0.3;
+const COL_WIDTH: f32 = 0.4;
+const COL_DEPTH: f32 = 0.4;
 
 const COL_POINT_TOP: Vec3 = Vec3::new(0.0, 0.7, 0.0);
 const COL_POINT_BOTTOM: Vec3 = Vec3::new(0.0, -1.7, 0.0);

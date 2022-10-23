@@ -13,8 +13,8 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-use crate::can_use_object_labels;
-use gl::types::{GLint, GLuint};
+use crate::render;
+use gl::types::{GLchar, GLint, GLuint};
 use glam::Mat4;
 use std::ffi::{CStr, CString};
 
@@ -166,7 +166,7 @@ impl Program {
 
         Program::bind_attrib_locations(program_id);
 
-        if can_use_object_labels() {
+        if render::can_use_object_labels() {
             let label = CString::new(program_label).unwrap();
             unsafe { gl::ObjectLabel(gl::PROGRAM, program_id, -1, label.as_ptr()) }
         }
@@ -174,13 +174,13 @@ impl Program {
             gl::LinkProgram(program_id);
         }
 
-        let mut success: gl::types::GLint = 1;
+        let mut success: GLint = 1;
         unsafe {
             gl::GetProgramiv(program_id, gl::LINK_STATUS, &mut success);
         }
 
         if success == 0 {
-            let mut len: gl::types::GLint = 0;
+            let mut len: GLint = 0;
             unsafe {
                 gl::GetProgramiv(program_id, gl::INFO_LOG_LENGTH, &mut len);
             }
@@ -192,7 +192,7 @@ impl Program {
                     program_id,
                     len,
                     std::ptr::null_mut(),
-                    error.as_ptr() as *mut gl::types::GLchar,
+                    error.as_ptr() as *mut GLchar,
                 );
             }
 

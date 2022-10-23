@@ -19,12 +19,6 @@ extern crate wolkenwelten_game;
 
 use std::ffi::CString;
 
-pub static mut GL_VERSION: (i32, i32) = (0, 0);
-
-pub fn can_use_object_labels() -> bool {
-    unsafe { (GL_VERSION.0 > 4) || ((GL_VERSION.0 == 4) && (GL_VERSION.1 >= 3)) }
-}
-
 pub use self::frustum::Frustum;
 pub use self::input::{input_tick, InputState, Key};
 pub use self::meshes::Mesh;
