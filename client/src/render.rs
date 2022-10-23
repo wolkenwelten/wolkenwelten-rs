@@ -15,13 +15,13 @@
  */
 use super::meshes::BlockMesh;
 use super::Frustum;
-use super::GL_VERSION;
 use crate::ClientState;
 use gl::types::GLint;
 use glam::f32::{Mat4, Vec3};
 use glam::IVec3;
 use std::cmp::Ordering;
 use std::collections::BinaryHeap;
+use std::sync::RwLock;
 use wolkenwelten_game::{Character, Entity, GameState, CHUNK_BITS, CHUNK_SIZE};
 
 pub const VIEW_STEPS: i32 = (128 / CHUNK_SIZE as i32) + 1;
@@ -31,6 +31,19 @@ const FADEOUT_DISTANCE: f32 = 32.0 * 32.0;
 fn calc_fov(fov: f32, player: &Character) -> f32 {
     let new = 90.0 + ((player.vel.length() - 0.025) * 40.0).clamp(0.0, 90.0);
     (fov + (new - fov) / 32.0).clamp(90.0, 170.0)
+}
+
+static GL_VERSION: RwLock<(i32, i32)> = RwLock::new((0, 0));
+
+pub fn can_use_object_labels() -> bool {
+    let ver = GL_VERSION.read().unwrap();
+    let (major_version, minor_version) = *ver;
+    major_version > 4 || (major_version == 4) && (minor_version >= 3)
+}
+
+pub fn set_gl_version(major_version: i32, minor_version: i32) {
+    let mut ver = GL_VERSION.write().unwrap();
+    *ver = (major_version, minor_version);
 }
 
 pub fn set_viewport(fe: &ClientState) {
@@ -85,9 +98,7 @@ pub fn render_init() {
         gl::GetIntegerv(gl::MINOR_VERSION, std::ptr::addr_of_mut!(tmp));
         tmp
     };
-    unsafe {
-        GL_VERSION = (major_version, minor_version);
-    }
+    set_gl_version(major_version, minor_version);
 }
 
 pub fn prepare_chunk(fe: &mut ClientState, game: &GameState, pos: IVec3, now: u64) {

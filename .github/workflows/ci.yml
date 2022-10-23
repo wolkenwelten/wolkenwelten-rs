@@ -20,7 +20,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
       - name: Run clippy
-        run: cargo clippy
+        run: cargo clippy --no-deps
   cargo-test:
     name: Run testsuite
     runs-on: ubuntu-latest

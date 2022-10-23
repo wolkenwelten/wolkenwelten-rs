@@ -13,7 +13,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-use gl::types::*;
+use gl::types::{GLsizeiptr, GLuint, GLvoid};
 
 use super::util;
 use super::util::{Vao, Vbo};
@@ -55,8 +55,7 @@ impl TextMesh {
     pub fn prepare(&mut self) -> &mut Self {
         if !self.finished {
             self.vao.bind();
-            let vbo_size =
-                (self.vertices.len() * std::mem::size_of::<Vertex2D>()) as gl::types::GLsizeiptr;
+            let vbo_size = (self.vertices.len() * std::mem::size_of::<Vertex2D>()) as GLsizeiptr;
             Vbo::buffer_data(
                 self.vertices.as_ptr() as *const GLvoid,
                 vbo_size.try_into().unwrap(),

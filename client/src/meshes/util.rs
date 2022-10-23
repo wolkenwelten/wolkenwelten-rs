@@ -13,7 +13,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-use crate::can_use_object_labels;
+use crate::render;
 use gl;
 use gl::types::{GLint, GLuint, GLvoid};
 use std::ffi::CString;
@@ -61,7 +61,7 @@ impl Vbo {
             vbo
         };
         let label = CString::new(format!("{} VBO {}", label, id)).unwrap();
-        if can_use_object_labels() {
+        if render::can_use_object_labels() {
             unsafe {
                 gl::ObjectLabel(gl::BUFFER, id, -1, label.as_ptr());
             }
@@ -80,7 +80,7 @@ impl Vao {
             vao
         };
         let vao_label = CString::new(format!("{} VAO {}", label, id)).unwrap();
-        if can_use_object_labels() {
+        if render::can_use_object_labels() {
             unsafe {
                 gl::ObjectLabel(gl::VERTEX_ARRAY, id, -1, vao_label.as_ptr());
             }
