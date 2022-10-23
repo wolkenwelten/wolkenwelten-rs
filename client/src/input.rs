@@ -159,7 +159,7 @@ fn input_tick_no_clip(game: &mut GameState, fe: &ClientState) {
     let view = view * glam::Mat4::from_rotation_x(-game.player.rot[1].to_radians());
     let v = glam::Vec4::from((fe.input.get_movement_vector(), 1.0_f32));
     let move_vec = (view * v).xyz();
-    let speed = fe.input.get_speed();
+    let speed = fe.input.get_speed() * 0.15;
     game.player.vel = move_vec * speed;
     game.player.vel.y += fe.input.get_jump() * speed;
 }
