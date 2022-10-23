@@ -74,20 +74,23 @@ impl Mesh {
         .0;
         let m = &o[0].mesh;
 
-        let mut vertices: Vec<MeshVertex> = Vec::with_capacity(m.indices.len());
-        for i in m.indices.iter() {
-            let idx: usize = *i as usize;
-            vertices.push(MeshVertex {
-                pos: (
-                    m.positions[idx * 3],
-                    m.positions[idx * 3 + 1],
-                    m.positions[idx * 3 + 2],
-                )
-                    .into(),
-                tex: (m.texcoords[idx * 2], 1.0 - m.texcoords[idx * 2 + 1]).into(), // Gotta flip them around for some reason, might be a wrong config option in blender during export
-                c: 1.0,
-            });
-        }
+        let vertices = m
+            .indices
+            .iter()
+            .map(|i| {
+                let idx: usize = *i as usize;
+                MeshVertex {
+                    pos: (
+                        m.positions[idx * 3],
+                        m.positions[idx * 3 + 1],
+                        m.positions[idx * 3 + 2],
+                    )
+                        .into(),
+                    tex: (m.texcoords[idx * 2], 1.0 - m.texcoords[idx * 2 + 1]).into(), // Gotta flip them around for some reason, might be a wrong config option in blender during export
+                    c: 1.0,
+                }
+            })
+            .collect();
         Self::from_vec(&vertices)
     }
 }

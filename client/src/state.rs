@@ -100,16 +100,10 @@ impl ClientState {
     }
 
     pub fn gc(&mut self, player: &Character) {
-        let mut removal_queue: Vec<IVec3> = Vec::new();
-        for pos in self.world_mesh.keys() {
+        self.world_mesh.retain(|&pos, _| {
             let diff: Vec3 = (pos.as_vec3() * CHUNK_SIZE as f32) - player.pos;
             let d = diff.dot(diff);
-            if d > (312.0 * 312.0) {
-                removal_queue.push(*pos);
-            }
-        }
-        for pos in removal_queue {
-            self.world_mesh.remove(&pos);
-        }
+            d < (312.0 * 312.0)
+        });
     }
 }

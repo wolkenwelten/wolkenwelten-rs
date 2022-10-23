@@ -35,7 +35,7 @@ impl Default for GameState {
         let running = true;
         let entities = Self::test_entities();
         let mut player = Character::new();
-        player.set_pos(&Vec3::new(9.0, 9.0, 25.0));
+        player.set_pos(&Vec3::new(15.0, 0.0, -15.0));
 
         Self {
             clock: Instant::now(),

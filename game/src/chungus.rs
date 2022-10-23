@@ -28,17 +28,11 @@ pub struct Chungus {
 
 impl Chungus {
     pub fn gc(&mut self, player: &Character) {
-        let mut removal_queue: Vec<IVec3> = Vec::new();
-        for pos in self.block_data.keys() {
+        self.block_data.retain(|&pos, _| {
             let diff: Vec3 = (pos.as_vec3() * CHUNK_SIZE as f32) - player.pos;
             let d = diff.dot(diff);
-            if d > (384.0 * 384.0) {
-                removal_queue.push(*pos);
-            }
-        }
-        for pos in removal_queue {
-            self.block_data.remove(&pos);
-        }
+            d < (384.0 * 384.0)
+        });
     }
     pub fn get(&self, k: &IVec3) -> Option<&ChunkBlockData> {
         self.block_data.get(k)

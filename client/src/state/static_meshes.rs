@@ -23,8 +23,9 @@ pub struct MeshList {
 
 impl MeshList {
     pub fn new() -> Self {
-        let pear = Mesh::from_obj_string(include_str!("../assets/meshes/pear.obj")).unwrap();
-        let dome = Mesh::from_obj_string(include_str!("../assets/meshes/skydome.obj")).unwrap();
-        Self { dome, pear }
+        Self {
+            dome: Mesh::from_obj_string(include_str!("../assets/meshes/skydome.obj")).unwrap(),
+            pear: Mesh::from_obj_string(include_str!("../assets/meshes/pear.obj")).unwrap(),
+        }
     }
 }

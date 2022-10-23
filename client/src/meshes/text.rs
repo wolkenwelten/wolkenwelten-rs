@@ -131,11 +131,10 @@ impl TextMesh {
 
     pub fn push_string(&mut self, x: i16, y: i16, size: i32, rgba: u32, text: &str) -> &mut Self {
         let glyph_width: i32 = 8 * size;
-        for (i, c) in text.chars().enumerate() {
+        text.chars().enumerate().for_each(|(i, c)| {
             let x: i16 = x + ((i as i32) * glyph_width) as i16;
-
             self.push_glyph(x, y, size as i16, rgba, c);
-        }
+        });
         self
     }
 }

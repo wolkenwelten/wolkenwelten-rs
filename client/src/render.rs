@@ -258,6 +258,7 @@ fn render_chungus(fe: &ClientState, game: &GameState, mvp: &Mat4) {
     fe.shaders.block.set_used();
     fe.shaders.block.set_mvp(mvp);
     fe.textures.blocks.bind();
+
     for entry in render_queue.iter() {
         if let Some(mesh) = fe.world_mesh.get(&entry.pos) {
             let td = now - mesh.last_updated_at();
@@ -297,9 +298,9 @@ fn render_game(fe: &ClientState, game: &GameState) {
     let mvp = projection * view;
 
     fe.textures.pear.bind();
-    for entity in &game.entities {
-        draw_entity(fe, entity, &view, &projection);
-    }
+    game.entities
+        .iter()
+        .for_each(|entity| draw_entity(fe, entity, &view, &projection));
     render_chungus(fe, game, &mvp);
 }
 

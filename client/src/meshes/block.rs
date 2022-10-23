@@ -180,15 +180,13 @@ impl BlockMesh {
             self.vao
                 .draw_elements(0, (self.side_start[5] + self.side_square_count[5]) * 6);
         } else {
-            for i in 0..6 {
-                if (mask & (1 << i)) != 0 {
-                    let start_offset = self.side_start[i] * 6 * 2;
-                    let index_count = self.side_square_count[i] * 6;
-                    if index_count > 0 {
-                        self.vao.draw_elements(start_offset, index_count);
-                    }
+            (0..6).filter(|i| (mask & (1 << i)) != 0).for_each(|i| {
+                let start_offset = self.side_start[i] * 6 * 2;
+                let index_count = self.side_square_count[i] * 6;
+                if index_count > 0 {
+                    self.vao.draw_elements(start_offset, index_count);
                 }
-            }
+            });
         }
     }
 
