@@ -305,7 +305,10 @@ fn render_game(fe: &ClientState, game: &GameState) {
 }
 
 pub fn render_frame(fe: &ClientState, game: &GameState) {
-    unsafe { gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT) };
+    unsafe {
+        gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
+        gl::Enable(gl::DEPTH_TEST);
+    };
     render_game(fe, game);
 
     let perspective = Mat4::orthographic_rh_gl(
@@ -316,6 +319,7 @@ pub fn render_frame(fe: &ClientState, game: &GameState) {
         -10.0,
         10.0,
     );
+    unsafe { gl::Disable(gl::DEPTH_TEST) }
     fe.shaders.text.set_used();
     fe.shaders.text.set_mvp(&perspective);
     fe.textures.gui.bind();
