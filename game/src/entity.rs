@@ -82,8 +82,8 @@ impl Entity {
             {
                 let v = entities[index].vel;
                 entities[index].pos += v;
-                entities[index].vel.y -= 0.001;
-                entities[index].rot.y += 0.05;
+                entities[index].vel.y -= 0.0005;
+                entities[index].rot.y += 0.01;
             }
 
             let dist = entities[index].pos - player.pos;

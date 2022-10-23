@@ -139,8 +139,8 @@ fn prepare_ui(fe: &mut ClientState, game: &GameState) {
         .push_string(8, 8, 2, 0xFFFFFFFF, fps_text.as_str());
 
     let pos_text = format!(
-        "X:{:8.2} Y:{:8.2} Z:{:8.2}",
-        game.player.pos[0], game.player.pos[1], game.player.pos[2]
+        "X:{:8.2} Y:{:8.2} Z:{:8.2}   Ticks:{}",
+        game.player.pos[0], game.player.pos[1], game.player.pos[2], game.ticks_elapsed
     );
     fe.ui_mesh
         .push_string(8, 40, 2, 0xFFFFFFFF, pos_text.as_str());

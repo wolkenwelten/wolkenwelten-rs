@@ -20,11 +20,14 @@ use glam::i32::IVec3;
 use rand::Rng;
 use std::time::Instant;
 
+const MS_PER_TICK: u64 = 4;
+
 #[derive(Debug)]
 pub struct GameState {
     pub clock: Instant,
-    pub running: bool,
     pub ticks_elapsed: u64,
+    pub last_gc: u64,
+    pub running: bool,
     pub player: Character,
     pub entities: Vec<Entity>,
     pub world: Chungus,
@@ -43,6 +46,7 @@ impl Default for GameState {
             player,
             entities,
             ticks_elapsed: 0,
+            last_gc: 0,
             world: Chungus::default(),
         }
     }
@@ -65,9 +69,9 @@ impl GameState {
                 let y: f32 = (rng.gen::<f32>() * 5.0) + 8.5;
                 let mut e = Entity::new();
                 e.set_pos(Vec3::new(x as f32, y, z as f32));
-                let vx: f32 = (rng.gen::<f32>() - 0.5) * 0.5;
-                let vy: f32 = (rng.gen::<f32>() - 0.1) * 0.1;
-                let vz: f32 = (rng.gen::<f32>() - 0.5) * 0.5;
+                let vx: f32 = (rng.gen::<f32>() - 0.5) * 0.1;
+                let vy: f32 = (rng.gen::<f32>() - 0.1) * 0.02;
+                let vz: f32 = (rng.gen::<f32>() - 0.5) * 0.1;
                 e.set_vel(Vec3::new(vx, vy, vz));
 
                 entities.push(e);
@@ -84,10 +88,18 @@ impl GameState {
     }
 
     pub fn tick(&mut self) {
-        self.ticks_elapsed += 1;
-        Entity::tick(&mut self.entities, &self.player, &self.world);
-        self.player.tick(&self.world);
-        self.world.gc(&self.player);
+        let ticks_goal = self.clock.elapsed().as_millis() as u64 / MS_PER_TICK;
+        let to_run = ticks_goal - self.ticks_elapsed;
+
+        for _ in 0..to_run {
+            self.ticks_elapsed += 1;
+            Entity::tick(&mut self.entities, &self.player, &self.world);
+            self.player.tick(&self.world);
+        }
+        if self.ticks_elapsed > self.last_gc {
+            self.world.gc(&self.player);
+            self.last_gc = self.ticks_elapsed + 50;
+        }
     }
 
     pub fn worldgen_chunk(&mut self, pos: IVec3) {

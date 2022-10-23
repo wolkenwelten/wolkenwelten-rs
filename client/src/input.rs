@@ -168,7 +168,7 @@ fn input_tick_default(game: &mut GameState, fe: &ClientState) {
     let view = glam::Mat4::from_rotation_y(-game.player.rot[0].to_radians());
     let view = view * glam::Mat4::from_rotation_x(-game.player.rot[1].to_radians());
     let v = glam::Vec4::from((fe.input.get_movement_vector(), 1.0_f32));
-    let move_vec = (view * v).xyz() * fe.input.get_speed() * 0.05;
+    let move_vec = (view * v).xyz() * fe.input.get_speed() * 0.02;
     // Different rates for moving/stopping since this makes the player feel more responsive
     let acc = if move_vec.xz().length() > 0.001 {
         CHARACTER_ACCELERATION
@@ -186,7 +186,7 @@ fn input_tick_default(game: &mut GameState, fe: &ClientState) {
     game.player.vel.z += (move_vec.z - game.player.vel.z) * acc;
 
     if (fe.input.get_jump() > 0.0) && game.player.may_jump(&game.world) {
-        game.player.vel.y = 0.1;
+        game.player.jump();
     }
 }
 
@@ -222,7 +222,7 @@ pub fn input_tick(game: &mut GameState, fe: &ClientState) {
         game.player.set_cooldown(now + 100);
         let mut e = Entity::new();
         e.set_pos(game.player.pos());
-        e.set_vel(game.player.direction() * 0.5);
+        e.set_vel(game.player.direction() * 0.1);
         game.push_entity(e);
     }
 }
