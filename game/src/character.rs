@@ -68,6 +68,9 @@ impl Character {
     pub fn may_act(&self, now: u64) -> bool {
         self.cooldown < now
     }
+    pub fn jump(&mut self) {
+        self.vel.y = 0.055;
+    }
     pub fn set_cooldown(&mut self, until: u64) {
         self.cooldown = until;
     }
@@ -87,7 +90,7 @@ impl Character {
             return;
         }
 
-        self.vel.y -= 0.003;
+        self.vel.y -= 0.0005;
 
         if world.is_solid(self.pos + COL_POINT_LEFT) {
             self.vel.x = self.vel.x.max(0.0);
@@ -108,6 +111,11 @@ impl Character {
         }
         if world.is_solid(self.pos + COL_POINT_BACK) {
             self.vel.z = self.vel.z.max(0.0);
+        }
+
+        let len = self.vel.length();
+        if len > 0.2 {
+            self.vel *= 1.0 - (len - 0.2).clamp(0.0001, 1.0);
         }
 
         self.pos += self.vel;

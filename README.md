@@ -41,9 +41,9 @@ Web/WASM is intentionally NOT a supported platform for the foreseeable future, s
 - [X] Proper chunk draw ordering, back to front due to fade-in (port from WW)
 - [X] Chunk fade-in after generation
 - [X] Sky sphere (port from WW)
+- [X] Frame-rate independent physics/gameplay
 - [ ] Greedy meshing (port from WW)
 - [ ] Lighting (port from WW, without ASM/SIMD (for now))
-- [ ] Frame-rate independent physics/gameplay (maybe try out rapier3d?)
 - [ ] Block manipulation (simple removal/placement as well as block selection)
 - [ ] Block highlight (port from WW)
 - [ ] Import Models made with Goxel
