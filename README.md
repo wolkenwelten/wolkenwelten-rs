@@ -45,8 +45,7 @@ Web/WASM is intentionally NOT a supported platform for the foreseeable future, s
 - [ ] Greedy meshing (port from WW)
 - [ ] Lighting (port from WW, without ASM/SIMD (for now))
 - [ ] Block manipulation (simple removal/placement as well as block selection)
-- [ ] Block highlight (port from WW)
-- [ ] Import Models made with Goxel
+- [ ] Import Models made with Goxel (probably using .vox format https://github.com/ephtracy/voxel-model/blob/master/MagicaVoxel-file-format-vox.txt)
 - [ ] Make entities use voxel meshes
 
 - [ ] Embed deno_core and make sure the event loop runs regularly
@@ -55,7 +54,7 @@ Web/WASM is intentionally NOT a supported platform for the foreseeable future, s
 - [ ] Make worldgen call into deno and receive an entire chunk of data
 - [ ] Allow entities to be created from within deno for example `world.createEntity()`
 - [ ] Allow entities to be enumerated from within deno and add `entity.getPos(), entity.setPos(x, y, z), entity.hide()` methods
-- [ ] Add support for `entity.onCollide` 
+- [ ] Add support for `entity.onCollide`
 - [ ] Allow for GUI output, text and images from the atlas would suffice for the beginning (should allow for a Healthbar and super simple non interactive Inventory)
 - [ ] Add support for `game.onKey{Up,Down}` | `game.onMouse{Up,Down}` higher-level abstractions can then be built within JS/TS
 

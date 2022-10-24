@@ -108,6 +108,21 @@ pub fn run_event_loop(state: AppState) {
                 .set_left_mouse_button(state == ElementState::Pressed);
         }
 
+        Event::WindowEvent {
+            event: WindowEvent::Focused(b),
+            ..
+        } => {
+            let window = windowed_context.window();
+            window.set_cursor_visible(!b);
+            if b {
+                let _ = window
+                    .set_cursor_grab(CursorGrabMode::Confined)
+                    .or_else(|_e| window.set_cursor_grab(CursorGrabMode::Locked));
+            } else {
+                let _ = window.set_cursor_grab(CursorGrabMode::None);
+            }
+        }
+
         Event::DeviceEvent {
             event: DeviceEvent::Key(input),
             ..
