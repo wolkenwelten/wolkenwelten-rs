@@ -8,7 +8,7 @@ homepage = "https://wolkenwelten.net"
 [dependencies]
 winit = "0.27.4"
 gl = "0.14.0"
-glam = "0.21.3"
+glam = "0.22.0"
 tobj = "3.2.3"
 image = { version = "0.24.4", default-features = false, features = ["png"]}
 
