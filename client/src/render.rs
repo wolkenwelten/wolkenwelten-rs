@@ -48,15 +48,8 @@ pub fn set_gl_version(major_version: i32, minor_version: i32) {
 }
 
 pub fn set_viewport(fe: &ClientState) {
-    let (w,h) = fe.window_size();
-    unsafe {
-        gl::Viewport(
-            0,
-            0,
-            w.try_into().unwrap(),
-            h.try_into().unwrap(),
-        )
-    }
+    let (w, h) = fe.window_size();
+    unsafe { gl::Viewport(0, 0, w.try_into().unwrap(), h.try_into().unwrap()) }
 }
 
 fn draw_entity(fe: &ClientState, entity: &Entity, view: &Mat4, projection: &Mat4) {

@@ -18,7 +18,7 @@ pub use self::static_shaders::ShaderList;
 pub use self::static_textures::TextureList;
 use crate::input::InputState;
 use crate::meshes::{BlockMesh, TextMesh, Vbo};
-use crate::{RENDER_DISTANCE};
+use crate::RENDER_DISTANCE;
 use glam::f32::Vec3;
 use glam::i32::IVec3;
 use std::collections::HashMap;
@@ -52,7 +52,7 @@ pub struct ClientState {
     frame_count: u32,
     last_ticks: u128,
 
-    wireframe: bool
+    wireframe: bool,
 }
 
 impl Default for ClientState {
@@ -110,17 +110,21 @@ impl ClientState {
     pub fn set_wireframe(&mut self, w: bool) {
         self.wireframe = w;
     }
-    pub fn wireframe(&self) -> bool { self.wireframe }
+    pub fn wireframe(&self) -> bool {
+        self.wireframe
+    }
 
-    pub fn set_fov(&mut self, fov:f32) {
+    pub fn set_fov(&mut self, fov: f32) {
         self.cur_fov = fov;
     }
-    pub fn fov(&self) -> f32 { self.cur_fov }
+    pub fn fov(&self) -> f32 {
+        self.cur_fov
+    }
 
     pub fn window_size(&self) -> (u32, u32) {
         (self.window_width, self.window_height)
     }
-    pub fn set_window_size(&mut self, (w,h):(u32, u32)) {
+    pub fn set_window_size(&mut self, (w, h): (u32, u32)) {
         self.window_width = w;
         self.window_height = h;
     }

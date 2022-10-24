@@ -42,7 +42,7 @@ Web/WASM is intentionally NOT a supported platform for the foreseeable future, s
 - [X] Chunk fade-in after generation
 - [X] Sky sphere (port from WW)
 - [X] Frame-rate independent physics/gameplay
-- [ ] Greedy meshing (port from WW)
+- [X] Greedy meshing (port from WW)
 - [ ] Lighting (port from WW, without ASM/SIMD (for now))
 - [ ] Block manipulation (simple removal/placement as well as block selection)
 - [ ] Import Models made with Goxel (probably using .vox format https://github.com/ephtracy/voxel-model/blob/master/MagicaVoxel-file-format-vox.txt)

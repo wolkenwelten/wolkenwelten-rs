@@ -35,7 +35,6 @@ impl From<Side> for usize {
     }
 }
 
-
 #[derive(Clone, Debug, Default)]
 pub struct BlockType {
     name: String,

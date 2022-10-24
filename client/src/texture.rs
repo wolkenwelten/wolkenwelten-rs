@@ -14,8 +14,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 use crate::render;
-use std::ffi::{c_void, CString};
 use gl::types::GLuint;
+use std::ffi::{c_void, CString};
 
 #[derive(Debug, Default)]
 pub struct Texture {
