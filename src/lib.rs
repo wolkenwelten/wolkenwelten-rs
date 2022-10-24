@@ -49,7 +49,7 @@ pub fn init_glutin() -> (EventLoop<()>, ContextWrapper<PossiblyCurrent, Window>)
 
     let windowed_context = ContextBuilder::new()
         .with_vsync(true)
-        .with_double_buffer(Some(true))
+        //.with_double_buffer(Some(true))
         .build_windowed(wb, &event_loop)
         .unwrap();
 
@@ -57,10 +57,9 @@ pub fn init_glutin() -> (EventLoop<()>, ContextWrapper<PossiblyCurrent, Window>)
     gl::load_with(|ptr| windowed_context.get_proc_address(ptr) as *const _);
 
     let window = windowed_context.window();
-    window
+    let _ = window
         .set_cursor_grab(CursorGrabMode::Confined)
-        .or_else(|_e| window.set_cursor_grab(CursorGrabMode::Locked))
-        .unwrap();
+        .or_else(|_e| window.set_cursor_grab(CursorGrabMode::Locked));
     window.set_cursor_visible(false);
 
     (event_loop, windowed_context)
@@ -85,10 +84,7 @@ pub fn run_event_loop(state: AppState) {
             game_state.player.rot.x += diffx as f32 * 0.005;
             game_state.player.rot.y += diffy as f32 * 0.005;
             let new_pos = PhysicalPosition::new(window_width / 2, window_height / 2);
-            windowed_context
-                .window()
-                .set_cursor_position(new_pos)
-                .unwrap();
+            let _ = windowed_context.window().set_cursor_position(new_pos);
         }
 
         Event::WindowEvent {
