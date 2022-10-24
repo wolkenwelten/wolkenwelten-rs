@@ -87,7 +87,7 @@ impl GameState {
         self.entities.push(e);
     }
 
-    pub fn tick(&mut self) {
+    pub fn tick(&mut self, render_distance: f32) {
         let ticks_goal = self.clock.elapsed().as_millis() as u64 / MS_PER_TICK;
         let to_run = ticks_goal - self.ticks_elapsed;
 
@@ -97,7 +97,7 @@ impl GameState {
             self.player.tick(&self.world);
         }
         if self.ticks_elapsed > self.last_gc {
-            self.world.gc(&self.player);
+            self.world.gc(&self.player, render_distance);
             self.last_gc = self.ticks_elapsed + 50;
         }
     }

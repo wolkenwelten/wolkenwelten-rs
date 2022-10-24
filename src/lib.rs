@@ -26,7 +26,8 @@ use glutin::event_loop::EventLoop;
 use glutin::window::{CursorGrabMode, Window, WindowBuilder};
 use glutin::{ContextBuilder, ContextWrapper, PossiblyCurrent};
 use wolkenwelten_client::{
-    input_tick, prepare_frame, render_frame, set_viewport, ClientState, Key, VIEW_STEPS,
+    input_tick, prepare_frame, render_frame, set_viewport, ClientState, Key, RENDER_DISTANCE,
+    VIEW_STEPS,
 };
 
 use wolkenwelten_game::GameState;
@@ -238,8 +239,9 @@ pub fn run_event_loop(state: AppState) {
             input_tick(&mut game_state, &render_state);
             render_state.input.mouse_flush();
 
-            game_state.tick();
-            game_state.prepare_world(VIEW_STEPS, 128.0 * 128.0);
+            let render_distance = RENDER_DISTANCE * RENDER_DISTANCE;
+            game_state.tick(render_distance);
+            game_state.prepare_world(VIEW_STEPS, render_distance);
 
             prepare_frame(&mut render_state, &game_state);
             render_frame(&render_state, &game_state);
