@@ -14,7 +14,6 @@ glutin = "0.29.1"
 gl = "0.14.0"
 #deno_core = "0.154.0"
 #deno_ops = "0.32.0"
-#v8 = "0.52.0"
 #rapier3d = "0.15.0"
 
 [features]

@@ -39,11 +39,12 @@ pub struct AppState {
 }
 
 pub fn init_glutin() -> (EventLoop<()>, ContextWrapper<PossiblyCurrent, Window>) {
+    let title = format!("WolkenWelten - {}", env!("CARGO_PKG_VERSION"));
     let event_loop = EventLoop::new();
     let wb = WindowBuilder::new()
         .with_decorations(false)
         .with_maximized(true)
-        .with_title("RostRegen");
+        .with_title(title);
 
     let windowed_context = ContextBuilder::new()
         .with_vsync(true)
