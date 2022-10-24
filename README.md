@@ -47,3 +47,20 @@ Web/WASM is intentionally NOT a supported platform for the foreseeable future, s
 - [ ] Block manipulation (simple removal/placement as well as block selection)
 - [ ] Block highlight (port from WW)
 - [ ] Import Models made with Goxel
+- [ ] Make entities use voxel meshes
+
+- [ ] Embed deno_core and make sure the event loop runs regularly
+- [ ] (If simple) allow for TypeScript, but only if it's simple to do since it's not strictly necessary, but would be nice to have from the beginning
+- [ ] Add `world.getBlock(x, y, z)` and `world.setBlock(x, y, z, b)`
+- [ ] Make worldgen call into deno and receive an entire chunk of data
+- [ ] Allow entities to be created from within deno for example `world.createEntity()`
+- [ ] Allow entities to be enumerated from within deno and add `entity.getPos(), entity.setPos(x, y, z), entity.hide()` methods
+- [ ] Add support for `entity.onCollide` 
+- [ ] Allow for GUI output, text and images from the atlas would suffice for the beginning (should allow for a Healthbar and super simple non interactive Inventory)
+- [ ] Add support for `game.onKey{Up,Down}` | `game.onMouse{Up,Down}` higher-level abstractions can then be built within JS/TS
+
+- [ ] Super simple multiplayer (connecting with login/logout messages only for now)
+- [ ] Synchronize world mutations
+- [ ] Synchronize character movement (and render characters)
+- [ ] Synchronize entities
+- [ ] Allow for a simple JSON-RPC inspired interface for client<->server communication
