@@ -24,9 +24,10 @@ use std::collections::BinaryHeap;
 use std::sync::RwLock;
 use wolkenwelten_game::{Character, Entity, GameState, CHUNK_BITS, CHUNK_SIZE};
 
-pub const VIEW_STEPS: i32 = (128 / CHUNK_SIZE as i32) + 1;
-const FADEOUT_START_DISTANCE: f32 = 96.0 * 96.0;
+pub const RENDER_DISTANCE: f32 = 192.0;
 const FADEOUT_DISTANCE: f32 = 32.0 * 32.0;
+const FADEOUT_START_DISTANCE: f32 = (RENDER_DISTANCE - 32.0) * (RENDER_DISTANCE - 32.0);
+pub const VIEW_STEPS: i32 = (RENDER_DISTANCE as i32 / CHUNK_SIZE as i32) + 1;
 
 fn calc_fov(fov: f32, player: &Character) -> f32 {
     let new = 90.0 + ((player.vel.length() - 0.025) * 40.0).clamp(0.0, 90.0);
@@ -285,7 +286,8 @@ fn render_chungus(fe: &ClientState, game: &GameState, mvp: &Mat4) {
 }
 
 fn render_sky(fe: &ClientState, _game: &GameState, view: Mat4, projection: Mat4) {
-    let view = view * Mat4::from_scale(Vec3::new(192.0, 192.0, 192.0));
+    let s = RENDER_DISTANCE + CHUNK_SIZE as f32;
+    let view = view * Mat4::from_scale(Vec3::new(s, s, s));
     let mvp = projection * view;
     fe.shaders.mesh.set_used();
     fe.shaders.mesh.set_color(1.0, 1.0, 1.0, 1.0);
@@ -299,7 +301,7 @@ fn render_game(fe: &ClientState, game: &GameState) {
         fe.cur_fov.to_radians(),
         (fe.window_width as f32) / (fe.window_height as f32),
         0.1,
-        256.0,
+        RENDER_DISTANCE + CHUNK_SIZE as f32,
     );
     let view = Mat4::from_rotation_x(game.player.rot[1].to_radians());
     let view = view * Mat4::from_rotation_y(game.player.rot[0].to_radians());

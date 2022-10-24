@@ -18,6 +18,7 @@ pub use self::static_shaders::ShaderList;
 pub use self::static_textures::TextureList;
 use crate::input::InputState;
 use crate::meshes::{BlockMesh, TextMesh, Vbo};
+use crate::RENDER_DISTANCE;
 use glam::f32::Vec3;
 use glam::i32::IVec3;
 use std::collections::HashMap;
@@ -103,7 +104,7 @@ impl ClientState {
         self.world_mesh.retain(|&pos, _| {
             let diff: Vec3 = (pos.as_vec3() * CHUNK_SIZE as f32) - player.pos;
             let d = diff.dot(diff);
-            d < (312.0 * 312.0)
+            d < (RENDER_DISTANCE * RENDER_DISTANCE)
         });
     }
 }
