@@ -17,8 +17,6 @@ extern crate glam;
 extern crate winit;
 extern crate wolkenwelten_game;
 
-use std::ffi::CString;
-
 pub use self::frustum::Frustum;
 pub use self::input::{input_tick, InputState, Key};
 pub use self::meshes::Mesh;
@@ -36,9 +34,3 @@ mod render;
 mod shader;
 mod state;
 mod texture;
-
-pub fn create_whitespace_cstring_with_len(len: usize) -> CString {
-    let mut buffer: Vec<u8> = Vec::with_capacity(len + 1);
-    buffer.extend([b' '].iter().cycle().take(len));
-    unsafe { CString::from_vec_unchecked(buffer) }
-}

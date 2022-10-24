@@ -18,7 +18,7 @@ pub use self::static_shaders::ShaderList;
 pub use self::static_textures::TextureList;
 use crate::input::InputState;
 use crate::meshes::{BlockMesh, TextMesh, Vbo};
-use crate::RENDER_DISTANCE;
+use crate::{RENDER_DISTANCE};
 use glam::f32::Vec3;
 use glam::i32::IVec3;
 use std::collections::HashMap;
@@ -31,13 +31,13 @@ pub mod static_textures;
 
 #[derive(Debug)]
 pub struct ClientState {
-    pub instant: Instant,
+    instant: Instant,
 
     pub block_index_buffer: Vbo,
     pub world_mesh: HashMap<IVec3, BlockMesh>,
 
-    pub window_width: u32,
-    pub window_height: u32,
+    window_width: u32,
+    window_height: u32,
 
     pub meshes: MeshList,
     pub shaders: ShaderList,
@@ -47,10 +47,12 @@ pub struct ClientState {
 
     pub input: InputState,
 
-    pub cur_fov: f32,
-    pub cur_fps: u32,
-    pub frame_count: u32,
-    pub last_ticks: u128,
+    cur_fov: f32,
+    cur_fps: u32,
+    frame_count: u32,
+    last_ticks: u128,
+
+    wireframe: bool
 }
 
 impl Default for ClientState {
@@ -73,6 +75,7 @@ impl Default for ClientState {
             cur_fps: 0,
             frame_count: 0,
             last_ticks: 0,
+            wireframe: false,
         }
     }
 }
@@ -95,10 +98,6 @@ impl ClientState {
         }
         self.frame_count += 1;
     }
-    pub fn set_window_size(&mut self, new_width: u32, new_height: u32) {
-        self.window_width = new_width;
-        self.window_height = new_height;
-    }
 
     pub fn gc(&mut self, player: &Character) {
         self.world_mesh.retain(|&pos, _| {
@@ -106,5 +105,23 @@ impl ClientState {
             let d = diff.dot(diff);
             d < (RENDER_DISTANCE * RENDER_DISTANCE)
         });
+    }
+
+    pub fn set_wireframe(&mut self, w: bool) {
+        self.wireframe = w;
+    }
+    pub fn wireframe(&self) -> bool { self.wireframe }
+
+    pub fn set_fov(&mut self, fov:f32) {
+        self.cur_fov = fov;
+    }
+    pub fn fov(&self) -> f32 { self.cur_fov }
+
+    pub fn window_size(&self) -> (u32, u32) {
+        (self.window_width, self.window_height)
+    }
+    pub fn set_window_size(&mut self, (w,h):(u32, u32)) {
+        self.window_width = w;
+        self.window_height = h;
     }
 }

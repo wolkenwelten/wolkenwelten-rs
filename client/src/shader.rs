@@ -115,7 +115,7 @@ fn shader_from_source(source: &CStr, kind: gl::types::GLenum) -> Result<gl::type
             gl::GetShaderiv(id, gl::INFO_LOG_LENGTH, &mut len);
         }
 
-        let error = super::create_whitespace_cstring_with_len(len as usize);
+        let error = create_whitespace_cstring_with_len(len as usize);
 
         unsafe {
             gl::GetShaderInfoLog(
@@ -185,7 +185,7 @@ impl Program {
                 gl::GetProgramiv(program_id, gl::INFO_LOG_LENGTH, &mut len);
             }
 
-            let error = super::create_whitespace_cstring_with_len(len as usize);
+            let error = create_whitespace_cstring_with_len(len as usize);
 
             unsafe {
                 gl::GetProgramInfoLog(
@@ -275,4 +275,10 @@ impl Drop for Program {
             gl::DeleteProgram(self.id);
         }
     }
+}
+
+fn create_whitespace_cstring_with_len(len: usize) -> CString {
+    let mut buffer: Vec<u8> = Vec::with_capacity(len + 1);
+    buffer.extend([b' '].iter().cycle().take(len));
+    unsafe { CString::from_vec_unchecked(buffer) }
 }

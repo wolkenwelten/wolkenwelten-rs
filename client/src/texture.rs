@@ -15,14 +15,15 @@
  */
 use crate::render;
 use std::ffi::{c_void, CString};
+use gl::types::GLuint;
 
 #[derive(Debug, Default)]
 pub struct Texture {
-    id: gl::types::GLuint,
+    id: GLuint,
 }
 #[derive(Debug, Default)]
 pub struct TextureArray {
-    id: gl::types::GLuint,
+    id: GLuint,
 }
 
 impl Texture {

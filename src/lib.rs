@@ -56,14 +56,12 @@ pub fn init_glutin() -> (EventLoop<()>, ContextWrapper<PossiblyCurrent, Window>)
     let windowed_context = unsafe { windowed_context.make_current().unwrap() };
     gl::load_with(|ptr| windowed_context.get_proc_address(ptr) as *const _);
 
-    {
-        let window = windowed_context.window();
-        window
-            .set_cursor_grab(CursorGrabMode::Confined)
-            .or_else(|_e| window.set_cursor_grab(CursorGrabMode::Locked))
-            .unwrap();
-        window.set_cursor_visible(false);
-    }
+    let window = windowed_context.window();
+    window
+        .set_cursor_grab(CursorGrabMode::Confined)
+        .or_else(|_e| window.set_cursor_grab(CursorGrabMode::Locked))
+        .unwrap();
+    window.set_cursor_visible(false);
 
     (event_loop, windowed_context)
 }
@@ -81,13 +79,14 @@ pub fn run_event_loop(state: AppState) {
             event: WindowEvent::CursorMoved { position, .. },
             ..
         } => {
-            let diffx = position.x as i32 - (render_state.window_width / 2) as i32;
-            let diffy = position.y as i32 - (render_state.window_height / 2) as i32;
+            let (window_width, window_height) = render_state.window_size();
+            let diffx = position.x as i32 - (window_width / 2) as i32;
+            let diffy = position.y as i32 - (window_height / 2) as i32;
             game_state.player.rot.x += diffx as f32 * 0.005;
             game_state.player.rot.y += diffy as f32 * 0.005;
             let new_pos = PhysicalPosition::new(
-                render_state.window_width / 2,
-                render_state.window_height / 2,
+                window_width / 2,
+                window_height / 2,
             );
             windowed_context
                 .window()
@@ -147,6 +146,17 @@ pub fn run_event_loop(state: AppState) {
                 virtual_keycode: Some(VirtualKeyCode::M),
                 ..
             } => game_state.player.set_no_clip(false),
+
+            KeyboardInput {
+                state: ElementState::Pressed,
+                virtual_keycode: Some(VirtualKeyCode::O),
+                ..
+            } => render_state.set_wireframe(true),
+            KeyboardInput {
+                state: ElementState::Pressed,
+                virtual_keycode: Some(VirtualKeyCode::P),
+                ..
+            } => render_state.set_wireframe(false),
 
             KeyboardInput {
                 state: ElementState::Pressed,
@@ -232,7 +242,7 @@ pub fn run_event_loop(state: AppState) {
             ..
         } => {
             windowed_context.resize(physical_size);
-            render_state.set_window_size(physical_size.width, physical_size.height);
+            render_state.set_window_size((physical_size.width, physical_size.height));
             set_viewport(&render_state);
         }
         Event::MainEventsCleared => {

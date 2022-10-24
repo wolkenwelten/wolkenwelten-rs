@@ -48,12 +48,13 @@ pub fn set_gl_version(major_version: i32, minor_version: i32) {
 }
 
 pub fn set_viewport(fe: &ClientState) {
+    let (w,h) = fe.window_size();
     unsafe {
         gl::Viewport(
             0,
             0,
-            fe.window_width.try_into().unwrap(),
-            fe.window_height.try_into().unwrap(),
+            w.try_into().unwrap(),
+            h.try_into().unwrap(),
         )
     }
 }
@@ -162,10 +163,11 @@ fn prepare_ui(fe: &mut ClientState, game: &GameState) {
             .push_string(8, 60, 2, 0xFFFFFFFF, rot_text.as_str())
             .push_string(8, 100, 2, 0xFFFFFFFF, col_text.as_str());
     }
+    let (window_width, window_height) = fe.window_size();
 
     let pos = (
-        fe.window_width as i16 / 2 - 32,
-        fe.window_height as i16 / 2 - 32,
+        window_width as i16 / 2 - 32,
+        window_height as i16 / 2 - 32,
         32,
         32,
     );
@@ -178,7 +180,7 @@ pub fn prepare_frame(fe: &mut ClientState, game: &GameState) {
     prepare_ui(fe, game);
     fe.calc_fps();
     fe.gc(&game.player);
-    fe.cur_fov = calc_fov(fe.cur_fov, &game.player);
+    fe.set_fov(calc_fov(fe.fov(), &game.player));
     prepare_chunks(fe, game);
 }
 
@@ -297,9 +299,10 @@ fn render_sky(fe: &ClientState, _game: &GameState, view: Mat4, projection: Mat4)
 }
 
 fn render_game(fe: &ClientState, game: &GameState) {
+    let (window_width, window_height) = fe.window_size();
     let projection = Mat4::perspective_rh_gl(
-        fe.cur_fov.to_radians(),
-        (fe.window_width as f32) / (fe.window_height as f32),
+        fe.fov().to_radians(),
+        (window_width as f32) / (window_height as f32),
         0.1,
         RENDER_DISTANCE + CHUNK_SIZE as f32,
     );
@@ -321,13 +324,22 @@ pub fn render_frame(fe: &ClientState, game: &GameState) {
     unsafe {
         gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
         gl::Enable(gl::DEPTH_TEST);
+        if fe.wireframe() {
+            gl::PolygonMode(gl::FRONT_AND_BACK, gl::LINE);
+        }
     };
     render_game(fe, game);
+    unsafe {
+        if fe.wireframe() {
+            gl::PolygonMode(gl::FRONT_AND_BACK, gl::FILL);
+        }
+    };
 
+    let (window_width, window_height) = fe.window_size();
     let perspective = Mat4::orthographic_rh_gl(
         0.0,
-        fe.window_width as f32,
-        fe.window_height as f32,
+        window_width as f32,
+        window_height as f32,
         0.0,
         -10.0,
         10.0,

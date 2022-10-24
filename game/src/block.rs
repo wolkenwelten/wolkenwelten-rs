@@ -13,7 +13,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#[derive(Copy, Clone, Debug, Default, Eq, PartialEq)]
+#[derive(Copy, Clone, Debug, Default, Eq, PartialEq, Hash)]
 pub enum Side {
     #[default]
     Front = 0,
@@ -34,6 +34,7 @@ impl From<Side> for usize {
         s as usize
     }
 }
+
 
 #[derive(Clone, Debug, Default)]
 pub struct BlockType {

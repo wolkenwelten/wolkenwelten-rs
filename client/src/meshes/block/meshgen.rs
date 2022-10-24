@@ -163,6 +163,7 @@ impl BlockMesh {
     pub fn update(&mut self, chunk: &ChunkBlockData, game: &GameState, now: u64) {
         self.last_updated_at = now;
         let mut vertices: Vec<BlockVertex> = Vec::with_capacity(8192);
+
         self.side_square_count[0] = Self::update_front(&mut vertices, chunk, game);
         self.side_square_count[1] = Self::update_back(&mut vertices, chunk, game);
         self.side_square_count[2] = Self::update_top(&mut vertices, chunk, game);
