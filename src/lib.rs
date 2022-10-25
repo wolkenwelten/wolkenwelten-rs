@@ -81,8 +81,8 @@ pub fn run_event_loop(state: AppState) {
             let (window_width, window_height) = render_state.window_size();
             let diffx = position.x as i32 - (window_width / 2) as i32;
             let diffy = position.y as i32 - (window_height / 2) as i32;
-            game_state.player.rot.x += diffx as f32 * 0.005;
-            game_state.player.rot.y += diffy as f32 * 0.005;
+            game_state.player.rot.x += diffx as f32 * 0.025;
+            game_state.player.rot.y += diffy as f32 * 0.025;
             let new_pos = PhysicalPosition::new(window_width / 2, window_height / 2);
             let _ = windowed_context.window().set_cursor_position(new_pos);
         }
