@@ -15,7 +15,7 @@
  */
 use super::chunk::CHUNK_SIZE;
 use super::{BlockType, Character, ChunkBlockData};
-use crate::{CHUNK_BITS, CHUNK_MASK};
+use crate::{ChunkLightData, CHUNK_BITS, CHUNK_MASK};
 use glam::f32::Vec3;
 use glam::i32::IVec3;
 use std::collections::HashMap;
@@ -24,6 +24,7 @@ use std::collections::HashMap;
 pub struct Chungus {
     pub blocks: Vec<BlockType>,
     pub block_data: HashMap<IVec3, ChunkBlockData>,
+    pub light_data: HashMap<IVec3, ChunkLightData>,
 }
 
 impl Chungus {
@@ -40,6 +41,13 @@ impl Chungus {
     }
     pub fn insert(&mut self, k: IVec3, v: ChunkBlockData) {
         self.block_data.insert(k, v);
+    }
+
+    pub fn get_light(&self, k: &IVec3) -> Option<&ChunkLightData> {
+        self.light_data.get(k)
+    }
+    pub fn insert_light(&mut self, k: IVec3, v: ChunkLightData) {
+        self.light_data.insert(k, v);
     }
 
     pub fn get_block_type(&self, i: u8) -> &BlockType {
@@ -70,6 +78,7 @@ impl Default for Chungus {
         Self {
             blocks: BlockType::load_all(),
             block_data: HashMap::with_capacity(4096),
+            light_data: HashMap::with_capacity(4096),
         }
     }
 }

@@ -28,14 +28,35 @@ impl BlockVertex {
         (x, y, z): (u8, u8, u8),
         (w, h, d): (u8, u8, u8),
         texture_index: u8,
-        light: u8,
+        light: u16,
     ) {
         let side: u8 = Side::Front.into();
         let z = z + d;
-        vertices.push(Self::new(x, y, z, texture_index, side, light));
-        vertices.push(Self::new(x + w, y, z, texture_index, side, light));
-        vertices.push(Self::new(x + w, y + h, z, texture_index, side, light));
-        vertices.push(Self::new(x, y + h, z, texture_index, side, light));
+        vertices.push(Self::new(x, y, z, texture_index, side, (light & 0xF) as u8));
+        vertices.push(Self::new(
+            x + w,
+            y,
+            z,
+            texture_index,
+            side,
+            ((light >> 4) & 0xF) as u8,
+        ));
+        vertices.push(Self::new(
+            x + w,
+            y + h,
+            z,
+            texture_index,
+            side,
+            ((light >> 8) & 0xF) as u8,
+        ));
+        vertices.push(Self::new(
+            x,
+            y + h,
+            z,
+            texture_index,
+            side,
+            ((light >> 12) & 0xF) as u8,
+        ));
     }
 
     pub fn add_back(
@@ -43,13 +64,34 @@ impl BlockVertex {
         (x, y, z): (u8, u8, u8),
         (w, h, _): (u8, u8, u8),
         texture_index: u8,
-        light: u8,
+        light: u16,
     ) {
         let side: u8 = Side::Back.into();
-        vertices.push(Self::new(x, y, z, texture_index, side, light));
-        vertices.push(Self::new(x, y + h, z, texture_index, side, light));
-        vertices.push(Self::new(x + w, y + h, z, texture_index, side, light));
-        vertices.push(Self::new(x + w, y, z, texture_index, side, light));
+        vertices.push(Self::new(x, y, z, texture_index, side, (light & 0xF) as u8));
+        vertices.push(Self::new(
+            x,
+            y + h,
+            z,
+            texture_index,
+            side,
+            ((light >> 4) & 0xF) as u8,
+        ));
+        vertices.push(Self::new(
+            x + w,
+            y + h,
+            z,
+            texture_index,
+            side,
+            ((light >> 8) & 0xF) as u8,
+        ));
+        vertices.push(Self::new(
+            x + w,
+            y,
+            z,
+            texture_index,
+            side,
+            ((light >> 12) & 0xF) as u8,
+        ));
     }
 
     pub fn add_top(
@@ -57,14 +99,35 @@ impl BlockVertex {
         (x, y, z): (u8, u8, u8),
         (w, h, d): (u8, u8, u8),
         texture_index: u8,
-        light: u8,
+        light: u16,
     ) {
         let side: u8 = Side::Top.into();
         let y = y + h;
-        vertices.push(Self::new(x, y, z, texture_index, side, light));
-        vertices.push(Self::new(x, y, z + d, texture_index, side, light));
-        vertices.push(Self::new(x + w, y, z + d, texture_index, side, light));
-        vertices.push(Self::new(x + w, y, z, texture_index, side, light));
+        vertices.push(Self::new(x, y, z, texture_index, side, (light & 0xF) as u8));
+        vertices.push(Self::new(
+            x,
+            y,
+            z + d,
+            texture_index,
+            side,
+            ((light >> 4) & 0xF) as u8,
+        ));
+        vertices.push(Self::new(
+            x + w,
+            y,
+            z + d,
+            texture_index,
+            side,
+            ((light >> 8) & 0xF) as u8,
+        ));
+        vertices.push(Self::new(
+            x + w,
+            y,
+            z,
+            texture_index,
+            side,
+            ((light >> 12) & 0xF) as u8,
+        ));
     }
 
     pub fn add_bottom(
@@ -72,13 +135,34 @@ impl BlockVertex {
         (x, y, z): (u8, u8, u8),
         (w, _, d): (u8, u8, u8),
         texture_index: u8,
-        light: u8,
+        light: u16,
     ) {
         let side: u8 = Side::Bottom.into();
-        vertices.push(Self::new(x, y, z, texture_index, side, light));
-        vertices.push(Self::new(x + w, y, z, texture_index, side, light));
-        vertices.push(Self::new(x + w, y, z + d, texture_index, side, light));
-        vertices.push(Self::new(x, y, z + d, texture_index, side, light));
+        vertices.push(Self::new(x, y, z, texture_index, side, (light & 0xF) as u8));
+        vertices.push(Self::new(
+            x + w,
+            y,
+            z,
+            texture_index,
+            side,
+            ((light >> 4) & 0xF) as u8,
+        ));
+        vertices.push(Self::new(
+            x + w,
+            y,
+            z + d,
+            texture_index,
+            side,
+            ((light >> 8) & 0xF) as u8,
+        ));
+        vertices.push(Self::new(
+            x,
+            y,
+            z + d,
+            texture_index,
+            side,
+            ((light >> 12) & 0xF) as u8,
+        ));
     }
 
     pub fn add_left(
@@ -86,13 +170,34 @@ impl BlockVertex {
         (x, y, z): (u8, u8, u8),
         (_, h, d): (u8, u8, u8),
         texture_index: u8,
-        light: u8,
+        light: u16,
     ) {
         let side: u8 = Side::Left.into();
-        vertices.push(Self::new(x, y, z, texture_index, side, light));
-        vertices.push(Self::new(x, y, z + d, texture_index, side, light));
-        vertices.push(Self::new(x, y + h, z + d, texture_index, side, light));
-        vertices.push(Self::new(x, y + h, z, texture_index, side, light));
+        vertices.push(Self::new(x, y, z, texture_index, side, (light & 0xF) as u8));
+        vertices.push(Self::new(
+            x,
+            y,
+            z + d,
+            texture_index,
+            side,
+            ((light >> 4) & 0xF) as u8,
+        ));
+        vertices.push(Self::new(
+            x,
+            y + h,
+            z + d,
+            texture_index,
+            side,
+            ((light >> 8) & 0xF) as u8,
+        ));
+        vertices.push(Self::new(
+            x,
+            y + h,
+            z,
+            texture_index,
+            side,
+            ((light >> 12) & 0xF) as u8,
+        ));
     }
 
     pub fn add_right(
@@ -100,14 +205,35 @@ impl BlockVertex {
         (x, y, z): (u8, u8, u8),
         (w, h, d): (u8, u8, u8),
         texture_index: u8,
-        light: u8,
+        light: u16,
     ) {
         let side: u8 = Side::Right.into();
         let x = x + w;
-        vertices.push(Self::new(x, y, z, texture_index, side, light));
-        vertices.push(Self::new(x, y + h, z, texture_index, side, light));
-        vertices.push(Self::new(x, y + h, z + d, texture_index, side, light));
-        vertices.push(Self::new(x, y, z + d, texture_index, side, light));
+        vertices.push(Self::new(x, y, z, texture_index, side, (light & 0xF) as u8));
+        vertices.push(Self::new(
+            x,
+            y + h,
+            z,
+            texture_index,
+            side,
+            ((light >> 4) & 0xF) as u8,
+        ));
+        vertices.push(Self::new(
+            x,
+            y + h,
+            z + d,
+            texture_index,
+            side,
+            ((light >> 8) & 0xF) as u8,
+        ));
+        vertices.push(Self::new(
+            x,
+            y,
+            z + d,
+            texture_index,
+            side,
+            ((light >> 12) & 0xF) as u8,
+        ));
     }
 
     pub fn vertex_attrib_pointers() {

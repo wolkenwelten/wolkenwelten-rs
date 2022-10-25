@@ -1,7 +1,9 @@
 use super::{BlockMesh, BlockVertex};
 use crate::meshes::util::Vbo;
 use gl::types::GLvoid;
-use wolkenwelten_game::{ChunkBlockData, GameState, CHUNK_BITS, CHUNK_MASK, CHUNK_SIZE};
+use wolkenwelten_game::{
+    ChunkBlockData, ChunkLightData, GameState, CHUNK_BITS, CHUNK_MASK, CHUNK_SIZE,
+};
 
 type BlockBuffer = [[[u8; CHUNK_SIZE + 2]; CHUNK_SIZE + 2]; CHUNK_SIZE + 2];
 type SideBuffer = [[[u8; CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE];
@@ -35,6 +37,7 @@ struct PlaneEntry {
     pub width: [[u8; CHUNK_SIZE]; CHUNK_SIZE],
     pub height: [[u8; CHUNK_SIZE]; CHUNK_SIZE],
     pub block: [[u8; CHUNK_SIZE]; CHUNK_SIZE],
+    pub light: [[u16; CHUNK_SIZE]; CHUNK_SIZE],
 }
 impl PlaneEntry {
     pub fn new() -> Self {
@@ -42,6 +45,7 @@ impl PlaneEntry {
             block: [[0; CHUNK_SIZE]; CHUNK_SIZE],
             width: [[0; CHUNK_SIZE]; CHUNK_SIZE],
             height: [[0; CHUNK_SIZE]; CHUNK_SIZE],
+            light: [[0; CHUNK_SIZE]; CHUNK_SIZE],
         }
     }
     pub fn optimize(&mut self) {
@@ -52,6 +56,7 @@ impl PlaneEntry {
                 }
                 if (x < CHUNK_SIZE - 2)
                     && (self.block[x][y] == self.block[x + 1][y])
+                    && (self.light[x][y] == self.light[x + 1][y])
                     && (self.width[x][y] == self.width[x + 1][y])
                 {
                     self.height[x][y] += self.height[x + 1][y];
@@ -60,6 +65,7 @@ impl PlaneEntry {
 
                 if (y < CHUNK_SIZE - 2)
                     && (self.block[x][y] == self.block[x][y + 1])
+                    && (self.light[x][y] == self.light[x][y + 1])
                     && (self.height[x][y] == self.height[x][y + 1])
                 {
                     self.width[x][y] += self.width[x][y + 1];
@@ -73,9 +79,8 @@ impl PlaneEntry {
 impl BlockMesh {
     fn update_front(
         vertices: &mut Vec<BlockVertex>,
-        block_data: &BlockBuffer,
-        side_cache: &SideBuffer,
         game: &GameState,
+        (block_data, light_data, side_cache): (&BlockBuffer, &BlockBuffer, &SideBuffer),
     ) -> usize {
         let start = vertices.len();
         // First we slice the chunk into many, zero-initialized, planes
@@ -94,6 +99,8 @@ impl BlockMesh {
                     plane.width[y][x] = 1;
                     plane.height[y][x] = 1;
                     plane.block[y][x] = block_data[x + 1][y + 1][z + 1];
+                    let l = light_data[x][y][z] as u16;
+                    plane.light[y][x] = l | l << 4 | l << 8 | l << 12;
                 }
             }
             // If not a single face can be seen then we can skip this slice
@@ -102,12 +109,12 @@ impl BlockMesh {
             }
             plane.optimize();
             let cd = 1;
-            let light = 0x0F;
             for y in 0..CHUNK_SIZE {
                 for x in 0..CHUNK_SIZE {
                     if plane.block[y][x] == 0 {
                         continue;
                     }
+                    let light = plane.light[y][x];
                     let cw = plane.width[y][x];
                     let ch = plane.height[y][x];
                     let b = game.world.get_block_type(plane.block[y][x]);
@@ -122,9 +129,8 @@ impl BlockMesh {
 
     fn update_back(
         vertices: &mut Vec<BlockVertex>,
-        block_data: &BlockBuffer,
-        side_cache: &SideBuffer,
         game: &GameState,
+        (block_data, light_data, side_cache): (&BlockBuffer, &BlockBuffer, &SideBuffer),
     ) -> usize {
         let start = vertices.len();
         // First we slice the chunk into many, zero-initialized, planes
@@ -140,6 +146,8 @@ impl BlockMesh {
                     }
                     // Gotta increment our counter so that we don't skip this chunk
                     found += 1;
+                    let l = light_data[x][y][z] as u16;
+                    plane.light[y][x] = l | l << 4 | l << 8 | l << 12;
                     plane.width[y][x] = 1;
                     plane.height[y][x] = 1;
                     plane.block[y][x] = block_data[x + 1][y + 1][z + 1];
@@ -151,7 +159,6 @@ impl BlockMesh {
             }
             plane.optimize();
             let cd = 1;
-            let light = 0x0F;
             for y in 0..CHUNK_SIZE {
                 for x in 0..CHUNK_SIZE {
                     if plane.block[y][x] == 0 {
@@ -159,6 +166,7 @@ impl BlockMesh {
                     }
                     let cw = plane.width[y][x];
                     let ch = plane.height[y][x];
+                    let light = plane.light[y][x];
                     let b = game.world.get_block_type(plane.block[y][x]);
                     let pos = (x as u8, y as u8, z as u8);
                     let size = (cw, ch, cd);
@@ -171,9 +179,8 @@ impl BlockMesh {
 
     fn update_top(
         vertices: &mut Vec<BlockVertex>,
-        block_data: &BlockBuffer,
-        side_cache: &SideBuffer,
         game: &GameState,
+        (block_data, light_data, side_cache): (&BlockBuffer, &BlockBuffer, &SideBuffer),
     ) -> usize {
         let start = vertices.len();
         // First we slice the chunk into many, zero-initialized, planes
@@ -189,6 +196,8 @@ impl BlockMesh {
                     }
                     // Gotta increment our counter so that we don't skip this chunk
                     found += 1;
+                    let l = light_data[x][y][z] as u16;
+                    plane.light[z][x] = l | l << 4 | l << 8 | l << 12;
                     plane.width[z][x] = 1;
                     plane.height[z][x] = 1;
                     plane.block[z][x] = block_data[x + 1][y + 1][z + 1];
@@ -200,7 +209,6 @@ impl BlockMesh {
             }
             plane.optimize();
             let ch = 1;
-            let light = 0x0F;
             for z in 0..CHUNK_SIZE {
                 for x in 0..CHUNK_SIZE {
                     if plane.block[z][x] == 0 {
@@ -208,6 +216,7 @@ impl BlockMesh {
                     }
                     let cw = plane.width[z][x];
                     let cd = plane.height[z][x];
+                    let light = plane.light[z][x];
                     let b = game.world.get_block_type(plane.block[z][x]);
                     let pos = (x as u8, y as u8, z as u8);
                     let size = (cw, ch, cd);
@@ -220,9 +229,8 @@ impl BlockMesh {
 
     fn update_bottom(
         vertices: &mut Vec<BlockVertex>,
-        block_data: &BlockBuffer,
-        side_cache: &SideBuffer,
         game: &GameState,
+        (block_data, light_data, side_cache): (&BlockBuffer, &BlockBuffer, &SideBuffer),
     ) -> usize {
         let start = vertices.len();
         // First we slice the chunk into many, zero-initialized, planes
@@ -238,6 +246,8 @@ impl BlockMesh {
                     }
                     // Gotta increment our counter so that we don't skip this chunk
                     found += 1;
+                    let l = light_data[x][y][z] as u16;
+                    plane.light[z][x] = l | l << 4 | l << 8 | l << 12;
                     plane.width[z][x] = 1;
                     plane.height[z][x] = 1;
                     plane.block[z][x] = block_data[x + 1][y + 1][z + 1];
@@ -249,7 +259,6 @@ impl BlockMesh {
             }
             plane.optimize();
             let ch = 1;
-            let light = 0x0F;
             for z in 0..CHUNK_SIZE {
                 for x in 0..CHUNK_SIZE {
                     if plane.block[z][x] == 0 {
@@ -257,6 +266,7 @@ impl BlockMesh {
                     }
                     let cw = plane.width[z][x];
                     let cd = plane.height[z][x];
+                    let light = plane.light[z][x];
                     let b = game.world.get_block_type(plane.block[z][x]);
                     let pos = (x as u8, y as u8, z as u8);
                     let size = (cw, ch, cd);
@@ -269,9 +279,8 @@ impl BlockMesh {
 
     fn update_left(
         vertices: &mut Vec<BlockVertex>,
-        block_data: &BlockBuffer,
-        side_cache: &SideBuffer,
         game: &GameState,
+        (block_data, light_data, side_cache): (&BlockBuffer, &BlockBuffer, &SideBuffer),
     ) -> usize {
         let start = vertices.len();
         // First we slice the chunk into many, zero-initialized, planes
@@ -287,6 +296,8 @@ impl BlockMesh {
                     }
                     // Gotta increment our counter so that we don't skip this chunk
                     found += 1;
+                    let l = light_data[x][y][z] as u16;
+                    plane.light[y][z] = l | l << 4 | l << 8 | l << 12;
                     plane.width[y][z] = 1;
                     plane.height[y][z] = 1;
                     plane.block[y][z] = block_data[x + 1][y + 1][z + 1];
@@ -298,7 +309,6 @@ impl BlockMesh {
             }
             plane.optimize();
             let cw = 1;
-            let light = 0x0F;
             for y in 0..CHUNK_SIZE {
                 for z in 0..CHUNK_SIZE {
                     if plane.block[y][z] == 0 {
@@ -306,6 +316,7 @@ impl BlockMesh {
                     }
                     let cd = plane.width[y][z];
                     let ch = plane.height[y][z];
+                    let light = plane.light[y][z];
                     let b = game.world.get_block_type(plane.block[y][z]);
                     let pos = (x as u8, y as u8, z as u8);
                     let size = (cw, ch, cd);
@@ -318,9 +329,8 @@ impl BlockMesh {
 
     fn update_right(
         vertices: &mut Vec<BlockVertex>,
-        block_data: &BlockBuffer,
-        side_cache: &SideBuffer,
         game: &GameState,
+        (block_data, light_data, side_cache): (&BlockBuffer, &BlockBuffer, &SideBuffer),
     ) -> usize {
         let start = vertices.len();
         // First we slice the chunk into many, zero-initialized, planes
@@ -336,6 +346,8 @@ impl BlockMesh {
                     }
                     // Gotta increment our counter so that we don't skip this chunk
                     found += 1;
+                    let l = light_data[x][y][z] as u16;
+                    plane.light[y][z] = l | l << 4 | l << 8 | l << 12;
                     plane.width[y][z] = 1;
                     plane.height[y][z] = 1;
                     plane.block[y][z] = block_data[x + 1][y + 1][z + 1];
@@ -347,7 +359,6 @@ impl BlockMesh {
             }
             plane.optimize();
             let cw = 1;
-            let light = 0x0F;
             for y in 0..CHUNK_SIZE {
                 for z in 0..CHUNK_SIZE {
                     if plane.block[y][z] == 0 {
@@ -355,6 +366,7 @@ impl BlockMesh {
                     }
                     let cd = plane.width[y][z];
                     let ch = plane.height[y][z];
+                    let light = plane.light[y][z];
                     let b = game.world.get_block_type(plane.block[y][z]);
                     let pos = (x as u8, y as u8, z as u8);
                     let size = (cw, ch, cd);
@@ -368,6 +380,12 @@ impl BlockMesh {
     fn calc_block_data(block_data: &mut BlockBuffer, chunk: &ChunkBlockData) {
         for (x, y, z) in ChunkPosIter::new() {
             block_data[x + 1][y + 1][z + 1] = chunk.data[x][y][z];
+        }
+    }
+
+    fn calc_light_data(block_data: &mut BlockBuffer, light: &ChunkLightData) {
+        for (x, y, z) in ChunkPosIter::new() {
+            block_data[x + 1][y + 1][z + 1] = light.data[x][y][z];
         }
     }
 
@@ -389,26 +407,33 @@ impl BlockMesh {
         }
     }
 
-    pub fn update(&mut self, chunk: &ChunkBlockData, game: &GameState, now: u64) {
+    pub fn update(
+        &mut self,
+        chunk: &ChunkBlockData,
+        light: &ChunkLightData,
+        game: &GameState,
+        now: u64,
+    ) {
         self.last_updated_at = now;
-        let mut block_data: BlockBuffer = [[[0; CHUNK_SIZE + 2]; CHUNK_SIZE + 2]; CHUNK_SIZE + 2];
-        let mut side_cache: SideBuffer = [[[0; CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE];
         let mut vertices: Vec<BlockVertex> = Vec::with_capacity(8192);
 
+        let mut block_data: BlockBuffer = [[[0; CHUNK_SIZE + 2]; CHUNK_SIZE + 2]; CHUNK_SIZE + 2];
+        let mut light_data: BlockBuffer = [[[0; CHUNK_SIZE + 2]; CHUNK_SIZE + 2]; CHUNK_SIZE + 2];
+        let mut side_cache: SideBuffer = [[[0; CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE];
+
         Self::calc_block_data(&mut block_data, chunk);
+        Self::calc_light_data(&mut light_data, light);
         Self::calc_side_cache(&mut side_cache, &block_data);
 
-        self.side_square_count[0] =
-            Self::update_front(&mut vertices, &block_data, &side_cache, game);
-        self.side_square_count[1] =
-            Self::update_back(&mut vertices, &block_data, &side_cache, game);
-        self.side_square_count[2] = Self::update_top(&mut vertices, &block_data, &side_cache, game);
-        self.side_square_count[3] =
-            Self::update_bottom(&mut vertices, &block_data, &side_cache, game);
-        self.side_square_count[4] =
-            Self::update_left(&mut vertices, &block_data, &side_cache, game);
-        self.side_square_count[5] =
-            Self::update_right(&mut vertices, &block_data, &side_cache, game);
+        let data = (&block_data, &light_data, &side_cache);
+
+        self.side_square_count[0] = Self::update_front(&mut vertices, game, data);
+        self.side_square_count[1] = Self::update_back(&mut vertices, game, data);
+        self.side_square_count[2] = Self::update_top(&mut vertices, game, data);
+        self.side_square_count[3] = Self::update_bottom(&mut vertices, game, data);
+        self.side_square_count[4] = Self::update_left(&mut vertices, game, data);
+        self.side_square_count[5] = Self::update_right(&mut vertices, game, data);
+
         self.side_start[0] = 0;
         for i in 1..6 {
             self.side_start[i] = self.side_start[i - 1] + self.side_square_count[i - 1];

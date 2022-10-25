@@ -22,6 +22,27 @@ pub const CHUNK_SIZE: usize = 1 << CHUNK_BITS;
 pub const CHUNK_MASK: i32 = CHUNK_SIZE as i32 - 1;
 
 #[derive(Clone, Debug, Default)]
+pub struct ChunkLightData {
+    pub data: [[[u8; CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE],
+}
+
+impl ChunkLightData {
+    pub fn new() -> Self {
+        let mut data = [[[0; CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE];
+
+        for (x, data) in data.iter_mut().enumerate().take(CHUNK_SIZE) {
+            for (y, data) in data.iter_mut().enumerate().take(CHUNK_SIZE) {
+                for (z, datum) in data.iter_mut().enumerate().take(CHUNK_SIZE) {
+                    *datum = ((x ^ y ^ z) & 0xF) as u8;
+                }
+            }
+        }
+
+        Self { data }
+    }
+}
+
+#[derive(Clone, Debug, Default)]
 pub struct ChunkBlockData {
     pub data: [[[u8; CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE],
 }
