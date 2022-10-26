@@ -145,81 +145,60 @@ pub fn run_event_loop(state: AppState) {
             } => render_state.set_wireframe(false),
 
             KeyboardInput {
-                state: ElementState::Pressed,
+                state,
                 virtual_keycode: Some(VirtualKeyCode::W),
                 ..
-            } => render_state.input.key_down(Key::Up),
-            KeyboardInput {
-                state: ElementState::Released,
-                virtual_keycode: Some(VirtualKeyCode::W),
-                ..
-            } => render_state.input.key_up(Key::Up),
+            } => render_state
+                .input
+                .key_up_down(Key::Up, state == ElementState::Pressed),
 
             KeyboardInput {
-                state: ElementState::Pressed,
+                state,
                 virtual_keycode: Some(VirtualKeyCode::S),
                 ..
-            } => render_state.input.key_down(Key::Down),
-            KeyboardInput {
-                state: ElementState::Released,
-                virtual_keycode: Some(VirtualKeyCode::S),
-                ..
-            } => render_state.input.key_up(Key::Down),
+            } => render_state
+                .input
+                .key_up_down(Key::Down, state == ElementState::Pressed),
 
             KeyboardInput {
-                state: ElementState::Pressed,
+                state,
                 virtual_keycode: Some(VirtualKeyCode::A),
                 ..
-            } => render_state.input.key_down(Key::Left),
-            KeyboardInput {
-                state: ElementState::Released,
-                virtual_keycode: Some(VirtualKeyCode::A),
-                ..
-            } => render_state.input.key_up(Key::Left),
+            } => render_state
+                .input
+                .key_up_down(Key::Left, state == ElementState::Pressed),
 
             KeyboardInput {
-                state: ElementState::Pressed,
+                state,
                 virtual_keycode: Some(VirtualKeyCode::D),
                 ..
-            } => render_state.input.key_down(Key::Right),
-            KeyboardInput {
-                state: ElementState::Released,
-                virtual_keycode: Some(VirtualKeyCode::D),
-                ..
-            } => render_state.input.key_up(Key::Right),
+            } => render_state
+                .input
+                .key_up_down(Key::Right, state == ElementState::Pressed),
 
             KeyboardInput {
-                state: ElementState::Pressed,
+                state,
                 virtual_keycode: Some(VirtualKeyCode::Space),
                 ..
-            } => render_state.input.key_down(Key::Jump),
-            KeyboardInput {
-                state: ElementState::Released,
-                virtual_keycode: Some(VirtualKeyCode::Space),
-                ..
-            } => render_state.input.key_up(Key::Jump),
+            } => render_state
+                .input
+                .key_up_down(Key::Jump, state == ElementState::Pressed),
 
             KeyboardInput {
-                state: ElementState::Pressed,
+                state,
                 virtual_keycode: Some(VirtualKeyCode::C),
                 ..
-            } => render_state.input.key_down(Key::Crouch),
-            KeyboardInput {
-                state: ElementState::Released,
-                virtual_keycode: Some(VirtualKeyCode::C),
-                ..
-            } => render_state.input.key_up(Key::Crouch),
+            } => render_state
+                .input
+                .key_up_down(Key::Crouch, state == ElementState::Pressed),
 
             KeyboardInput {
-                state: ElementState::Pressed,
+                state,
                 virtual_keycode: Some(VirtualKeyCode::LShift),
                 ..
-            } => render_state.input.key_down(Key::Sprint),
-            KeyboardInput {
-                state: ElementState::Released,
-                virtual_keycode: Some(VirtualKeyCode::LShift),
-                ..
-            } => render_state.input.key_up(Key::Sprint),
+            } => render_state
+                .input
+                .key_up_down(Key::Sprint, state == ElementState::Pressed),
 
             _ => (),
         },

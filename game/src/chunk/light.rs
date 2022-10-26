@@ -112,7 +112,7 @@ impl ChunkLightData {
             for y in 0..CHUNK_SIZE {
                 for z in 0..CHUNK_SIZE {
                     if chunk.data[x][y][z] != 0 {
-                        self.data[x][y][z] >>= 1;
+                        self.data[x][y][z] /= 2;
                     }
                 }
             }

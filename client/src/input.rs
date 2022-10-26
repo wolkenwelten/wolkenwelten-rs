@@ -82,6 +82,9 @@ impl InputState {
     pub fn key_up(&mut self, code: Key) {
         self.button_states[code as usize] = false;
     }
+    pub fn key_up_down(&mut self, code: Key, pressed: bool) {
+        self.button_states[code as usize] = pressed;
+    }
 
     pub fn set_left_mouse_button(&mut self, pressed: bool) {
         self.mouse.left = pressed;

@@ -33,7 +33,7 @@ pub mod static_textures;
 pub struct ClientState {
     instant: Instant,
 
-    pub block_index_buffer: Vbo,
+    block_index_buffer: Vbo,
     pub world_mesh: HashMap<IVec3, BlockMesh>,
 
     window_width: u32,
@@ -83,6 +83,10 @@ impl Default for ClientState {
 impl ClientState {
     pub fn new() -> Self {
         Self::default()
+    }
+
+    pub fn block_indeces(&self) -> &Vbo {
+        &self.block_index_buffer
     }
 
     pub fn fps(&self) -> u32 {

@@ -102,7 +102,7 @@ pub fn prepare_chunk(fe: &mut ClientState, game: &GameState, pos: IVec3, now: u6
         _ => {
             if let Some(chunk) = game.get_chunk_block(pos) {
                 if let Some(light) = game.get_chunk_light(pos) {
-                    let mut mesh = BlockMesh::new(&fe.block_index_buffer);
+                    let mut mesh = BlockMesh::new(fe.block_indeces());
                     mesh.update(chunk, light, game, now);
                     fe.world_mesh.insert(pos, mesh);
                 }
