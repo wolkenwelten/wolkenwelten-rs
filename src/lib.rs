@@ -17,7 +17,6 @@ extern crate glutin;
 extern crate wolkenwelten_client;
 extern crate wolkenwelten_game;
 
-use glutin::dpi::PhysicalPosition;
 use glutin::event::{
     DeviceEvent, ElementState, Event, KeyboardInput, MouseButton, VirtualKeyCode, WindowEvent,
 };
@@ -49,7 +48,6 @@ pub fn init_glutin() -> (EventLoop<()>, ContextWrapper<PossiblyCurrent, Window>)
 
     let windowed_context = ContextBuilder::new()
         .with_vsync(true)
-        //.with_double_buffer(Some(true))
         .build_windowed(wb, &event_loop)
         .unwrap();
 
@@ -58,8 +56,8 @@ pub fn init_glutin() -> (EventLoop<()>, ContextWrapper<PossiblyCurrent, Window>)
 
     let window = windowed_context.window();
     let _ = window
-        .set_cursor_grab(CursorGrabMode::Confined)
-        .or_else(|_e| window.set_cursor_grab(CursorGrabMode::Locked));
+        .set_cursor_grab(CursorGrabMode::Locked)
+        .or_else(|_e| window.set_cursor_grab(CursorGrabMode::Confined));
     window.set_cursor_visible(false);
 
     (event_loop, windowed_context)
@@ -74,19 +72,12 @@ pub fn run_event_loop(state: AppState) {
     event_loop.run(move |event, _, control_flow| match event {
         Event::LoopDestroyed => (),
 
-        Event::WindowEvent {
-            event: WindowEvent::CursorMoved { position, .. },
+        Event::DeviceEvent {
+            event: DeviceEvent::MouseMotion { delta },
             ..
         } => {
-            let (window_width, window_height) = render_state.window_size();
-            let diffx = position.x as i32 - (window_width / 2) as i32;
-            let diffy = position.y as i32 - (window_height / 2) as i32;
-
-            game_state.player.rot.x += diffx as f32 * 0.025;
-            game_state.player.rot.y += diffy as f32 * 0.025;
-
-            let new_pos = PhysicalPosition::new(window_width / 2, window_height / 2);
-            let _ = windowed_context.window().set_cursor_position(new_pos);
+            game_state.player.rot.x += delta.0 as f32 * 0.05;
+            game_state.player.rot.y += delta.1 as f32 * 0.05;
         }
 
         Event::WindowEvent {
@@ -111,8 +102,8 @@ pub fn run_event_loop(state: AppState) {
             window.set_cursor_visible(!b);
             if b {
                 let _ = window
-                    .set_cursor_grab(CursorGrabMode::Confined)
-                    .or_else(|_e| window.set_cursor_grab(CursorGrabMode::Locked));
+                    .set_cursor_grab(CursorGrabMode::Locked)
+                    .or_else(|_e| window.set_cursor_grab(CursorGrabMode::Confined));
             } else {
                 let _ = window.set_cursor_grab(CursorGrabMode::None);
             }
