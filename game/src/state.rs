@@ -105,8 +105,9 @@ impl GameState {
     pub fn worldgen_chunk(&mut self, pos: IVec3) {
         let chnk = self.world.get(&pos);
         if chnk.is_none() {
-            self.world.insert(pos, ChunkBlockData::worldgen(pos));
-            self.world.insert_light(pos, ChunkLightData::new());
+            let chunk = ChunkBlockData::worldgen(pos);
+            self.world.insert_light(pos, ChunkLightData::new(&chunk));
+            self.world.insert(pos, chunk);
         };
     }
 

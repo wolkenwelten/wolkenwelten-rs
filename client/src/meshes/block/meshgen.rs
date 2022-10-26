@@ -77,6 +77,30 @@ impl PlaneEntry {
 }
 
 impl BlockMesh {
+    fn light_left_right(light_data: &BlockBuffer, x: usize, y: usize, z: usize) -> u16 {
+        let a = light_data[x][y][z] as u16;
+        let b = light_data[x][y + 1][z] as u16;
+        let c = light_data[x][y][z + 1] as u16;
+        let d = light_data[x][y + 1][z + 1] as u16;
+        ((a + b + c + d) / 4).min(15)
+    }
+
+    fn light_top_bottom(light_data: &BlockBuffer, x: usize, y: usize, z: usize) -> u16 {
+        let a = light_data[x][y][z] as u16;
+        let b = light_data[x][y][z + 1] as u16;
+        let c = light_data[x + 1][y][z] as u16;
+        let d = light_data[x + 1][y][z + 1] as u16;
+        ((a + b + c + d) / 4).min(15)
+    }
+
+    fn light_front_back(light_data: &BlockBuffer, x: usize, y: usize, z: usize) -> u16 {
+        let a = light_data[x][y][z] as u16;
+        let b = light_data[x][y + 1][z] as u16;
+        let c = light_data[x + 1][y][z] as u16;
+        let d = light_data[x + 1][y + 1][z] as u16;
+        ((a + b + c + d) / 4).min(15)
+    }
+
     fn update_front(
         vertices: &mut Vec<BlockVertex>,
         game: &GameState,
@@ -99,8 +123,10 @@ impl BlockMesh {
                     plane.width[y][x] = 1;
                     plane.height[y][x] = 1;
                     plane.block[y][x] = block_data[x + 1][y + 1][z + 1];
-                    let l = light_data[x][y][z] as u16;
-                    plane.light[y][x] = l | l << 4 | l << 8 | l << 12;
+                    plane.light[y][x] = Self::light_front_back(light_data, x, y, z + 2)
+                        | (Self::light_front_back(light_data, x + 1, y, z + 2) << 4)
+                        | (Self::light_front_back(light_data, x + 1, y + 1, z + 2) << 8)
+                        | (Self::light_front_back(light_data, x, y + 1, z + 2) << 12);
                 }
             }
             // If not a single face can be seen then we can skip this slice
@@ -146,11 +172,13 @@ impl BlockMesh {
                     }
                     // Gotta increment our counter so that we don't skip this chunk
                     found += 1;
-                    let l = light_data[x][y][z] as u16;
-                    plane.light[y][x] = l | l << 4 | l << 8 | l << 12;
                     plane.width[y][x] = 1;
                     plane.height[y][x] = 1;
                     plane.block[y][x] = block_data[x + 1][y + 1][z + 1];
+                    plane.light[y][x] = Self::light_front_back(light_data, x, y, z)
+                        | (Self::light_front_back(light_data, x, y + 1, z) << 4)
+                        | (Self::light_front_back(light_data, x + 1, y + 1, z) << 8)
+                        | (Self::light_front_back(light_data, x + 1, y, z) << 12);
                 }
             }
             // If not a single face can be seen then we can skip this slice
@@ -196,11 +224,13 @@ impl BlockMesh {
                     }
                     // Gotta increment our counter so that we don't skip this chunk
                     found += 1;
-                    let l = light_data[x][y][z] as u16;
-                    plane.light[z][x] = l | l << 4 | l << 8 | l << 12;
                     plane.width[z][x] = 1;
                     plane.height[z][x] = 1;
                     plane.block[z][x] = block_data[x + 1][y + 1][z + 1];
+                    plane.light[z][x] = Self::light_top_bottom(light_data, x, y + 2, z)
+                        | (Self::light_top_bottom(light_data, x, y + 2, z + 1) << 4)
+                        | (Self::light_top_bottom(light_data, x + 1, y + 2, z + 1) << 8)
+                        | (Self::light_top_bottom(light_data, x + 1, y + 2, z) << 12);
                 }
             }
             // If not a single face can be seen then we can skip this slice
@@ -246,11 +276,13 @@ impl BlockMesh {
                     }
                     // Gotta increment our counter so that we don't skip this chunk
                     found += 1;
-                    let l = light_data[x][y][z] as u16;
-                    plane.light[z][x] = l | l << 4 | l << 8 | l << 12;
                     plane.width[z][x] = 1;
                     plane.height[z][x] = 1;
                     plane.block[z][x] = block_data[x + 1][y + 1][z + 1];
+                    plane.light[z][x] = Self::light_top_bottom(light_data, x, y, z)
+                        | (Self::light_top_bottom(light_data, x + 1, y, z) << 4)
+                        | (Self::light_top_bottom(light_data, x + 1, y, z + 1) << 8)
+                        | (Self::light_top_bottom(light_data, x, y, z + 1) << 12);
                 }
             }
             // If not a single face can be seen then we can skip this slice
@@ -296,11 +328,13 @@ impl BlockMesh {
                     }
                     // Gotta increment our counter so that we don't skip this chunk
                     found += 1;
-                    let l = light_data[x][y][z] as u16;
-                    plane.light[y][z] = l | l << 4 | l << 8 | l << 12;
                     plane.width[y][z] = 1;
                     plane.height[y][z] = 1;
                     plane.block[y][z] = block_data[x + 1][y + 1][z + 1];
+                    plane.light[y][z] = Self::light_left_right(light_data, x, y, z)
+                        | (Self::light_left_right(light_data, x, y, z + 1) << 4)
+                        | (Self::light_left_right(light_data, x, y + 1, z + 1) << 8)
+                        | (Self::light_left_right(light_data, x, y + 1, z) << 12);
                 }
             }
             // If not a single face can be seen then we can skip this slice
@@ -346,11 +380,13 @@ impl BlockMesh {
                     }
                     // Gotta increment our counter so that we don't skip this chunk
                     found += 1;
-                    let l = light_data[x][y][z] as u16;
-                    plane.light[y][z] = l | l << 4 | l << 8 | l << 12;
                     plane.width[y][z] = 1;
                     plane.height[y][z] = 1;
                     plane.block[y][z] = block_data[x + 1][y + 1][z + 1];
+                    plane.light[y][z] = Self::light_left_right(light_data, x + 2, y, z)
+                        | (Self::light_left_right(light_data, x + 2, y + 1, z) << 4)
+                        | (Self::light_left_right(light_data, x + 2, y + 1, z + 1) << 8)
+                        | (Self::light_left_right(light_data, x + 2, y, z + 1) << 12);
                 }
             }
             // If not a single face can be seen then we can skip this slice

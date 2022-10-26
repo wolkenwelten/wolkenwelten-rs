@@ -2,7 +2,7 @@
 
 # WolkenWelten
 
-![Have a screenshot](https://github.com/wolkenwelten/wolkenwelten-screenshots/raw/main/2022_10_25.png)
+![Have a screenshot](https://github.com/wolkenwelten/wolkenwelten-screenshots/raw/main/2022_10_26.jpg)
 
 This is the rust port of the WolkenWelten codebase, everything is still super early so prepare for pretty much nothing
 working whatsoever.
@@ -48,8 +48,9 @@ After that executing the `cargo run --release` command should build and run the 
 - [X] Frame-rate independent physics/gameplay
 - [X] Greedy meshing (port from WW)
 - [X] Flat Lighting (port from WW, without ASM/SIMD (for now))
-- [ ] Actual Lightmaps (port from WW, without ASM/SIMD (for now))
-- [ ] Smooth Lighting (port from WW, without ASM/SIMD (for now))
+- [X] Simple Lightmaps (port from WW, without ASM/SIMD (for now))
+- [X] Smooth Lighting (port from WW, without ASM/SIMD (for now))
+- [ ] Correct Lightmaps
 - [ ] Block manipulation (simple removal/placement as well as block selection)
 - [ ] Import Models made with Goxel (probably using .vox format https://github.com/ephtracy/voxel-model/blob/master/MagicaVoxel-file-format-vox.txt)
 - [ ] Make entities use voxel meshes
