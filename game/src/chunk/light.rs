@@ -107,11 +107,11 @@ impl ChunkLightData {
         self.blur_y();
     }
 
-    fn _block(&mut self, chunk: &ChunkBlockData) {
+    fn ambient_occlusion(&mut self, chunk: &ChunkBlockData) {
         for x in 0..CHUNK_SIZE {
             for y in 0..CHUNK_SIZE {
                 for z in 0..CHUNK_SIZE {
-                    if chunk.data[x][y][z] == 0 {
+                    if chunk.data[x][y][z] != 0 {
                         self.data[x][y][z] >>= 1;
                     }
                 }
@@ -122,6 +122,6 @@ impl ChunkLightData {
     pub fn calculate(&mut self, chunk: &ChunkBlockData) {
         self.sunlight(chunk);
         self.blur();
-        //self.block(chunk);
+        self.ambient_occlusion(chunk);
     }
 }
