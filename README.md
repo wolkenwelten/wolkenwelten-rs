@@ -51,13 +51,17 @@ After that executing the `cargo run --release` command should build and run the 
 - [X] Simple Lightmaps (port from WW)
 - [X] Smooth Lighting (port from WW)
 - [X] Ambient Occlusion (port from WW)
+- [ ] Async lightmap calculation / mesh generation
 - [ ] Correct Lightmaps
 - [ ] Block manipulation (simple removal/placement as well as block selection)
 - [ ] Import Models made with Goxel (probably using .vox format https://github.com/ephtracy/voxel-model/blob/master/MagicaVoxel-file-format-vox.txt)
 - [ ] Make entities use voxel meshes
 
 # Scripting ToDo's
-- [ ] Embed deno_core and make sure the event loop runs regularly
+- [X] Embed deno_core
+- [ ] Experiment with Tokio
+- [ ] Run a proper deno event loop
+- [ ] Build a Module Loader
 - [ ] Enable TypeScript
 - [ ] Add `world.getBlock(x, y, z)` and `world.setBlock(x, y, z, b)`
 - [ ] Enable ES Modules
@@ -73,7 +77,7 @@ After that executing the `cargo run --release` command should build and run the 
 - [ ] Allow for the querying and creation of text labels from within JS
 - [ ] Add image widget type (just show a sprite from the GUI Atlas)
 - [ ] Add textarea widget, basically a label with line-wrap
-- [ ] Add button widget, with event handler, but no keyboard/gamepad support (yet) 
+- [ ] Add button widget, with event handler, but no keyboard/gamepad support (yet)
 - [ ] Allow reading of (absolute) mouse position from JS
 
 # Gameplay ToDo's

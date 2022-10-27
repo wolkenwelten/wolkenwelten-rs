@@ -16,6 +16,7 @@
 extern crate glutin;
 extern crate wolkenwelten_client;
 extern crate wolkenwelten_game;
+extern crate wolkenwelten_scripting;
 
 use glutin::event::{
     DeviceEvent, ElementState, Event, KeyboardInput, MouseButton, VirtualKeyCode, WindowEvent,
@@ -28,6 +29,7 @@ use wolkenwelten_client::{
     input_tick, prepare_frame, render_frame, set_viewport, ClientState, Key, RENDER_DISTANCE,
     VIEW_STEPS,
 };
+use wolkenwelten_scripting::Runtime;
 
 use wolkenwelten_game::GameState;
 
@@ -36,6 +38,7 @@ pub struct AppState {
     pub render_state: ClientState,
     pub event_loop: EventLoop<()>,
     pub windowed_context: ContextWrapper<PossiblyCurrent, Window>,
+    pub runtime: Runtime,
 }
 
 pub fn init_glutin() -> (EventLoop<()>, ContextWrapper<PossiblyCurrent, Window>) {
@@ -67,6 +70,7 @@ pub fn run_event_loop(state: AppState) {
     let mut render_state = state.render_state;
     let mut game_state = state.game_state;
     let event_loop = state.event_loop;
+    let mut runtime = state.runtime;
     let windowed_context = state.windowed_context;
 
     event_loop.run(move |event, _, control_flow| match event {
@@ -121,6 +125,12 @@ pub fn run_event_loop(state: AppState) {
                 virtual_keycode: Some(VirtualKeyCode::Escape),
                 ..
             } => *control_flow = ControlFlow::Exit,
+
+            KeyboardInput {
+                state: ElementState::Pressed,
+                virtual_keycode: Some(VirtualKeyCode::T),
+                ..
+            } => runtime.eval("print('You pressed T!');"),
 
             KeyboardInput {
                 state: ElementState::Pressed,
@@ -217,6 +227,8 @@ pub fn run_event_loop(state: AppState) {
             let render_distance = RENDER_DISTANCE * RENDER_DISTANCE;
             game_state.tick(render_distance);
             game_state.prepare_world(VIEW_STEPS, render_distance);
+
+            runtime.tick(game_state.get_millis());
 
             prepare_frame(&mut render_state, &game_state);
             render_frame(&render_state, &game_state);

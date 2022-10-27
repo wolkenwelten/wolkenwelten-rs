@@ -15,9 +15,11 @@
  */
 extern crate wolkenwelten_client;
 extern crate wolkenwelten_game;
+extern crate wolkenwelten_scripting;
 
 use wolkenwelten_client::{render_init, ClientState};
 use wolkenwelten_game::GameState;
+use wolkenwelten_scripting::Runtime;
 
 mod lib;
 
@@ -26,12 +28,15 @@ pub fn main() {
     render_init(); // This is separate because it has no dependency on glutin, just OpenGL
     let render_state = ClientState::new(); // Now that we have setup an OpenGL context, we cam load all meshes/textures/shaders
     let game_state = GameState::new();
+    let mut runtime = Runtime::new();
+    runtime.eval(include_str!("../modules/test.js"));
 
     // And after having set up everything we can start up the event loop
     lib::run_event_loop(lib::AppState {
         game_state,
         render_state,
         event_loop,
+        runtime,
         windowed_context,
     })
 }
