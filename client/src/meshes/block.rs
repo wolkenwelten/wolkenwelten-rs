@@ -16,11 +16,9 @@
 use super::util;
 use super::{Vao, Vbo};
 use gl::types::GLvoid;
-
-mod meshgen;
-mod vertex;
-
-use vertex::BlockVertex;
+use wolkenwelten_game::{ChunkBlockData, ChunkLightData, GameState};
+use wolkenwelten_meshgen;
+use wolkenwelten_meshgen::BlockVertex;
 
 #[derive(Debug, Default)]
 pub struct BlockMesh {
@@ -79,7 +77,7 @@ impl BlockMesh {
 
     pub fn new(index_vbo: &Vbo) -> Self {
         let vao = Vao::new_empty("BlockMesh");
-        BlockVertex::vertex_attrib_pointers();
+        Self::vertex_attrib_pointers();
         index_vbo.bind_element();
         Self {
             vao,
@@ -91,5 +89,37 @@ impl BlockMesh {
 
     pub fn last_updated_at(&self) -> u64 {
         self.last_updated_at
+    }
+
+    pub fn update(
+        &mut self,
+        chunk: &ChunkBlockData,
+        light: &ChunkLightData,
+        game: &GameState,
+        now: u64,
+    ) {
+        self.last_updated_at = now;
+
+        let (vertices, side_start_count) = wolkenwelten_meshgen::generate(chunk, light, game);
+        self.side_square_count = side_start_count;
+        self.side_start[0] = 0;
+        for i in 1..6 {
+            self.side_start[i] = self.side_start[i - 1] + self.side_square_count[i - 1];
+        }
+
+        self.vao.bind();
+        let vbo_size: usize = vertices.len() * std::mem::size_of::<BlockVertex>();
+        Vbo::buffer_data(vertices.as_ptr() as *const GLvoid, vbo_size as u32);
+        Self::vertex_attrib_pointers();
+    }
+
+    pub fn vertex_attrib_pointers() {
+        let stride = std::mem::size_of::<BlockVertex>();
+        unsafe {
+            let offset = util::vertex_attrib_int_pointer(stride, 0, 0, gl::UNSIGNED_BYTE, 3, 3);
+            let offset =
+                util::vertex_attrib_int_pointer(stride, 1, offset, gl::UNSIGNED_BYTE, 1, 1);
+            util::vertex_attrib_int_pointer(stride, 2, offset, gl::UNSIGNED_BYTE, 1, 1);
+        }
     }
 }

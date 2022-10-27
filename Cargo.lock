@@ -1487,6 +1487,7 @@ dependencies = [
  "winit",
  "wolkenwelten-client",
  "wolkenwelten-game",
+ "wolkenwelten-meshgen",
 ]
 
 [[package]]
@@ -1499,6 +1500,7 @@ dependencies = [
  "tobj",
  "winit",
  "wolkenwelten-game",
+ "wolkenwelten-meshgen",
 ]
 
 [[package]]
@@ -1508,6 +1510,13 @@ dependencies = [
  "glam",
  "rand",
  "rand_chacha",
+]
+
+[[package]]
+name = "wolkenwelten-meshgen"
+version = "0.0.1"
+dependencies = [
+ "wolkenwelten-game",
 ]
 
 [[package]]

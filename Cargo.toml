@@ -27,14 +27,19 @@ path = "client"
 [dependencies.wolkenwelten-game]
 path = "game"
 
+[dependencies.wolkenwelten-meshgen]
+path = "meshgen"
+
 [workspace]
 members = [
     "./",
     "game",
     "client",
+    "meshgen",
 ]
 default-members = [
     "./",
     "game",
     "client",
+    "meshgen",
 ]
