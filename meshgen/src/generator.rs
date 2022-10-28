@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 use super::BlockVertex;
-use wolkenwelten_common::{ChunkPosIter, CHUNK_SIZE, Side};
+use wolkenwelten_common::{ChunkPosIter, Side, CHUNK_SIZE};
 use wolkenwelten_game::{ChunkBlockData, ChunkLightData, GameState};
 
 type BlockBuffer = [[[u8; CHUNK_SIZE + 2]; CHUNK_SIZE + 2]; CHUNK_SIZE + 2];

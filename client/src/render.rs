@@ -26,7 +26,8 @@ use wolkenwelten_common::{CHUNK_BITS, CHUNK_SIZE};
 use wolkenwelten_game::{Character, Entity, GameState};
 
 pub const RENDER_DISTANCE: f32 = 192.0;
-const FADEOUT_DISTANCE: f32 = 32.0 * 32.0;
+const FADE_DISTANCE: f32 = 32.0;
+const FADEOUT_DISTANCE: f32 = FADE_DISTANCE * FADE_DISTANCE;
 const FADEOUT_START_DISTANCE: f32 = (RENDER_DISTANCE - 32.0) * (RENDER_DISTANCE - 32.0);
 pub const VIEW_STEPS: i32 = (RENDER_DISTANCE as i32 / CHUNK_SIZE as i32) + 1;
 
@@ -241,12 +242,12 @@ fn build_render_queue(player_pos: Vec3, frustum: &Frustum) -> BinaryHeap<QueueEn
                 } else {
                     let trans = Vec3::new(trans_x, trans_y, trans_z);
                     let dist = trans - player_pos;
-                    let dist = dist.dot(dist);
-                    if dist < FADEOUT_DISTANCE + FADEOUT_START_DISTANCE {
-                        let alpha = if dist < FADEOUT_START_DISTANCE {
+                    let dist = dist.length();
+                    if dist < RENDER_DISTANCE {
+                        let alpha = if dist < (RENDER_DISTANCE - FADE_DISTANCE) {
                             1.0
                         } else {
-                            1.0 - ((dist - FADEOUT_START_DISTANCE) / FADEOUT_DISTANCE)
+                            1.0 - ((dist - (RENDER_DISTANCE - FADE_DISTANCE)) / FADE_DISTANCE)
                         };
                         let dist = (dist * 8192.0) as i64;
                         let pos = IVec3::new(x, y, z);
@@ -284,7 +285,7 @@ fn render_chungus(fe: &ClientState, game: &GameState, mvp: &Mat4) {
 }
 
 fn render_sky(fe: &ClientState, _game: &GameState, view: Mat4, projection: Mat4) {
-    let s = RENDER_DISTANCE + CHUNK_SIZE as f32;
+    let s = RENDER_DISTANCE + CHUNK_SIZE as f32 * 2.0;
     let view = view * Mat4::from_scale(Vec3::new(s, s, s));
     let mvp = projection * view;
     fe.shaders.mesh.set_used();
@@ -300,7 +301,7 @@ fn render_game(fe: &ClientState, game: &GameState) {
         fe.fov().to_radians(),
         (window_width as f32) / (window_height as f32),
         0.1,
-        RENDER_DISTANCE + CHUNK_SIZE as f32,
+        RENDER_DISTANCE + CHUNK_SIZE as f32 * 2.0,
     );
     let view = Mat4::from_rotation_x(game.player.rot[1].to_radians());
     let view = view * Mat4::from_rotation_y(game.player.rot[0].to_radians());
