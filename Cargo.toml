@@ -21,6 +21,9 @@ client = []
 [dependencies.wolkenwelten-client]
 path = "client"
 
+[dependencies.wolkenwelten-common]
+path = "common"
+
 [dependencies.wolkenwelten-game]
 path = "game"
 
@@ -37,6 +40,7 @@ path = "sound"
 members = [
     "./",
     "game",
+    "common",
     "client",
     "meshgen",
     "scripting",
@@ -45,6 +49,7 @@ members = [
 default-members = [
     "./",
     "game",
+    "common",
     "client",
     "meshgen",
     "scripting",

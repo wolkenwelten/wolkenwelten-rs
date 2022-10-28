@@ -14,6 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 use super::*;
+use wolkenwelten_common::CHUNK_SIZE;
 
 impl ChunkBlockData {
     fn worldgen_island(mut self, rng: &mut ChaCha8Rng) -> Self {

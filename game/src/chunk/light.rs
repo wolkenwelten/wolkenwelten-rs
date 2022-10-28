@@ -14,6 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 use super::*;
+use wolkenwelten_common::{ChunkPosIter, CHUNK_MASK, CHUNK_SIZE};
 
 #[derive(Clone, Debug, Default)]
 pub struct ChunkLightData {
@@ -108,13 +109,9 @@ impl ChunkLightData {
     }
 
     fn ambient_occlusion(&mut self, chunk: &ChunkBlockData) {
-        for x in 0..CHUNK_SIZE {
-            for y in 0..CHUNK_SIZE {
-                for z in 0..CHUNK_SIZE {
-                    if chunk.data[x][y][z] != 0 {
-                        self.data[x][y][z] /= 2;
-                    }
-                }
+        for (x, y, z) in ChunkPosIter::new() {
+            if chunk.data[x][y][z] != 0 {
+                self.data[x][y][z] /= 2;
             }
         }
     }

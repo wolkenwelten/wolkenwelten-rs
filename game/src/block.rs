@@ -13,27 +13,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#[derive(Copy, Clone, Debug, Default, Eq, PartialEq, Hash)]
-pub enum Side {
-    #[default]
-    Front = 0,
-    Back,
-    Top,
-    Bottom,
-    Left,
-    Right,
-}
-
-impl From<Side> for u8 {
-    fn from(s: Side) -> Self {
-        s as u8
-    }
-}
-impl From<Side> for usize {
-    fn from(s: Side) -> Self {
-        s as usize
-    }
-}
+use wolkenwelten_common::Side;
 
 #[derive(Clone, Debug, Default)]
 pub struct BlockType {

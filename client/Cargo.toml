@@ -11,9 +11,6 @@ gl = "0.14.0"
 glam = "0.22.0"
 tobj = "3.2.3"
 image = { version = "0.24.4", default-features = false, features = ["png"]}
-
-[dependencies.wolkenwelten-game]
-path = "../game"
-
-[dependencies.wolkenwelten-meshgen]
-path = "../meshgen"
+wolkenwelten-common = { path = "../common" }
+wolkenwelten-game = { path = "../game" }
+wolkenwelten-meshgen = { path = "../meshgen" }

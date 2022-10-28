@@ -23,7 +23,8 @@ use glam::f32::Vec3;
 use glam::i32::IVec3;
 use std::collections::HashMap;
 use std::time::Instant;
-use wolkenwelten_game::{Character, CHUNK_SIZE};
+use wolkenwelten_common::CHUNK_SIZE;
+use wolkenwelten_game::Character;
 
 pub mod static_meshes;
 pub mod static_shaders;

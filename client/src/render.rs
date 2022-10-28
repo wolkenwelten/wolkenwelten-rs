@@ -22,7 +22,8 @@ use glam::IVec3;
 use std::cmp::Ordering;
 use std::collections::BinaryHeap;
 use std::sync::RwLock;
-use wolkenwelten_game::{Character, Entity, GameState, CHUNK_BITS, CHUNK_SIZE};
+use wolkenwelten_common::{CHUNK_BITS, CHUNK_SIZE};
+use wolkenwelten_game::{Character, Entity, GameState};
 
 pub const RENDER_DISTANCE: f32 = 192.0;
 const FADEOUT_DISTANCE: f32 = 32.0 * 32.0;

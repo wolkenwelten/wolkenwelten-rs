@@ -17,10 +17,6 @@ use glam::IVec3;
 use rand::prelude::*;
 use rand_chacha::ChaCha8Rng;
 
-pub const CHUNK_BITS: i32 = 5;
-pub const CHUNK_SIZE: usize = 1 << CHUNK_BITS;
-pub const CHUNK_MASK: i32 = CHUNK_SIZE as i32 - 1;
-
 mod block;
 mod light;
 mod worldgen;

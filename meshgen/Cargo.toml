@@ -6,6 +6,6 @@ license = "AGPL-3.0-or-later"
 homepage = "https://wolkenwelten.net"
 
 [dependencies]
+wolkenwelten-game = { path = "../game" }
+wolkenwelten-common = { path = "../common" }
 
-[dependencies.wolkenwelten-game]
-path = "../game"

@@ -14,36 +14,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 use super::BlockVertex;
-use wolkenwelten_game::{
-    ChunkBlockData, ChunkLightData, GameState, Side, CHUNK_BITS, CHUNK_MASK, CHUNK_SIZE,
-};
+use wolkenwelten_common::{ChunkPosIter, CHUNK_SIZE, Side};
+use wolkenwelten_game::{ChunkBlockData, ChunkLightData, GameState};
 
 type BlockBuffer = [[[u8; CHUNK_SIZE + 2]; CHUNK_SIZE + 2]; CHUNK_SIZE + 2];
 type SideBuffer = [[[u8; CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE];
-
-struct ChunkPosIter {
-    i: usize,
-}
-impl ChunkPosIter {
-    pub fn new() -> Self {
-        Self { i: 0 }
-    }
-}
-
-impl Iterator for ChunkPosIter {
-    type Item = (usize, usize, usize);
-
-    fn next(&mut self) -> Option<Self::Item> {
-        let x = self.i >> (CHUNK_BITS * 2);
-        if x >= CHUNK_SIZE {
-            return None;
-        }
-        let y = (self.i >> CHUNK_BITS) & CHUNK_MASK as usize;
-        let z = self.i & CHUNK_MASK as usize;
-        self.i += 1;
-        Some((x as usize, y as usize, z as usize))
-    }
-}
 
 #[derive(Copy, Clone, Debug, Default)]
 struct PlaneEntry {

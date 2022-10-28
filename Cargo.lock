@@ -4059,6 +4059,7 @@ dependencies = [
  "glutin",
  "winit",
  "wolkenwelten-client",
+ "wolkenwelten-common",
  "wolkenwelten-game",
  "wolkenwelten-meshgen",
  "wolkenwelten-scripting",
@@ -4074,9 +4075,14 @@ dependencies = [
  "image",
  "tobj",
  "winit",
+ "wolkenwelten-common",
  "wolkenwelten-game",
  "wolkenwelten-meshgen",
 ]
+
+[[package]]
+name = "wolkenwelten-common"
+version = "0.0.1"
 
 [[package]]
 name = "wolkenwelten-game"
@@ -4085,12 +4091,14 @@ dependencies = [
  "glam",
  "rand",
  "rand_chacha",
+ "wolkenwelten-common",
 ]
 
 [[package]]
 name = "wolkenwelten-meshgen"
 version = "0.0.1"
 dependencies = [
+ "wolkenwelten-common",
  "wolkenwelten-game",
 ]
 

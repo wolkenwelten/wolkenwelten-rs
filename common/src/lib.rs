@@ -13,21 +13,32 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-extern crate glam;
-extern crate rand;
+mod iter;
 
-pub use self::block::BlockType;
-pub use self::character::Character;
-pub use self::chungus::Chungus;
-pub use self::chunk::{ChunkBlockData, ChunkLightData};
-pub use self::entity::Entity;
-pub use self::state::GameState;
-pub use event::GameEvent;
+pub const CHUNK_BITS: i32 = 5;
+pub const CHUNK_SIZE: usize = 1 << CHUNK_BITS;
+pub const CHUNK_MASK: i32 = CHUNK_SIZE as i32 - 1;
 
-mod block;
-mod character;
-mod chungus;
-mod chunk;
-mod entity;
-mod event;
-mod state;
+#[derive(Copy, Clone, Debug, Default, Eq, PartialEq, Hash)]
+pub enum Side {
+    #[default]
+    Front = 0,
+    Back,
+    Top,
+    Bottom,
+    Left,
+    Right,
+}
+
+impl From<Side> for u8 {
+    fn from(s: Side) -> Self {
+        s as u8
+    }
+}
+impl From<Side> for usize {
+    fn from(s: Side) -> Self {
+        s as usize
+    }
+}
+
+pub use iter::ChunkPosIter;
