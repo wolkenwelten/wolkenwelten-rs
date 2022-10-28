@@ -25,6 +25,7 @@ fn main() {
                 ..Default::default()
             },
             |handler| {
+                println!("cargo:rerun-if-changed=../modules/");
                 let fm = cm
                     .load_file(Path::new("../modules/main.ts"))
                     .expect("failed to load file");
