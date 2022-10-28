@@ -14,8 +14,6 @@ glutin = "0.29.1"
 gl = "0.14.0"
 winit = { version = "0.27.5", default-features = false, features = ["x11"]}
 
-#rapier3d = "0.15.0"
-
 [features]
 default = ["client"]
 client = []

@@ -35,7 +35,7 @@ impl Default for Runtime {
         });
 
         runtime
-            .execute_script("<init>", include_str!("../../modules/preamble.js"))
+            .execute_script("<init>", include_str!("../../target/dist/main.js"))
             .unwrap();
 
         Self { runtime }

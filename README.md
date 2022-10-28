@@ -59,10 +59,10 @@ After that executing the `cargo run --release` command should build and run the 
 
 # Scripting ToDo's
 - [X] Embed deno_core
+- [X] Enable TypeScript
 - [ ] Experiment with Tokio
 - [ ] Run a proper deno event loop
 - [ ] Build a Module Loader
-- [ ] Enable TypeScript
 - [ ] Add `world.getBlock(x, y, z)` and `world.setBlock(x, y, z, b)`
 - [ ] Enable ES Modules
 - [ ] Make worldgen call into deno and receive an entire chunk of data

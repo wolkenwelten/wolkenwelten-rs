@@ -28,8 +28,7 @@ pub fn main() {
     render_init(); // This is separate because it has no dependency on glutin, just OpenGL
     let render_state = ClientState::new(); // Now that we have setup an OpenGL context, we cam load all meshes/textures/shaders
     let game_state = GameState::new();
-    let mut runtime = Runtime::new();
-    runtime.eval(include_str!("../modules/test.js"));
+    let runtime = Runtime::new();
 
     // And after having set up everything we can start up the event loop
     lib::run_event_loop(lib::AppState {
