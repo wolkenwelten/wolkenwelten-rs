@@ -19,6 +19,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+      - name: Install dependencies
+        run: sudo apt-get -y install libasound2-dev
       - name: Run clippy
         run: cargo clippy --no-deps
   cargo-test:
@@ -27,6 +29,8 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v3
+    - name: Install dependencies
+      run: sudo apt-get -y install libasound2-dev
     - name: Run testsuite
       run: cargo test
 

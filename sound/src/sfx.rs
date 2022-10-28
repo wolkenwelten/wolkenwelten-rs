@@ -13,26 +13,15 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-extern crate glam;
-extern crate winit;
-extern crate wolkenwelten_game;
+pub struct Sfx {
+    bytes: &'static [u8],
+}
 
-pub use self::frustum::Frustum;
-pub use self::input::{input_tick, InputState, Key};
-pub use self::meshes::Mesh;
-pub use self::render::{
-    prepare_frame, render_frame, render_init, set_viewport, RENDER_DISTANCE, VIEW_STEPS,
-};
-pub use self::shader::Program;
-pub use self::state::ClientState;
-pub use self::texture::{Texture, TextureArray};
-pub use event::InputEvent;
-
-mod event;
-mod frustum;
-mod input;
-mod meshes;
-mod render;
-mod shader;
-mod state;
-mod texture;
+impl Sfx {
+    pub fn from_bytes(bytes: &'static [u8]) -> Self {
+        Self { bytes }
+    }
+    pub fn get_bytes(&self) -> &'static [u8] {
+        self.bytes
+    }
+}

@@ -1,0 +1,9 @@
+[package]
+name = "wolkenwelten-sound"
+version = "0.0.1"
+edition = "2021"
+license = "AGPL-3.0-or-later"
+homepage = "https://wolkenwelten.net"
+
+[dependencies]
+rodio = {version = "0.16.0", default-features = false, features = ["vorbis"]}

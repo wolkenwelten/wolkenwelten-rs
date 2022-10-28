@@ -13,7 +13,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-use crate::ClientState;
+use crate::{ClientState, InputEvent};
 use glam::swizzles::Vec4Swizzles;
 use glam::{Vec3, Vec3Swizzles};
 use wolkenwelten_game::{Entity, GameState};
@@ -157,7 +157,7 @@ impl InputState {
     }
 }
 
-fn input_tick_no_clip(game: &mut GameState, fe: &ClientState) {
+fn input_tick_no_clip(game: &mut GameState, fe: &ClientState) -> Vec<InputEvent> {
     let view = glam::Mat4::from_rotation_y(-game.player.rot[0].to_radians());
     let view = view * glam::Mat4::from_rotation_x(-game.player.rot[1].to_radians());
     let v = glam::Vec4::from((fe.input.get_movement_vector(), 1.0_f32));
@@ -165,9 +165,12 @@ fn input_tick_no_clip(game: &mut GameState, fe: &ClientState) {
     let speed = fe.input.get_speed() * 0.15;
     game.player.vel = move_vec * speed;
     game.player.vel.y += fe.input.get_jump() * speed;
+
+    Vec::new()
 }
 
-fn input_tick_default(game: &mut GameState, fe: &ClientState) {
+fn input_tick_default(game: &mut GameState, fe: &ClientState) -> Vec<InputEvent> {
+    let mut events = Vec::new();
     let view = glam::Mat4::from_rotation_y(-game.player.rot[0].to_radians());
     let view = view * glam::Mat4::from_rotation_x(-game.player.rot[1].to_radians());
     let v = glam::Vec4::from((fe.input.get_movement_vector(), 1.0_f32));
@@ -190,10 +193,12 @@ fn input_tick_default(game: &mut GameState, fe: &ClientState) {
 
     if (fe.input.get_jump() > 0.0) && game.player.may_jump(&game.world) {
         game.player.jump();
+        events.push(InputEvent::PlayerJump());
     }
+    events
 }
 
-pub fn input_tick(game: &mut GameState, fe: &ClientState) {
+pub fn input_tick(game: &mut GameState, fe: &ClientState) -> Vec<InputEvent> {
     let rot_vec = fe.input.get_rotation_movement_vector();
     let now = game.get_millis();
 
@@ -215,17 +220,19 @@ pub fn input_tick(game: &mut GameState, fe: &ClientState) {
         game.player.rot[1] = 90.0;
     }
 
-    if game.player.no_clip() {
-        input_tick_no_clip(game, fe);
+    let mut events = if game.player.no_clip() {
+        input_tick_no_clip(game, fe)
     } else {
-        input_tick_default(game, fe);
-    }
+        input_tick_default(game, fe)
+    };
 
     if fe.input.mouse.left && game.player.may_act(now) {
-        game.player.set_cooldown(now + 100);
+        game.player.set_cooldown(now + 600);
         let mut e = Entity::new();
         e.set_pos(game.player.pos());
-        e.set_vel(game.player.direction() * 0.1);
+        e.set_vel(game.player.direction() * 0.4);
         game.push_entity(e);
+        events.push(InputEvent::PlayerShoot());
     }
+    events
 }

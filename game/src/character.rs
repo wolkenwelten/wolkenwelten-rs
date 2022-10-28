@@ -14,6 +14,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 use super::Chungus;
+use crate::GameEvent;
+use crate::GameEvent::CharacterStomp;
 use glam::Vec3;
 use std::f32::consts::PI;
 
@@ -84,13 +86,14 @@ impl Character {
         )
     }
 
-    pub fn tick(&mut self, world: &Chungus) {
+    pub fn tick(&mut self, events: &mut Vec<GameEvent>, world: &Chungus) {
         if self.no_clip {
             self.pos += self.vel;
             return;
         }
 
         self.vel.y -= 0.0005;
+        let old = self.vel;
 
         if world.is_solid(self.pos + COL_POINT_LEFT) {
             self.vel.x = self.vel.x.max(0.0);
@@ -111,6 +114,10 @@ impl Character {
         }
         if world.is_solid(self.pos + COL_POINT_BACK) {
             self.vel.z = self.vel.z.max(0.0);
+        }
+
+        if (old - self.vel).length() > 0.01 {
+            events.push(CharacterStomp(self.pos));
         }
 
         let len = self.vel.length();

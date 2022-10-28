@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 use super::{Character, Chungus, ChunkBlockData, Entity};
-use crate::{ChunkLightData, CHUNK_BITS, CHUNK_MASK, CHUNK_SIZE};
+use crate::{ChunkLightData, GameEvent, CHUNK_BITS, CHUNK_MASK, CHUNK_SIZE};
 use glam::f32::Vec3;
 use glam::i32::IVec3;
 use rand::Rng;
@@ -126,19 +126,22 @@ impl GameState {
         self.entities.push(e);
     }
 
-    pub fn tick(&mut self, render_distance: f32) {
+    pub fn tick(&mut self, render_distance: f32) -> Vec<GameEvent> {
+        let mut events: Vec<GameEvent> = Vec::new();
         let ticks_goal = self.clock.elapsed().as_millis() as u64 / MS_PER_TICK;
         let to_run = ticks_goal - self.ticks_elapsed;
 
         for _ in 0..to_run {
             self.ticks_elapsed += 1;
             Entity::tick(&mut self.entities, &self.player, &self.world);
-            self.player.tick(&self.world);
+            self.player.tick(&mut events, &self.world);
         }
         if self.ticks_elapsed > self.last_gc {
             self.world.gc(&self.player, render_distance);
             self.last_gc = self.ticks_elapsed + 50;
         }
+
+        events
     }
 
     pub fn worldgen_chunk(&mut self, pos: IVec3) -> bool {

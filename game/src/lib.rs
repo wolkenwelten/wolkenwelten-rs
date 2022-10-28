@@ -22,10 +22,12 @@ pub use self::chungus::Chungus;
 pub use self::chunk::{ChunkBlockData, ChunkLightData, CHUNK_BITS, CHUNK_MASK, CHUNK_SIZE};
 pub use self::entity::Entity;
 pub use self::state::GameState;
+pub use event::GameEvent;
 
 mod block;
 mod character;
 mod chungus;
 mod chunk;
 mod entity;
+mod event;
 mod state;

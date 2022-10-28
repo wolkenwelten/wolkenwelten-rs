@@ -26,12 +26,13 @@ use glutin::event_loop::EventLoop;
 use glutin::window::{CursorGrabMode, Window, WindowBuilder};
 use glutin::{ContextBuilder, ContextWrapper, PossiblyCurrent};
 use wolkenwelten_client::{
-    input_tick, prepare_frame, render_frame, set_viewport, ClientState, Key, RENDER_DISTANCE,
-    VIEW_STEPS,
+    input_tick, prepare_frame, render_frame, set_viewport, ClientState, InputEvent, Key,
+    RENDER_DISTANCE, VIEW_STEPS,
 };
 use wolkenwelten_scripting::Runtime;
+use wolkenwelten_sound::SfxList;
 
-use wolkenwelten_game::GameState;
+use wolkenwelten_game::{GameEvent, GameState};
 
 pub struct AppState {
     pub game_state: GameState,
@@ -39,6 +40,7 @@ pub struct AppState {
     pub event_loop: EventLoop<()>,
     pub windowed_context: ContextWrapper<PossiblyCurrent, Window>,
     pub runtime: Runtime,
+    pub sfx: SfxList,
 }
 
 pub fn init_glutin() -> (EventLoop<()>, ContextWrapper<PossiblyCurrent, Window>) {
@@ -221,11 +223,18 @@ pub fn run_event_loop(state: AppState) {
             set_viewport(&render_state);
         }
         Event::MainEventsCleared => {
-            input_tick(&mut game_state, &render_state);
+            let events = input_tick(&mut game_state, &render_state);
+            events.iter().for_each(|e| match e {
+                InputEvent::PlayerJump() => state.sfx.play(&state.sfx.jump, 0.2),
+                InputEvent::PlayerShoot() => state.sfx.play(&state.sfx.hook_fire, 0.4),
+            });
             render_state.input.mouse_flush();
 
             let render_distance = RENDER_DISTANCE * RENDER_DISTANCE;
-            game_state.tick(render_distance);
+            let events = game_state.tick(render_distance);
+            events.iter().for_each(|e| match e {
+                GameEvent::CharacterStomp(_pos) => state.sfx.play(&state.sfx.stomp, 0.3),
+            });
             game_state.prepare_world(VIEW_STEPS, render_distance);
 
             runtime.tick(game_state.get_millis());

@@ -12,7 +12,7 @@ An open voxel sandbox
 [dependencies]
 glutin = "0.29.1"
 gl = "0.14.0"
-winit = { version = "0.27.5", default-features = false, features = ["x11"]}
+winit = "0.27.5"
 
 [features]
 default = ["client"]
@@ -30,6 +30,9 @@ path = "meshgen"
 [dependencies.wolkenwelten-scripting]
 path = "scripting"
 
+[dependencies.wolkenwelten-sound]
+path = "sound"
+
 [workspace]
 members = [
     "./",
@@ -37,6 +40,7 @@ members = [
     "client",
     "meshgen",
     "scripting",
+    "sound",
 ]
 default-members = [
     "./",
@@ -44,4 +48,5 @@ default-members = [
     "client",
     "meshgen",
     "scripting",
+    "sound",
 ]

@@ -31,7 +31,6 @@ After that executing the `cargo run --release` command should build and run the 
 - [X] No SDL2 (it worked quite well, but it simplifies the build process to have as much as possible be written in Rust)
 - [X] Bigger world Size (32-bit per axis, instead of 16, allowing for ~4 Billion Blocks per Axis as compared to ~65 thousand before)
 - [X] Include V8 as a scripting runtime instead of Nujel
-- [ ] OpenAL for sound output
 - [ ] Single executable for client/server (the client should be a feature that can be disabled though)
 - [ ] Meshes are voxel based, just like the world
 
@@ -60,7 +59,7 @@ After that executing the `cargo run --release` command should build and run the 
 # Scripting ToDo's
 - [X] Embed deno_core
 - [X] Enable TypeScript
-- [ ] Experiment with Tokio
+- [ ] Experiment with Tokio/async
 - [ ] Run a proper deno event loop
 - [ ] Build a module loader / Enable ESM support
 - [ ] Add `world.getBlock(x, y, z)` and `world.setBlock(x, y, z, b)`
@@ -93,13 +92,15 @@ After that executing the `cargo run --release` command should build and run the 
 - [ ] Super simple mob (chases player when close enough and does melee attack)
 
 # Sound ToDo's
+- [X] Play sounds using rodio
+- [X] Play sound when jumping
+- [X] Play sound when shooting/throwing
+- [X] Play sound when player stomps
 - [ ] Allow triggering of SFX via JS
 - [ ] Play sound when player hurt
 - [ ] Play sound when mob hurt
 - [ ] Play sound when mob attacks
-- [ ] Play sound when player stomps
 - [ ] Play sound when mining
-- [ ] Play sound when jumping
 
 # Multiplayer ToDo's
 - [ ] Super simple multiplayer (connecting with login/logout messages only for now)
