@@ -14,13 +14,52 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 use super::{Character, Chungus, ChunkBlockData, Entity};
-use crate::{ChunkLightData, CHUNK_MASK, CHUNK_SIZE};
+use crate::{ChunkLightData, CHUNK_BITS, CHUNK_MASK, CHUNK_SIZE};
 use glam::f32::Vec3;
 use glam::i32::IVec3;
 use rand::Rng;
+use std::cmp::Ordering;
+use std::collections::BinaryHeap;
 use std::time::Instant;
 
 const MS_PER_TICK: u64 = 4;
+
+#[cfg(debug_assertions)]
+const MAX_CHUNKS_GENERATED_PER_FRAME: usize = 1;
+
+#[cfg(not(debug_assertions))]
+const MAX_CHUNKS_GENERATED_PER_FRAME: usize = 8;
+
+#[derive(Debug, Default)]
+struct QueueEntry {
+    dist: i64,
+    pos: IVec3,
+}
+
+impl QueueEntry {
+    fn new(pos: IVec3, dist: i64) -> Self {
+        Self { dist, pos }
+    }
+}
+
+impl Ord for QueueEntry {
+    fn cmp(&self, other: &Self) -> Ordering {
+        other.dist.cmp(&self.dist)
+    }
+}
+
+impl PartialOrd for QueueEntry {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Eq for QueueEntry {}
+impl PartialEq for QueueEntry {
+    fn eq(&self, other: &Self) -> bool {
+        self.pos == other.pos
+    }
+}
 
 #[derive(Debug)]
 pub struct GameState {
@@ -102,13 +141,20 @@ impl GameState {
         }
     }
 
-    pub fn worldgen_chunk(&mut self, pos: IVec3) {
+    pub fn worldgen_chunk(&mut self, pos: IVec3) -> bool {
         let chnk = self.world.get(&pos);
         if chnk.is_none() {
             let chunk = ChunkBlockData::worldgen(pos);
             self.world.insert_light(pos, ChunkLightData::new(&chunk));
             self.world.insert(pos, chunk);
-        };
+            true
+        } else {
+            false
+        }
+    }
+
+    pub fn has_chunk(&self, pos: IVec3) -> bool {
+        self.world.get(&pos).is_some()
     }
 
     pub fn get_chunk_block(&self, pos: IVec3) -> Option<&ChunkBlockData> {
@@ -134,20 +180,30 @@ impl GameState {
     }
 
     pub fn prepare_world(&mut self, view_steps: i32, render_distance: f32) {
-        let px = (self.player.pos.x as i32) / CHUNK_SIZE as i32;
-        let py = (self.player.pos.y as i32) / CHUNK_SIZE as i32;
-        let pz = (self.player.pos.z as i32) / CHUNK_SIZE as i32;
+        let mut heap: BinaryHeap<QueueEntry> = BinaryHeap::new();
+
+        let px = (self.player.pos.x as i32) >> CHUNK_BITS;
+        let py = (self.player.pos.y as i32) >> CHUNK_BITS;
+        let pz = (self.player.pos.z as i32) >> CHUNK_BITS;
+
+        self.worldgen_chunk(IVec3::new(px, py, pz));
+
         for cx in -view_steps..=view_steps {
             for cy in -view_steps..=view_steps {
                 for cz in -view_steps..=view_steps {
                     let pos = IVec3::new(cx + px, cy + py, cz + pz);
                     let d = (pos.as_vec3() * CHUNK_SIZE as f32) - self.player.pos;
                     let d = d.dot(d);
-                    if d < render_distance {
-                        self.worldgen_chunk(pos);
+                    if d < render_distance && !self.has_chunk(pos) {
+                        heap.push(QueueEntry::new(pos, (d * 256.0) as i64));
                     }
                 }
             }
         }
+        heap.iter()
+            .take(MAX_CHUNKS_GENERATED_PER_FRAME)
+            .for_each(|e| {
+                self.worldgen_chunk(e.pos);
+            });
     }
 }

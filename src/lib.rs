@@ -130,7 +130,7 @@ pub fn run_event_loop(state: AppState) {
                 state: ElementState::Pressed,
                 virtual_keycode: Some(VirtualKeyCode::T),
                 ..
-            } => runtime.eval("print('You pressed T!');"),
+            } => runtime.eval("print('You pressed the T key!');"),
 
             KeyboardInput {
                 state: ElementState::Pressed,

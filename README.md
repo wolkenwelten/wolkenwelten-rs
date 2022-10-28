@@ -30,10 +30,10 @@ After that executing the `cargo run --release` command should build and run the 
 - [X] No more WASM/Emscripten build (really liked that, but it was A LOT of work and broke all the time, so in the beginning WW will only support Lin/Mac/Win)
 - [X] No SDL2 (it worked quite well, but it simplifies the build process to have as much as possible be written in Rust)
 - [X] Bigger world Size (32-bit per axis, instead of 16, allowing for ~4 Billion Blocks per Axis as compared to ~65 thousand before)
+- [X] Include V8 as a scripting runtime instead of Nujel
 - [ ] OpenAL for sound output
 - [ ] Single executable for client/server (the client should be a feature that can be disabled though)
 - [ ] Meshes are voxel based, just like the world
-- [ ] Include V8 as a scripting runtime instead of Nujel
 
 # Graphics ToDo's (current focus)
 - [X] Chunk fade
@@ -51,7 +51,7 @@ After that executing the `cargo run --release` command should build and run the 
 - [X] Simple Lightmaps (port from WW)
 - [X] Smooth Lighting (port from WW)
 - [X] Ambient Occlusion (port from WW)
-- [ ] Async lightmap calculation / mesh generation
+- [X] "Non-blocking" chunk generation
 - [ ] Correct Lightmaps
 - [ ] Block manipulation (simple removal/placement as well as block selection)
 - [ ] Import Models made with Goxel (probably using .vox format https://github.com/ephtracy/voxel-model/blob/master/MagicaVoxel-file-format-vox.txt)
@@ -62,9 +62,8 @@ After that executing the `cargo run --release` command should build and run the 
 - [X] Enable TypeScript
 - [ ] Experiment with Tokio
 - [ ] Run a proper deno event loop
-- [ ] Build a Module Loader
+- [ ] Build a module loader / Enable ESM support
 - [ ] Add `world.getBlock(x, y, z)` and `world.setBlock(x, y, z, b)`
-- [ ] Enable ES Modules
 - [ ] Make worldgen call into deno and receive an entire chunk of data
 - [ ] Allow entities to be created from within deno for example `world.createEntity()`
 - [ ] Allow entities to be enumerated from within deno and add `entity.getPos(), entity.setPos(x, y, z), entity.hide()` methods
