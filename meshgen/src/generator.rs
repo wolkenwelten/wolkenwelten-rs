@@ -718,7 +718,7 @@ pub fn generate(
     let mut vertices: Vec<BlockVertex> = Vec::with_capacity(8192);
 
     let mut block_data: BlockBuffer = [[[0; CHUNK_SIZE + 2]; CHUNK_SIZE + 2]; CHUNK_SIZE + 2];
-    let mut light_data: BlockBuffer = [[[0; CHUNK_SIZE + 2]; CHUNK_SIZE + 2]; CHUNK_SIZE + 2];
+    let mut light_data: BlockBuffer = [[[15; CHUNK_SIZE + 2]; CHUNK_SIZE + 2]; CHUNK_SIZE + 2];
     let mut side_cache: SideBuffer = [[[0; CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE];
 
     calc_block_data(&mut block_data, chunk);
