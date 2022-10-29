@@ -14,14 +14,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 use super::Sfx;
-use rodio::{Decoder, Sink};
-use rodio::{OutputStream, OutputStreamHandle};
+use rodio::{Decoder, OutputStream, OutputStreamHandle, Sink};
 use std::io::Cursor;
 
 pub struct SfxList {
-    sink: Sink,
     _stream: OutputStream,
-    _stream_handle: OutputStreamHandle,
+    stream_handle: OutputStreamHandle,
 
     pub bomb: Sfx,
     pub jump: Sfx,
@@ -32,11 +30,9 @@ pub struct SfxList {
 impl Default for SfxList {
     fn default() -> Self {
         let (_stream, stream_handle) = rodio::OutputStream::try_default().unwrap();
-        let sink = Sink::try_new(&stream_handle).unwrap();
         Self {
-            sink,
             _stream,
-            _stream_handle: stream_handle,
+            stream_handle,
 
             bomb: Sfx::from_bytes(include_bytes!("../assets/bomb.ogg")),
             jump: Sfx::from_bytes(include_bytes!("../assets/jump.ogg")),
@@ -52,9 +48,10 @@ impl SfxList {
     }
 
     pub fn play(&self, sfx: &Sfx, volume: f32) {
-        let source = Decoder::new(Cursor::new(sfx.get_bytes())).unwrap();
-
-        self.sink.set_volume(volume);
-        self.sink.append(source);
+        let source = Decoder::new_vorbis(Cursor::new(sfx.get_bytes())).unwrap();
+        let sink = Sink::try_new(&self.stream_handle).unwrap();
+        sink.set_volume(volume);
+        sink.append(source);
+        sink.detach();
     }
 }
