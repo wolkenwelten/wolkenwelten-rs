@@ -96,8 +96,9 @@ impl ClientState {
     pub fn calc_fps(&mut self) {
         let ticks = self.instant.elapsed().as_millis();
         if ticks > self.last_ticks + 1000 {
-            self.cur_fps =
-                (((self.frame_count as f32) / ((ticks - self.last_ticks) as f32)) * 1000.0) as u32;
+            self.cur_fps = (((self.frame_count as f64) / ((ticks - self.last_ticks) as f64))
+                * 1000.0)
+                .round() as u32;
             self.last_ticks = ticks;
             self.frame_count = 0;
         }

@@ -222,6 +222,12 @@ pub fn run_event_loop(state: AppState) {
             render_state.set_window_size((physical_size.width, physical_size.height));
             set_viewport(&render_state);
         }
+        Event::RedrawRequested(_) => {
+            runtime.tick(game_state.get_millis());
+            prepare_frame(&mut render_state, &game_state);
+            render_frame(&render_state, &game_state);
+            windowed_context.swap_buffers().unwrap();
+        }
         Event::MainEventsCleared => {
             let events = input_tick(&mut game_state, &render_state);
             events.iter().for_each(|e| match e {
@@ -236,12 +242,7 @@ pub fn run_event_loop(state: AppState) {
                 GameEvent::CharacterStomp(_pos) => state.sfx.play(&state.sfx.stomp, 0.3),
             });
             game_state.prepare_world(VIEW_STEPS, render_distance);
-
-            runtime.tick(game_state.get_millis());
-
-            prepare_frame(&mut render_state, &game_state);
-            render_frame(&render_state, &game_state);
-            windowed_context.swap_buffers().unwrap();
+            windowed_context.window().request_redraw();
         }
         _ => {}
     });

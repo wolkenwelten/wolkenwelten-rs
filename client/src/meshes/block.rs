@@ -16,14 +16,15 @@
 use super::util;
 use super::{Vao, Vbo};
 use gl::types::GLvoid;
+use std::time::Instant;
 use wolkenwelten_game::{ChunkBlockData, ChunkLightData, GameState};
 use wolkenwelten_meshgen;
 use wolkenwelten_meshgen::BlockVertex;
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct BlockMesh {
     vao: Vao,
-    last_updated_at: u64,
+    last_updated_at: Instant,
     side_square_count: [usize; 6],
     side_start: [usize; 6],
 }
@@ -46,6 +47,10 @@ impl BlockMesh {
             v.as_ptr() as *const GLvoid,
             vbo_size,
         )
+    }
+
+    pub fn get_last_updated(&self) -> Instant {
+        self.last_updated_at
     }
 
     pub fn calc_mask(x_offset: i32, y_offset: i32, z_offset: i32) -> u8 {
@@ -83,11 +88,11 @@ impl BlockMesh {
             vao,
             side_square_count: [0; 6],
             side_start: [0; 6],
-            last_updated_at: 0,
+            last_updated_at: Instant::now(),
         }
     }
 
-    pub fn last_updated_at(&self) -> u64 {
+    pub fn last_updated_at(&self) -> Instant {
         self.last_updated_at
     }
 
@@ -96,7 +101,7 @@ impl BlockMesh {
         chunk: &ChunkBlockData,
         light: &ChunkLightData,
         game: &GameState,
-        now: u64,
+        now: Instant,
     ) {
         self.last_updated_at = now;
 

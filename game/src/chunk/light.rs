@@ -14,20 +14,27 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 use super::*;
+use std::time::Instant;
 use wolkenwelten_common::{ChunkPosIter, CHUNK_MASK, CHUNK_SIZE};
 
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug)]
 pub struct ChunkLightData {
+    last_updated: Instant,
     pub data: [[[u8; CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE],
 }
 
 impl ChunkLightData {
     pub fn new(chunk: &ChunkBlockData) -> Self {
         let mut ret = Self {
+            last_updated: Instant::now(),
             data: [[[0; CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE],
         };
         ret.calculate(chunk);
         ret
+    }
+
+    pub fn get_last_updated(&self) -> Instant {
+        self.last_updated
     }
 
     fn sunlight(&mut self, chunk: &ChunkBlockData) {
@@ -120,5 +127,6 @@ impl ChunkLightData {
         self.sunlight(chunk);
         self.blur();
         self.ambient_occlusion(chunk);
+        self.last_updated = Instant::now();
     }
 }

@@ -22,6 +22,7 @@ use glam::IVec3;
 use std::cmp::Ordering;
 use std::collections::BinaryHeap;
 use std::sync::RwLock;
+use std::time::Instant;
 use wolkenwelten_common::{CHUNK_BITS, CHUNK_SIZE};
 use wolkenwelten_game::{Character, Entity, GameState};
 
@@ -98,23 +99,21 @@ pub fn render_init() {
     set_gl_version(major_version, minor_version);
 }
 
-pub fn prepare_chunk(fe: &mut ClientState, game: &GameState, pos: IVec3, now: u64) {
-    match fe.world_mesh.get(&pos) {
-        Some(_) => {}
-        _ => {
-            if let Some(chunk) = game.get_chunk_block(pos) {
-                if let Some(light) = game.get_chunk_light(pos) {
-                    let mut mesh = BlockMesh::new(fe.block_indeces());
-                    mesh.update(chunk, light, game, now);
-                    fe.world_mesh.insert(pos, mesh);
-                }
+pub fn prepare_chunk(fe: &mut ClientState, game: &GameState, pos: IVec3, now: Instant) {
+    if let Some(chunk) = game.world.get_chunk(&pos) {
+        if let Some(mesh) = fe.world_mesh.get(&pos) {
+            if chunk.get_light().get_last_updated() < mesh.get_last_updated() {
+                return;
             }
         }
+        let mut mesh = BlockMesh::new(fe.block_indeces());
+        mesh.update(chunk.get_block(), chunk.get_light(), game, now);
+        fe.world_mesh.insert(pos, mesh);
     }
 }
 
 fn prepare_chunks(fe: &mut ClientState, game: &GameState) {
-    let now = game.get_millis();
+    let now = Instant::now();
     let px = (game.player.pos.x as i32) >> CHUNK_BITS;
     let py = (game.player.pos.y as i32) >> CHUNK_BITS;
     let pz = (game.player.pos.z as i32) >> CHUNK_BITS;
@@ -153,7 +152,7 @@ fn prepare_ui(fe: &mut ClientState, game: &GameState) {
         let col_text = format!(
             "Entities: {}   Chunks: {}   BlockMeshes: {}",
             game.get_entity_count(),
-            game.world.block_data.len(),
+            game.world.chunks.len(),
             fe.world_mesh.len(),
         );
         fe.ui_mesh
@@ -223,7 +222,7 @@ impl PartialEq for QueueEntry {
 }
 
 fn build_render_queue(player_pos: Vec3, frustum: &Frustum) -> BinaryHeap<QueueEntry> {
-    let mut render_queue: BinaryHeap<QueueEntry> = BinaryHeap::with_capacity(4096);
+    let mut render_queue: BinaryHeap<QueueEntry> = BinaryHeap::with_capacity(512);
     let px = (player_pos.x.floor() as i32) >> CHUNK_BITS;
     let py = (player_pos.y.floor() as i32) >> CHUNK_BITS;
     let pz = (player_pos.z.floor() as i32) >> CHUNK_BITS;
@@ -264,7 +263,7 @@ fn build_render_queue(player_pos: Vec3, frustum: &Frustum) -> BinaryHeap<QueueEn
 fn render_chungus(fe: &ClientState, game: &GameState, mvp: &Mat4) {
     let frustum = Frustum::extract(mvp);
     let render_queue = build_render_queue(game.player.pos, &frustum);
-    let now = game.get_millis();
+    let now = Instant::now();
 
     fe.shaders.block.set_used();
     fe.shaders.block.set_mvp(mvp);
@@ -272,7 +271,7 @@ fn render_chungus(fe: &ClientState, game: &GameState, mvp: &Mat4) {
 
     for entry in render_queue.iter() {
         if let Some(mesh) = fe.world_mesh.get(&entry.pos) {
-            let td = now - mesh.last_updated_at();
+            let td = (now - mesh.last_updated_at()).as_millis();
             let fade_in = (td as f32 / 500.0).clamp(0.0, 1.0);
             let alpha = entry.alpha * fade_in;
             fe.shaders.block.set_alpha(alpha);

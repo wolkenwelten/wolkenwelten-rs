@@ -19,7 +19,7 @@ extern crate rand;
 pub use self::block::BlockType;
 pub use self::character::Character;
 pub use self::chungus::Chungus;
-pub use self::chunk::{ChunkBlockData, ChunkLightData};
+pub use self::chunk::{Chunk, ChunkBlockData, ChunkLightData};
 pub use self::entity::Entity;
 pub use self::state::GameState;
 pub use event::GameEvent;

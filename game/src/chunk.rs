@@ -23,3 +23,36 @@ mod worldgen;
 
 pub use block::ChunkBlockData;
 pub use light::ChunkLightData;
+
+#[derive(Clone, Debug)]
+pub struct Chunk {
+    block: ChunkBlockData,
+    light: ChunkLightData,
+}
+
+impl Chunk {
+    pub fn new(pos: IVec3) -> Self {
+        let block = ChunkBlockData::worldgen(pos);
+        let light = ChunkLightData::new(&block);
+        Self { block, light }
+    }
+
+    pub fn get_block(&self) -> &ChunkBlockData {
+        &self.block
+    }
+    pub fn get_block_mut(&mut self) -> &mut ChunkBlockData {
+        &mut self.block
+    }
+    pub fn get_light(&self) -> &ChunkLightData {
+        &self.light
+    }
+    pub fn get_light_mut(&mut self) -> &mut ChunkLightData {
+        &mut self.light
+    }
+
+    pub fn tick(&mut self) {
+        if self.block.get_last_updated() >= self.light.get_last_updated() {
+            self.light.calculate(&self.block);
+        }
+    }
+}

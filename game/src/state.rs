@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 use super::{Character, Chungus, ChunkBlockData, Entity};
-use crate::{ChunkLightData, GameEvent};
+use crate::{Chunk, ChunkLightData, GameEvent};
 use glam::f32::Vec3;
 use glam::i32::IVec3;
 use rand::Rng;
@@ -146,14 +146,15 @@ impl GameState {
     }
 
     pub fn worldgen_chunk(&mut self, pos: IVec3) -> bool {
-        let chnk = self.world.get(&pos);
-        if chnk.is_none() {
-            let chunk = ChunkBlockData::worldgen(pos);
-            self.world.insert_light(pos, ChunkLightData::new(&chunk));
-            self.world.insert(pos, chunk);
-            true
-        } else {
-            false
+        match self.world.get_chunk_mut(&pos) {
+            None => {
+                self.world.chunks.insert(pos, Chunk::new(pos));
+                true
+            }
+            Some(chunk) => {
+                chunk.tick();
+                false
+            }
         }
     }
 

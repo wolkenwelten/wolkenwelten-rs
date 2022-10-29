@@ -13,17 +13,30 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+use std::time::Instant;
 use wolkenwelten_common::CHUNK_SIZE;
 
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug)]
 pub struct ChunkBlockData {
+    last_updated: Instant,
     pub data: [[[u8; CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE],
+}
+
+impl Default for ChunkBlockData {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl ChunkBlockData {
     pub fn new() -> Self {
         let data = [[[0; CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE];
-        Self { data }
+        let last_updated = Instant::now();
+        Self { data, last_updated }
+    }
+
+    pub fn get_last_updated(&self) -> Instant {
+        self.last_updated
     }
 
     pub fn get_block(&self, (x, y, z): (i32, i32, i32)) -> u8 {
@@ -31,10 +44,12 @@ impl ChunkBlockData {
     }
 
     pub fn set_block(&mut self, block: u8, (x, y, z): (i32, i32, i32)) {
+        self.last_updated = Instant::now();
         self.data[x as usize][y as usize][z as usize] = block
     }
 
     pub fn set_sphere(&mut self, block: u8, (x, y, z): (i32, i32, i32), radius: i32) {
+        self.last_updated = Instant::now();
         let rr = radius * radius;
         for cx in -radius..radius {
             for cy in -radius..radius {
@@ -49,6 +64,7 @@ impl ChunkBlockData {
     }
 
     pub fn set_box(&mut self, block: u8, (x, y, z): (i32, i32, i32), (w, h, d): (i32, i32, i32)) {
+        self.last_updated = Instant::now();
         for cx in 0..w {
             for cy in 0..h {
                 for cz in 0..d {

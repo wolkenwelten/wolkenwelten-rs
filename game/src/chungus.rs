@@ -13,7 +13,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-use super::{BlockType, Character, ChunkBlockData};
+use super::{BlockType, Character, Chunk, ChunkBlockData};
 use crate::ChunkLightData;
 use glam::f32::Vec3;
 use glam::i32::IVec3;
@@ -23,31 +23,39 @@ use wolkenwelten_common::{CHUNK_BITS, CHUNK_MASK, CHUNK_SIZE};
 #[derive(Debug)]
 pub struct Chungus {
     pub blocks: Vec<BlockType>,
-    pub block_data: HashMap<IVec3, ChunkBlockData>,
-    pub light_data: HashMap<IVec3, ChunkLightData>,
+    pub chunks: HashMap<IVec3, Chunk>,
 }
 
 impl Chungus {
     pub fn gc(&mut self, player: &Character, render_distance: f32) {
         let max_d = render_distance * 1.5;
-        self.block_data.retain(|&pos, _| {
+        self.chunks.retain(|&pos, _| {
             let diff: Vec3 = (pos.as_vec3() * CHUNK_SIZE as f32) - player.pos;
             let d = diff.dot(diff);
             d < (max_d)
         });
     }
-    pub fn get(&self, k: &IVec3) -> Option<&ChunkBlockData> {
-        self.block_data.get(k)
+
+    pub fn get_chunk(&self, k: &IVec3) -> Option<&Chunk> {
+        self.chunks.get(k)
     }
-    pub fn insert(&mut self, k: IVec3, v: ChunkBlockData) {
-        self.block_data.insert(k, v);
+
+    pub fn get_chunk_mut(&mut self, k: &IVec3) -> Option<&mut Chunk> {
+        self.chunks.get_mut(k)
+    }
+
+    pub fn get(&self, k: &IVec3) -> Option<&ChunkBlockData> {
+        match self.chunks.get(k) {
+            Some(chunk) => Some(chunk.get_block()),
+            None => None,
+        }
     }
 
     pub fn get_light(&self, k: &IVec3) -> Option<&ChunkLightData> {
-        self.light_data.get(k)
-    }
-    pub fn insert_light(&mut self, k: IVec3, v: ChunkLightData) {
-        self.light_data.insert(k, v);
+        match self.chunks.get(k) {
+            Some(chunk) => Some(chunk.get_light()),
+            None => None,
+        }
     }
 
     pub fn get_block_type(&self, i: u8) -> &BlockType {
@@ -77,8 +85,7 @@ impl Default for Chungus {
     fn default() -> Self {
         Self {
             blocks: BlockType::load_all(),
-            block_data: HashMap::with_capacity(4096),
-            light_data: HashMap::with_capacity(4096),
+            chunks: HashMap::with_capacity(512),
         }
     }
 }
