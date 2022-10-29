@@ -240,6 +240,10 @@ pub fn run_event_loop(state: AppState) {
             let events = game_state.tick(render_distance);
             events.iter().for_each(|e| match e {
                 GameEvent::CharacterStomp(_pos) => state.sfx.play(&state.sfx.stomp, 0.3),
+                GameEvent::EntityCollision(pos) => {
+                    game_state.world.add_explosion(pos, 5.0);
+                    state.sfx.play(&state.sfx.bomb, 0.3);
+                }
             });
             game_state.prepare_world(VIEW_STEPS, render_distance);
             windowed_context.window().request_redraw();

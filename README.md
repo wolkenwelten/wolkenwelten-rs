@@ -2,7 +2,7 @@
 
 # WolkenWelten
 
-![Have a screenshot](https://github.com/wolkenwelten/wolkenwelten-screenshots/raw/main/2022_10_26_ao.jpg)
+![Have a screenshot](https://github.com/wolkenwelten/wolkenwelten-screenshots/raw/main/2022_10_29.jpg)
 
 This is the rust port of the WolkenWelten codebase, everything is still super early so prepare for pretty much nothing
 working whatsoever.

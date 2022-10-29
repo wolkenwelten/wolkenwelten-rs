@@ -51,6 +51,13 @@ impl Chungus {
         }
     }
 
+    pub fn get_mut(&mut self, k: &IVec3) -> Option<&mut ChunkBlockData> {
+        match self.chunks.get_mut(k) {
+            Some(chunk) => Some(chunk.get_block_mut()),
+            None => None,
+        }
+    }
+
     pub fn get_light(&self, k: &IVec3) -> Option<&ChunkLightData> {
         match self.chunks.get(k) {
             Some(chunk) => Some(chunk.get_light()),
@@ -68,8 +75,7 @@ impl Chungus {
             pos.y.floor() as i32 >> CHUNK_BITS,
             pos.z.floor() as i32 >> CHUNK_BITS,
         );
-        let chnk = self.get(&cp);
-        if let Some(chnk) = chnk {
+        if let Some(chnk) = self.get(&cp) {
             let cx = (pos.x.floor() as i32 & CHUNK_MASK) as usize;
             let cy = (pos.y.floor() as i32 & CHUNK_MASK) as usize;
             let cz = (pos.z.floor() as i32 & CHUNK_MASK) as usize;
@@ -77,6 +83,38 @@ impl Chungus {
             b != 0
         } else {
             false
+        }
+    }
+
+    pub fn set_block(&mut self, pos: IVec3, block: u8) {
+        let cp = IVec3::new(
+            pos.x as i32 >> CHUNK_BITS,
+            pos.y as i32 >> CHUNK_BITS,
+            pos.z as i32 >> CHUNK_BITS,
+        );
+        if let Some(chnk) = self.get_mut(&cp) {
+            let bpos = (
+                (pos.x & CHUNK_MASK) as i32,
+                (pos.y & CHUNK_MASK) as i32,
+                (pos.z & CHUNK_MASK) as i32,
+            );
+            chnk.set_block(block, bpos);
+        }
+    }
+
+    pub fn add_explosion(&mut self, pos: &Vec3, power: f32) {
+        let pos = pos.floor().as_ivec3();
+        let p = power.round() as i32;
+        let pp = p * p;
+        for x in -p..=p {
+            for y in -p..=p {
+                for z in -p..=p {
+                    let cp = x * x + y * y + z * z;
+                    if cp < pp {
+                        self.set_block(pos + IVec3::new(x, y, z), 0);
+                    }
+                }
+            }
         }
     }
 }

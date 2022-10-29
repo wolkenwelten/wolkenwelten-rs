@@ -17,4 +17,5 @@ use glam::f32::Vec3;
 
 pub enum GameEvent {
     CharacterStomp(Vec3),
+    EntityCollision(Vec3),
 }

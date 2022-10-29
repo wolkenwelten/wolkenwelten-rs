@@ -14,6 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 use super::{Character, Chungus};
+use crate::GameEvent;
 use glam::Vec3;
 
 const ENTITY_SIZE: f32 = 0.6;
@@ -59,25 +60,35 @@ impl Entity {
             | world.is_solid(self.pos() + Vec3::new(0.0, 0.0, ENTITY_SIZE))
     }
 
-    pub fn tick(entities: &mut Vec<Self>, player: &Character, world: &Chungus) {
+    pub fn tick(
+        entities: &mut Vec<Self>,
+        events: &mut Vec<GameEvent>,
+        player: &Character,
+        world: &Chungus,
+    ) {
         for index in (0..entities.len()).rev() {
+            let mut bounce = false;
+
             if world.is_solid(entities[index].pos() + Vec3::new(-ENTITY_SIZE, 0.0, 0.0))
                 | world.is_solid(entities[index].pos() + Vec3::new(-ENTITY_SIZE, 0.0, 0.0))
             {
                 entities[index].vel.x *= -ENTITY_BOUNCE_RATE;
                 entities[index].pos.x += entities[index].vel.x;
+                bounce = true;
             }
             if world.is_solid(entities[index].pos() + Vec3::new(0.0, -ENTITY_SIZE, 0.0))
                 | world.is_solid(entities[index].pos() + Vec3::new(0.0, -ENTITY_SIZE, 0.0))
             {
                 entities[index].vel.y *= -ENTITY_BOUNCE_RATE;
                 entities[index].pos.y += entities[index].vel.y;
+                bounce = true;
             }
             if world.is_solid(entities[index].pos() + Vec3::new(0.0, 0.0, -ENTITY_SIZE))
                 | world.is_solid(entities[index].pos() + Vec3::new(0.0, 0.0, -ENTITY_SIZE))
             {
                 entities[index].vel.z *= -ENTITY_BOUNCE_RATE;
                 entities[index].pos.z += entities[index].vel.z;
+                bounce = true;
             }
             {
                 let v = entities[index].vel;
@@ -89,7 +100,10 @@ impl Entity {
             let dist = entities[index].pos - player.pos;
             let dd = dist.x * dist.x + dist.y * dist.y + dist.z * dist.z;
 
-            if dd > (128.0 * 128.0) {
+            if bounce {
+                events.push(GameEvent::EntityCollision(entities[index].pos));
+            }
+            if bounce || (dd > (128.0 * 128.0)) {
                 entities.swap_remove(index); // Remove when far enough away
             }
         }

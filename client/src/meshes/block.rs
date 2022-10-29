@@ -24,7 +24,8 @@ use wolkenwelten_meshgen::BlockVertex;
 #[derive(Debug)]
 pub struct BlockMesh {
     vao: Vao,
-    last_updated_at: Instant,
+    first_created: Instant,
+    last_updated: Instant,
     side_square_count: [usize; 6],
     side_start: [usize; 6],
 }
@@ -50,7 +51,11 @@ impl BlockMesh {
     }
 
     pub fn get_last_updated(&self) -> Instant {
-        self.last_updated_at
+        self.last_updated
+    }
+
+    pub fn get_first_created(&self) -> Instant {
+        self.first_created
     }
 
     pub fn calc_mask(x_offset: i32, y_offset: i32, z_offset: i32) -> u8 {
@@ -88,12 +93,9 @@ impl BlockMesh {
             vao,
             side_square_count: [0; 6],
             side_start: [0; 6],
-            last_updated_at: Instant::now(),
+            first_created: Instant::now(),
+            last_updated: Instant::now(),
         }
-    }
-
-    pub fn last_updated_at(&self) -> Instant {
-        self.last_updated_at
     }
 
     pub fn update(
@@ -103,7 +105,7 @@ impl BlockMesh {
         game: &GameState,
         now: Instant,
     ) {
-        self.last_updated_at = now;
+        self.last_updated = now;
 
         let (vertices, side_start_count) = wolkenwelten_meshgen::generate(chunk, light, game);
         self.side_square_count = side_start_count;

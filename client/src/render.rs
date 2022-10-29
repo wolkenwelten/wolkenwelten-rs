@@ -101,10 +101,12 @@ pub fn render_init() {
 
 pub fn prepare_chunk(fe: &mut ClientState, game: &GameState, pos: IVec3, now: Instant) {
     if let Some(chunk) = game.world.get_chunk(&pos) {
-        if let Some(mesh) = fe.world_mesh.get(&pos) {
+        if let Some(mesh) = fe.world_mesh.get_mut(&pos) {
             if chunk.get_light().get_last_updated() < mesh.get_last_updated() {
                 return;
             }
+            mesh.update(chunk.get_block(), chunk.get_light(), game, now);
+            return;
         }
         let mut mesh = BlockMesh::new(fe.block_indeces());
         mesh.update(chunk.get_block(), chunk.get_light(), game, now);
@@ -271,7 +273,7 @@ fn render_chungus(fe: &ClientState, game: &GameState, mvp: &Mat4) {
 
     for entry in render_queue.iter() {
         if let Some(mesh) = fe.world_mesh.get(&entry.pos) {
-            let td = (now - mesh.last_updated_at()).as_millis();
+            let td = (now - mesh.get_first_created()).as_millis();
             let fade_in = (td as f32 / 500.0).clamp(0.0, 1.0);
             let alpha = entry.alpha * fade_in;
             fe.shaders.block.set_alpha(alpha);

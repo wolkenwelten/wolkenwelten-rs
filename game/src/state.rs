@@ -17,7 +17,6 @@ use super::{Character, Chungus, ChunkBlockData, Entity};
 use crate::{Chunk, ChunkLightData, GameEvent};
 use glam::f32::Vec3;
 use glam::i32::IVec3;
-use rand::Rng;
 use std::cmp::Ordering;
 use std::collections::BinaryHeap;
 use std::time::Instant;
@@ -76,7 +75,7 @@ pub struct GameState {
 impl Default for GameState {
     fn default() -> Self {
         let running = true;
-        let entities = Self::test_entities();
+        let entities = Vec::new();
         let mut player = Character::new();
         player.set_pos(&Vec3::new(15.0, 0.0, -15.0));
 
@@ -101,25 +100,6 @@ impl GameState {
         self.clock.elapsed().as_millis().try_into().unwrap()
     }
 
-    fn test_entities() -> Vec<Entity> {
-        let mut entities: Vec<Entity> = Vec::with_capacity(16);
-        let mut rng = rand::thread_rng();
-        for x in -2..=2 {
-            for z in -2..=2 {
-                let y: f32 = (rng.gen::<f32>() * 5.0) + 8.5;
-                let mut e = Entity::new();
-                e.set_pos(Vec3::new(x as f32, y, z as f32));
-                let vx: f32 = (rng.gen::<f32>() - 0.5) * 0.1;
-                let vy: f32 = (rng.gen::<f32>() - 0.1) * 0.02;
-                let vz: f32 = (rng.gen::<f32>() - 0.5) * 0.1;
-                e.set_vel(Vec3::new(vx, vy, vz));
-
-                entities.push(e);
-            }
-        }
-        entities
-    }
-
     pub fn get_entity_count(&self) -> usize {
         self.entities.len()
     }
@@ -134,7 +114,7 @@ impl GameState {
 
         for _ in 0..to_run {
             self.ticks_elapsed += 1;
-            Entity::tick(&mut self.entities, &self.player, &self.world);
+            Entity::tick(&mut self.entities, &mut events, &self.player, &self.world);
             self.player.tick(&mut events, &self.world);
         }
         if self.ticks_elapsed > self.last_gc {
@@ -160,6 +140,13 @@ impl GameState {
 
     pub fn has_chunk(&self, pos: IVec3) -> bool {
         self.world.get(&pos).is_some()
+    }
+    pub fn should_update(&self, pos: IVec3) -> bool {
+        if let Some(chunk) = self.world.get_chunk(&pos) {
+            chunk.should_update()
+        } else {
+            true
+        }
     }
 
     pub fn get_chunk_block(&self, pos: IVec3) -> Option<&ChunkBlockData> {
@@ -199,7 +186,7 @@ impl GameState {
                     let pos = IVec3::new(cx + px, cy + py, cz + pz);
                     let d = (pos.as_vec3() * CHUNK_SIZE as f32) - self.player.pos;
                     let d = d.dot(d);
-                    if d < render_distance && !self.has_chunk(pos) {
+                    if d < render_distance && self.should_update(pos) {
                         heap.push(QueueEntry::new(pos, (d * 256.0) as i64));
                     }
                 }

@@ -23,6 +23,7 @@ pub struct SfxList {
     _stream: OutputStream,
     _stream_handle: OutputStreamHandle,
 
+    pub bomb: Sfx,
     pub jump: Sfx,
     pub hook_fire: Sfx,
     pub stomp: Sfx,
@@ -37,6 +38,7 @@ impl Default for SfxList {
             _stream,
             _stream_handle: stream_handle,
 
+            bomb: Sfx::from_bytes(include_bytes!("../assets/bomb.ogg")),
             jump: Sfx::from_bytes(include_bytes!("../assets/jump.ogg")),
             hook_fire: Sfx::from_bytes(include_bytes!("../assets/hookFire.ogg")),
             stomp: Sfx::from_bytes(include_bytes!("../assets/stomp.ogg")),
