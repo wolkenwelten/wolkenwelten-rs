@@ -24,6 +24,8 @@ pub struct SfxList {
     pub jump: Sfx,
     pub hook_fire: Sfx,
     pub stomp: Sfx,
+    pub pock: Sfx,
+    pub tock: Sfx,
 }
 
 impl Default for SfxList {
@@ -37,6 +39,8 @@ impl Default for SfxList {
             jump: Sfx::from_bytes(include_bytes!("../assets/jump.ogg")),
             hook_fire: Sfx::from_bytes(include_bytes!("../assets/hookFire.ogg")),
             stomp: Sfx::from_bytes(include_bytes!("../assets/stomp.ogg")),
+            pock: Sfx::from_bytes(include_bytes!("../assets/pock.ogg")),
+            tock: Sfx::from_bytes(include_bytes!("../assets/tock.ogg")),
         }
     }
 }

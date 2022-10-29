@@ -17,7 +17,7 @@ extern crate glam;
 extern crate rand;
 
 pub use self::block::BlockType;
-pub use self::character::Character;
+pub use self::character::{Character, RaycastReturn};
 pub use self::chungus::Chungus;
 pub use self::chunk::{Chunk, ChunkBlockData, ChunkLightData};
 pub use self::entity::Entity;

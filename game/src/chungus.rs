@@ -70,11 +70,7 @@ impl Chungus {
     }
 
     pub fn is_solid(&self, pos: Vec3) -> bool {
-        let cp = IVec3::new(
-            pos.x.floor() as i32 >> CHUNK_BITS,
-            pos.y.floor() as i32 >> CHUNK_BITS,
-            pos.z.floor() as i32 >> CHUNK_BITS,
-        );
+        let cp = pos.floor().as_ivec3() >> CHUNK_BITS;
         if let Some(chnk) = self.get(&cp) {
             let cx = (pos.x.floor() as i32 & CHUNK_MASK) as usize;
             let cy = (pos.y.floor() as i32 & CHUNK_MASK) as usize;
@@ -86,19 +82,22 @@ impl Chungus {
         }
     }
 
+    pub fn is_solid_i(&self, pos: IVec3) -> bool {
+        let cp = pos >> CHUNK_BITS;
+        if let Some(chnk) = self.get(&cp) {
+            let IVec3 { x, y, z } = pos & CHUNK_MASK;
+            let b = chnk.data[x as usize][y as usize][z as usize];
+            b != 0
+        } else {
+            false
+        }
+    }
+
     pub fn set_block(&mut self, pos: IVec3, block: u8) {
-        let cp = IVec3::new(
-            pos.x as i32 >> CHUNK_BITS,
-            pos.y as i32 >> CHUNK_BITS,
-            pos.z as i32 >> CHUNK_BITS,
-        );
+        let cp = pos >> CHUNK_BITS;
         if let Some(chnk) = self.get_mut(&cp) {
-            let bpos = (
-                (pos.x & CHUNK_MASK) as i32,
-                (pos.y & CHUNK_MASK) as i32,
-                (pos.z & CHUNK_MASK) as i32,
-            );
-            chnk.set_block(block, bpos);
+            let pos = pos & CHUNK_MASK;
+            chnk.set_block(block, (pos.x, pos.y, pos.z));
         }
     }
 

@@ -18,12 +18,10 @@ extern crate wolkenwelten_client;
 extern crate wolkenwelten_game;
 extern crate wolkenwelten_scripting;
 
-use glutin::event::{
-    DeviceEvent, ElementState, Event, KeyboardInput, MouseButton, VirtualKeyCode, WindowEvent,
-};
-use glutin::event_loop::ControlFlow;
-use glutin::event_loop::EventLoop;
-use glutin::window::{CursorGrabMode, Window, WindowBuilder};
+use winit::event::{DeviceEvent, ElementState, Event, KeyboardInput, VirtualKeyCode, WindowEvent};
+use winit::event_loop::{ControlFlow, EventLoop};
+use winit::window::{CursorGrabMode, Window, WindowBuilder};
+
 use glutin::{ContextBuilder, ContextWrapper, PossiblyCurrent};
 use wolkenwelten_client::{
     input_tick, prepare_frame, render_frame, set_viewport, ClientState, InputEvent, Key,
@@ -87,17 +85,12 @@ pub fn run_event_loop(state: AppState) {
         }
 
         Event::WindowEvent {
-            event:
-                WindowEvent::MouseInput {
-                    button: MouseButton::Left,
-                    state,
-                    ..
-                },
+            event: WindowEvent::MouseInput { button, state, .. },
             ..
         } => {
             render_state
                 .input
-                .set_left_mouse_button(state == ElementState::Pressed);
+                .set_mouse_button(button, state == ElementState::Pressed);
         }
 
         Event::WindowEvent {
@@ -233,6 +226,8 @@ pub fn run_event_loop(state: AppState) {
             events.iter().for_each(|e| match e {
                 InputEvent::PlayerJump() => state.sfx.play(&state.sfx.jump, 0.2),
                 InputEvent::PlayerShoot() => state.sfx.play(&state.sfx.hook_fire, 0.4),
+                InputEvent::PlayerBlockMine(_) => state.sfx.play(&state.sfx.tock, 0.3),
+                InputEvent::PlayerBlockPlace(_) => state.sfx.play(&state.sfx.pock, 0.3),
             });
             render_state.input.mouse_flush();
 

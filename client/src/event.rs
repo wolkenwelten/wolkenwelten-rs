@@ -14,7 +14,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+use glam::IVec3;
+
 pub enum InputEvent {
     PlayerJump(),
     PlayerShoot(),
+    PlayerBlockMine(IVec3),
+    PlayerBlockPlace(IVec3),
 }

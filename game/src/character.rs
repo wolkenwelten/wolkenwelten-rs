@@ -16,7 +16,7 @@
 use super::Chungus;
 use crate::GameEvent;
 use crate::GameEvent::CharacterStomp;
-use glam::Vec3;
+use glam::{IVec3, Vec3};
 use std::f32::consts::PI;
 
 #[derive(Clone, Debug, Default)]
@@ -27,6 +27,13 @@ pub struct Character {
 
     pub no_clip: bool,
     pub cooldown: u64,
+}
+
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+pub enum RaycastReturn {
+    #[default]
+    Within,
+    Front,
 }
 
 const COL_WIDTH: f32 = 0.4;
@@ -126,5 +133,30 @@ impl Character {
         }
 
         self.pos += self.vel;
+    }
+
+    pub fn raycast(&self, world: &Chungus, return_value: RaycastReturn) -> Option<IVec3> {
+        let dir = self.direction() * 0.0625;
+        let mut pos = self.pos();
+        let mut i_pos = pos.floor().as_ivec3();
+        if world.is_solid_i(i_pos) {
+            return Some(i_pos);
+        }
+
+        for _ in 0..512 {
+            let n_pos = pos + dir;
+            let c_pos = pos.floor().as_ivec3();
+
+            if (i_pos != c_pos) && world.is_solid_i(c_pos) {
+                return Some(if return_value == RaycastReturn::Front {
+                    i_pos
+                } else {
+                    c_pos
+                });
+            }
+            i_pos = c_pos;
+            pos = n_pos;
+        }
+        None
     }
 }

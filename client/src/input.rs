@@ -16,7 +16,8 @@
 use crate::{ClientState, InputEvent};
 use glam::swizzles::Vec4Swizzles;
 use glam::{Vec3, Vec3Swizzles};
-use wolkenwelten_game::{Entity, GameState};
+use winit::event::MouseButton;
+use wolkenwelten_game::{Entity, GameState, RaycastReturn};
 
 const CHARACTER_ACCELERATION: f32 = 0.08;
 const CHARACTER_STOP_RATE: f32 = CHARACTER_ACCELERATION * 3.0;
@@ -42,8 +43,8 @@ pub enum Key {
 #[derive(Debug, Default)]
 struct MouseState {
     left: bool,
-    _middle: bool,
-    _right: bool,
+    middle: bool,
+    right: bool,
 }
 
 #[derive(Debug, Default)]
@@ -86,8 +87,13 @@ impl InputState {
         self.button_states[code as usize] = pressed;
     }
 
-    pub fn set_left_mouse_button(&mut self, pressed: bool) {
-        self.mouse.left = pressed;
+    pub fn set_mouse_button(&mut self, button: MouseButton, pressed: bool) {
+        match button {
+            MouseButton::Left => self.mouse.left = pressed,
+            MouseButton::Middle => self.mouse.middle = pressed,
+            MouseButton::Right => self.mouse.right = pressed,
+            _ => todo!(),
+        }
     }
 
     pub fn get_speed(&self) -> f32 {
@@ -227,6 +233,22 @@ pub fn input_tick(game: &mut GameState, fe: &ClientState) -> Vec<InputEvent> {
     };
 
     if fe.input.mouse.left && game.player.may_act(now) {
+        if let Some(pos) = game.player.raycast(&game.world, RaycastReturn::Within) {
+            game.player.set_cooldown(now + 300);
+            game.world.set_block(pos, 0);
+            events.push(InputEvent::PlayerBlockMine(pos));
+        }
+    }
+
+    if fe.input.mouse.right && game.player.may_act(now) {
+        if let Some(pos) = game.player.raycast(&game.world, RaycastReturn::Front) {
+            game.player.set_cooldown(now + 300);
+            game.world.set_block(pos, 15);
+            events.push(InputEvent::PlayerBlockPlace(pos));
+        }
+    }
+
+    if fe.input.mouse.middle && game.player.may_act(now) {
         game.player.set_cooldown(now + 600);
         let mut e = Entity::new();
         e.set_pos(game.player.pos());
@@ -234,5 +256,6 @@ pub fn input_tick(game: &mut GameState, fe: &ClientState) -> Vec<InputEvent> {
         game.push_entity(e);
         events.push(InputEvent::PlayerShoot());
     }
+
     events
 }
