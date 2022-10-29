@@ -14,8 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 use super::Sfx;
-use rodio::{Decoder, OutputStream, OutputStreamHandle, Sink};
-use std::io::Cursor;
+use rodio::{OutputStream, OutputStreamHandle, Sink};
 
 pub struct SfxList {
     _stream: OutputStream,
@@ -48,7 +47,7 @@ impl SfxList {
     }
 
     pub fn play(&self, sfx: &Sfx, volume: f32) {
-        let source = Decoder::new_vorbis(Cursor::new(sfx.get_bytes())).unwrap();
+        let source = sfx.get_buf();
         let sink = Sink::try_new(&self.stream_handle).unwrap();
         sink.set_volume(volume);
         sink.append(source);
