@@ -92,7 +92,7 @@ impl InputState {
             MouseButton::Left => self.mouse.left = pressed,
             MouseButton::Middle => self.mouse.middle = pressed,
             MouseButton::Right => self.mouse.right = pressed,
-            _ => todo!(),
+            _ => (),
         }
     }
 
