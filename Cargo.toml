@@ -20,6 +20,12 @@ wolkenwelten-meshgen = { path = "meshgen" }
 wolkenwelten-scripting = { path = "scripting" }
 wolkenwelten-sound = { path = "sound" }
 
+[profile.opt-release]
+inherits = "release"
+opt-level = 3
+lto = true
+codegen-units = 1
+
 [features]
 default = ["client"]
 client = []
