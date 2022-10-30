@@ -153,7 +153,7 @@ impl Character {
             return Some(i_pos);
         }
 
-        for _ in 0..512 {
+        for _ in 0..64 {
             let n_pos = pos + dir;
             let c_pos = pos.floor().as_ivec3();
 
