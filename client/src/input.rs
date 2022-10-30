@@ -178,7 +178,6 @@ fn input_tick_no_clip(game: &mut GameState, fe: &ClientState) -> Vec<InputEvent>
 fn input_tick_default(game: &mut GameState, fe: &ClientState) -> Vec<InputEvent> {
     let mut events = Vec::new();
     let view = glam::Mat4::from_rotation_y(-game.player.rot[0].to_radians());
-    let view = view * glam::Mat4::from_rotation_x(-game.player.rot[1].to_radians());
     let v = glam::Vec4::from((fe.input.get_movement_vector(), 1.0_f32));
     let move_vec = (view * v).xyz() * fe.input.get_speed() * 0.02;
     // Different rates for moving/stopping since this makes the player feel more responsive

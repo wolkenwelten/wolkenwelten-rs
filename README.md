@@ -16,15 +16,15 @@ After that executing the `cargo run --release` command should build and run the 
 
 # Platform support
 
-| μArch  | Operating System | Status                          |
-|--------|------------------|---------------------------------|
-| x86_64 | Arch Linux       | Regular manual testing          |
-| ARM64  | Raspberry Pi OS  | Regular manual testing          |
-| x86_64 | MacOS            | Irregular manual testing        |
-| x86_64 | Windows 10       | Irregular manual testing        |
-| x86_64 | FreeBSD          | Very infrequent manual testing  |
-| x86_64 | Chrome OS        | Very infrequent manual testing  |
-| WASM   | Browsers         | Not supported                   |
+| μArch  | Operating System | Status                         |
+|--------|------------------|--------------------------------|
+| x86_64 | Arch Linux       | Regular manual testing         |
+| ARM64  | Raspberry Pi OS  | Regular manual testing         |
+| x86_64 | MacOS            | Irregular manual testing       |
+| x86_64 | Windows 10       | Irregular manual testing       |
+| x86_64 | Chrome OS        | Very infrequent manual testing |
+| x86_64 | FreeBSD          | Not working (for now)          |
+| WASM   | Browsers         | Not supported                  |
 
 # Changes from the C version (these are 99% certain to happen if not checked already)
 - [X] No more WASM/Emscripten build (really liked that, but it was A LOT of work and broke all the time, so in the beginning WW will only support Lin/Mac/Win)

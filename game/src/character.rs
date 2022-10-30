@@ -94,6 +94,15 @@ impl Character {
         )
     }
 
+    pub fn walk_direction(&self) -> Vec3 {
+        let a = self.rot;
+        Vec3::new(
+            ((a.x - 90.0) * PI / 180.0).cos(),
+            0.0,
+            ((a.x - 90.0) * PI / 180.0).sin(),
+        )
+    }
+
     pub fn switch_block_selection(&mut self, delta: i32) {
         let sel = (self.block_selection as i32 + if delta > 0 { 1 } else { -1 }) as u8 % 16;
         self.block_selection = sel;
