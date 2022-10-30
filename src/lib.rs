@@ -22,7 +22,7 @@ use winit::event::{
     DeviceEvent, ElementState, Event, KeyboardInput, MouseScrollDelta, VirtualKeyCode, WindowEvent,
 };
 use winit::event_loop::{ControlFlow, EventLoop};
-use winit::window::{CursorGrabMode, Window, WindowBuilder};
+use winit::window::{CursorGrabMode, Fullscreen, Window, WindowBuilder};
 
 use glutin::{ContextBuilder, ContextWrapper, PossiblyCurrent};
 use winit::dpi::PhysicalPosition;
@@ -61,10 +61,14 @@ pub fn init_glutin() -> (EventLoop<()>, ContextWrapper<PossiblyCurrent, Window>)
     gl::load_with(|ptr| windowed_context.get_proc_address(ptr) as *const _);
 
     let window = windowed_context.window();
+    window.set_cursor_visible(false);
+    window.focus_window();
+    let fs = Fullscreen::Borderless(window.current_monitor());
+    window.set_fullscreen(Some(fs));
+
     let _ = window
         .set_cursor_grab(CursorGrabMode::Locked)
         .or_else(|_e| window.set_cursor_grab(CursorGrabMode::Confined));
-    window.set_cursor_visible(false);
 
     (event_loop, windowed_context)
 }
