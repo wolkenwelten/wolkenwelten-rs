@@ -102,9 +102,12 @@ pub fn run_event_loop(state: AppState) {
             game_state.player.rot.x += delta.0 as f32 * 0.05;
             game_state.player.rot.y += delta.1 as f32 * 0.05;
 
-            let (x, y) = render_state.window_size();
-            let center = PhysicalPosition::new(x / 2, y / 2);
-            let _ = windowed_context.window().set_cursor_position(center);
+            #[cfg(not(target_os = "macos"))]
+            {
+                let (x, y) = render_state.window_size();
+                let center = PhysicalPosition::new(x / 2, y / 2);
+                let _ = windowed_context.window().set_cursor_position(center);
+            }
         }
 
         Event::WindowEvent {
