@@ -39,6 +39,9 @@ impl BlockType {
         self.texture_index[i] = tex;
         self
     }
+    pub fn name(&self) -> &str {
+        &self.name
+    }
 
     pub fn with_texture_top(self, tex: u8) -> Self {
         self.with_texture_side(tex, Side::Top)

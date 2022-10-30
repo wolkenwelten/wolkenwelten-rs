@@ -25,8 +25,9 @@ pub struct Character {
     pub rot: Vec3,
     pub vel: Vec3,
 
-    pub no_clip: bool,
-    pub cooldown: u64,
+    no_clip: bool,
+    cooldown: u64,
+    block_selection: u8,
 }
 
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
@@ -91,6 +92,15 @@ impl Character {
             (-a.y * PI / 180.0).sin(),
             ((a.x - 90.0) * PI / 180.0).sin() * (-a.y * PI / 180.0).cos(),
         )
+    }
+
+    pub fn switch_block_selection(&mut self, delta: i32) {
+        let sel = (self.block_selection as i32 + if delta > 0 { 1 } else { -1 }) as u8 % 16;
+        self.block_selection = sel;
+    }
+
+    pub fn block_selection(&self) -> u8 {
+        self.block_selection + 1
     }
 
     pub fn tick(&mut self, events: &mut Vec<GameEvent>, world: &Chungus) {

@@ -18,11 +18,14 @@ extern crate wolkenwelten_client;
 extern crate wolkenwelten_game;
 extern crate wolkenwelten_scripting;
 
-use winit::event::{DeviceEvent, ElementState, Event, KeyboardInput, VirtualKeyCode, WindowEvent};
+use winit::event::{
+    DeviceEvent, ElementState, Event, KeyboardInput, MouseScrollDelta, VirtualKeyCode, WindowEvent,
+};
 use winit::event_loop::{ControlFlow, EventLoop};
 use winit::window::{CursorGrabMode, Window, WindowBuilder};
 
 use glutin::{ContextBuilder, ContextWrapper, PossiblyCurrent};
+use winit::dpi::PhysicalPosition;
 use wolkenwelten_client::{
     input_tick, prepare_frame, render_frame, set_viewport, ClientState, InputEvent, Key,
     RENDER_DISTANCE, VIEW_STEPS,
@@ -92,6 +95,18 @@ pub fn run_event_loop(state: AppState) {
                 .input
                 .set_mouse_button(button, state == ElementState::Pressed);
         }
+
+        Event::WindowEvent {
+            event: WindowEvent::MouseWheel { delta, .. },
+            ..
+        } => match delta {
+            MouseScrollDelta::LineDelta(_, y) => {
+                game_state.player.switch_block_selection(y.round() as i32)
+            }
+            MouseScrollDelta::PixelDelta(PhysicalPosition { x: _x, y }) => {
+                game_state.player.switch_block_selection(y.round() as i32)
+            }
+        },
 
         Event::WindowEvent {
             event: WindowEvent::Focused(b),

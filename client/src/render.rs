@@ -145,6 +145,16 @@ fn prepare_ui(fe: &mut ClientState, game: &GameState) {
     fe.ui_mesh
         .push_string(8, 40, 2, 0xFFFFFFFF, pos_text.as_str());
 
+    let block_name = game.world.blocks[game.player.block_selection() as usize].name();
+    let block_sel_text = format!("Block selection: {}", block_name);
+    fe.ui_mesh.push_string(
+        8,
+        fe.window_size().1 as i16 - 20,
+        2,
+        0xFFFFFFFF,
+        block_sel_text.as_str(),
+    );
+
     #[cfg(debug_assertions)]
     {
         let rot_text = format!(

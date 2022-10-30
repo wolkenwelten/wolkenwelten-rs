@@ -243,7 +243,7 @@ pub fn input_tick(game: &mut GameState, fe: &ClientState) -> Vec<InputEvent> {
     if fe.input.mouse.right && game.player.may_act(now) {
         if let Some(pos) = game.player.raycast(&game.world, RaycastReturn::Front) {
             game.player.set_cooldown(now + 300);
-            game.world.set_block(pos, 15);
+            game.world.set_block(pos, game.player.block_selection());
             events.push(InputEvent::PlayerBlockPlace(pos));
         }
     }
