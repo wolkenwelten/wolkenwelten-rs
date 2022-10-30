@@ -13,16 +13,9 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+use super::worldgen;
 use glam::IVec3;
-use rand::prelude::*;
-use rand_chacha::ChaCha8Rng;
-
-mod block;
-mod light;
-mod worldgen;
-
-pub use block::ChunkBlockData;
-pub use light::ChunkLightData;
+use wolkenwelten_common::{ChunkBlockData, ChunkLightData};
 
 #[derive(Clone, Debug)]
 pub struct Chunk {
@@ -32,7 +25,7 @@ pub struct Chunk {
 
 impl Chunk {
     pub fn new(pos: IVec3) -> Self {
-        let block = ChunkBlockData::worldgen(pos);
+        let block = worldgen::chunk(pos);
         let light = ChunkLightData::new(&block);
         Self { block, light }
     }

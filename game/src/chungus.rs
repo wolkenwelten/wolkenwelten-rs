@@ -13,12 +13,14 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-use super::{BlockType, Character, Chunk, ChunkBlockData};
-use crate::ChunkLightData;
+use super::block_types;
+use super::{Character, Chunk};
 use glam::f32::Vec3;
 use glam::i32::IVec3;
 use std::collections::HashMap;
-use wolkenwelten_common::{CHUNK_BITS, CHUNK_MASK, CHUNK_SIZE};
+use wolkenwelten_common::{
+    BlockType, ChunkBlockData, ChunkLightData, CHUNK_BITS, CHUNK_MASK, CHUNK_SIZE,
+};
 
 #[derive(Debug)]
 pub struct Chungus {
@@ -121,7 +123,7 @@ impl Chungus {
 impl Default for Chungus {
     fn default() -> Self {
         Self {
-            blocks: BlockType::load_all(),
+            blocks: block_types::load_all(),
             chunks: HashMap::with_capacity(512),
         }
     }

@@ -14,8 +14,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 use super::BlockVertex;
-use wolkenwelten_common::{ChunkPosIter, Side, CHUNK_SIZE};
-use wolkenwelten_game::{ChunkBlockData, ChunkLightData, GameState};
+use wolkenwelten_common::{
+    BlockType, ChunkBlockData, ChunkLightData, ChunkPosIter, Side, CHUNK_SIZE,
+};
 
 type BlockBuffer = [[[u8; CHUNK_SIZE + 2]; CHUNK_SIZE + 2]; CHUNK_SIZE + 2];
 type SideBuffer = [[[u8; CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE];
@@ -345,8 +346,12 @@ fn light_front_back(light_data: &BlockBuffer, x: usize, y: usize, z: usize) -> u
 
 fn gen_front(
     vertices: &mut Vec<BlockVertex>,
-    game: &GameState,
-    (block_data, light_data, side_cache): (&BlockBuffer, &BlockBuffer, &SideBuffer),
+    (block_data, light_data, side_cache, block_types): (
+        &BlockBuffer,
+        &BlockBuffer,
+        &SideBuffer,
+        &Vec<BlockType>,
+    ),
 ) -> usize {
     let start = vertices.len();
     // First we slice the chunk into many, zero-initialized, planes
@@ -385,10 +390,12 @@ fn gen_front(
                 let light = plane.light[y][x];
                 let cw = plane.width[y][x];
                 let ch = plane.height[y][x];
-                let b = game.world.get_block_type(plane.block[y][x]);
+                let b = block_types.get(plane.block[y][x] as usize);
                 let pos = (x as u8, y as u8, z as u8);
                 let size = (cw, ch, cd);
-                add_face_front(vertices, pos, size, b.tex_front(), light);
+                if let Some(b) = b {
+                    add_face_front(vertices, pos, size, b.tex_front(), light);
+                }
             }
         }
     }
@@ -397,8 +404,12 @@ fn gen_front(
 
 fn gen_back(
     vertices: &mut Vec<BlockVertex>,
-    game: &GameState,
-    (block_data, light_data, side_cache): (&BlockBuffer, &BlockBuffer, &SideBuffer),
+    (block_data, light_data, side_cache, block_types): (
+        &BlockBuffer,
+        &BlockBuffer,
+        &SideBuffer,
+        &Vec<BlockType>,
+    ),
 ) -> usize {
     let start = vertices.len();
     // First we slice the chunk into many, zero-initialized, planes
@@ -437,10 +448,12 @@ fn gen_back(
                 let cw = plane.width[y][x];
                 let ch = plane.height[y][x];
                 let light = plane.light[y][x];
-                let b = game.world.get_block_type(plane.block[y][x]);
+                let b = block_types.get(plane.block[y][x] as usize);
                 let pos = (x as u8, y as u8, z as u8);
                 let size = (cw, ch, cd);
-                add_face_back(vertices, pos, size, b.tex_back(), light);
+                if let Some(b) = b {
+                    add_face_back(vertices, pos, size, b.tex_back(), light);
+                }
             }
         }
     }
@@ -449,8 +462,12 @@ fn gen_back(
 
 fn gen_top(
     vertices: &mut Vec<BlockVertex>,
-    game: &GameState,
-    (block_data, light_data, side_cache): (&BlockBuffer, &BlockBuffer, &SideBuffer),
+    (block_data, light_data, side_cache, block_types): (
+        &BlockBuffer,
+        &BlockBuffer,
+        &SideBuffer,
+        &Vec<BlockType>,
+    ),
 ) -> usize {
     let start = vertices.len();
     // First we slice the chunk into many, zero-initialized, planes
@@ -489,10 +506,12 @@ fn gen_top(
                 let cw = plane.width[z][x];
                 let cd = plane.height[z][x];
                 let light = plane.light[z][x];
-                let b = game.world.get_block_type(plane.block[z][x]);
+                let b = block_types.get(plane.block[z][x] as usize);
                 let pos = (x as u8, y as u8, z as u8);
                 let size = (cw, ch, cd);
-                add_face_top(vertices, pos, size, b.tex_top(), light);
+                if let Some(b) = b {
+                    add_face_top(vertices, pos, size, b.tex_top(), light);
+                }
             }
         }
     }
@@ -501,8 +520,12 @@ fn gen_top(
 
 fn gen_bottom(
     vertices: &mut Vec<BlockVertex>,
-    game: &GameState,
-    (block_data, light_data, side_cache): (&BlockBuffer, &BlockBuffer, &SideBuffer),
+    (block_data, light_data, side_cache, block_types): (
+        &BlockBuffer,
+        &BlockBuffer,
+        &SideBuffer,
+        &Vec<BlockType>,
+    ),
 ) -> usize {
     let start = vertices.len();
     // First we slice the chunk into many, zero-initialized, planes
@@ -541,10 +564,12 @@ fn gen_bottom(
                 let cw = plane.width[z][x];
                 let cd = plane.height[z][x];
                 let light = plane.light[z][x];
-                let b = game.world.get_block_type(plane.block[z][x]);
+                let b = block_types.get(plane.block[z][x] as usize);
                 let pos = (x as u8, y as u8, z as u8);
                 let size = (cw, ch, cd);
-                add_face_bottom(vertices, pos, size, b.tex_bottom(), light);
+                if let Some(b) = b {
+                    add_face_bottom(vertices, pos, size, b.tex_bottom(), light);
+                }
             }
         }
     }
@@ -553,8 +578,12 @@ fn gen_bottom(
 
 fn gen_left(
     vertices: &mut Vec<BlockVertex>,
-    game: &GameState,
-    (block_data, light_data, side_cache): (&BlockBuffer, &BlockBuffer, &SideBuffer),
+    (block_data, light_data, side_cache, block_types): (
+        &BlockBuffer,
+        &BlockBuffer,
+        &SideBuffer,
+        &Vec<BlockType>,
+    ),
 ) -> usize {
     let start = vertices.len();
     // First we slice the chunk into many, zero-initialized, planes
@@ -593,10 +622,12 @@ fn gen_left(
                 let cd = plane.width[y][z];
                 let ch = plane.height[y][z];
                 let light = plane.light[y][z];
-                let b = game.world.get_block_type(plane.block[y][z]);
+                let b = block_types.get(plane.block[y][z] as usize);
                 let pos = (x as u8, y as u8, z as u8);
                 let size = (cw, ch, cd);
-                add_face_left(vertices, pos, size, b.tex_left(), light);
+                if let Some(b) = b {
+                    add_face_left(vertices, pos, size, b.tex_left(), light);
+                }
             }
         }
     }
@@ -605,8 +636,12 @@ fn gen_left(
 
 fn gen_right(
     vertices: &mut Vec<BlockVertex>,
-    game: &GameState,
-    (block_data, light_data, side_cache): (&BlockBuffer, &BlockBuffer, &SideBuffer),
+    (block_data, light_data, side_cache, block_types): (
+        &BlockBuffer,
+        &BlockBuffer,
+        &SideBuffer,
+        &Vec<BlockType>,
+    ),
 ) -> usize {
     let start = vertices.len();
     // First we slice the chunk into many, zero-initialized, planes
@@ -645,10 +680,12 @@ fn gen_right(
                 let cd = plane.width[y][z];
                 let ch = plane.height[y][z];
                 let light = plane.light[y][z];
-                let b = game.world.get_block_type(plane.block[y][z]);
+                let b = block_types.get(plane.block[y][z] as usize);
                 let pos = (x as u8, y as u8, z as u8);
                 let size = (cw, ch, cd);
-                add_face_right(vertices, pos, size, b.tex_right(), light);
+                if let Some(b) = b {
+                    add_face_right(vertices, pos, size, b.tex_right(), light);
+                }
             }
         }
     }
@@ -688,7 +725,7 @@ fn calc_side_cache(side_cache: &mut SideBuffer, block_data: &BlockBuffer) {
 pub fn generate(
     chunk: &ChunkBlockData,
     light: &ChunkLightData,
-    game: &GameState,
+    block_types: &Vec<BlockType>,
 ) -> (Vec<BlockVertex>, [usize; 6]) {
     let mut vertices: Vec<BlockVertex> = Vec::with_capacity(8192);
 
@@ -700,15 +737,15 @@ pub fn generate(
     calc_light_data(&mut light_data, light);
     calc_side_cache(&mut side_cache, &block_data);
 
-    let data = (&block_data, &light_data, &side_cache);
+    let data = (&block_data, &light_data, &side_cache, block_types);
     let mut side_square_count = [0; 6];
 
-    side_square_count[0] = gen_front(&mut vertices, game, data);
-    side_square_count[1] = gen_back(&mut vertices, game, data);
-    side_square_count[2] = gen_top(&mut vertices, game, data);
-    side_square_count[3] = gen_bottom(&mut vertices, game, data);
-    side_square_count[4] = gen_left(&mut vertices, game, data);
-    side_square_count[5] = gen_right(&mut vertices, game, data);
+    side_square_count[0] = gen_front(&mut vertices, data);
+    side_square_count[1] = gen_back(&mut vertices, data);
+    side_square_count[2] = gen_top(&mut vertices, data);
+    side_square_count[3] = gen_bottom(&mut vertices, data);
+    side_square_count[4] = gen_left(&mut vertices, data);
+    side_square_count[5] = gen_right(&mut vertices, data);
 
     (vertices, side_square_count)
 }

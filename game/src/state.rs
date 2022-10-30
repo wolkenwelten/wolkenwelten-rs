@@ -13,14 +13,13 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-use super::{Character, Chungus, ChunkBlockData, Entity};
-use crate::{Chunk, ChunkLightData, GameEvent};
+use super::{Character, Chungus, Chunk, Entity, GameEvent};
 use glam::f32::Vec3;
 use glam::i32::IVec3;
 use std::cmp::Ordering;
 use std::collections::BinaryHeap;
 use std::time::Instant;
-use wolkenwelten_common::{CHUNK_BITS, CHUNK_MASK, CHUNK_SIZE};
+use wolkenwelten_common::{ChunkBlockData, ChunkLightData, CHUNK_BITS, CHUNK_MASK, CHUNK_SIZE};
 
 const MS_PER_TICK: u64 = 4;
 

@@ -17,7 +17,8 @@ use super::util;
 use super::{Vao, Vbo};
 use gl::types::GLvoid;
 use std::time::Instant;
-use wolkenwelten_game::{ChunkBlockData, ChunkLightData, GameState};
+use wolkenwelten_common::{ChunkBlockData, ChunkLightData};
+use wolkenwelten_game::GameState;
 use wolkenwelten_meshgen;
 use wolkenwelten_meshgen::BlockVertex;
 
@@ -107,7 +108,9 @@ impl BlockMesh {
     ) {
         self.last_updated = now;
 
-        let (vertices, side_start_count) = wolkenwelten_meshgen::generate(chunk, light, game);
+        let block_types = &game.world.blocks;
+        let (vertices, side_start_count) =
+            wolkenwelten_meshgen::generate(chunk, light, block_types);
         self.side_square_count = side_start_count;
         self.side_start[0] = 0;
         for i in 1..6 {

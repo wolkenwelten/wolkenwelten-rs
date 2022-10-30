@@ -14,8 +14,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 use super::*;
+use crate::{ChunkPosIter, CHUNK_MASK, CHUNK_SIZE};
 use std::time::Instant;
-use wolkenwelten_common::{ChunkPosIter, CHUNK_MASK, CHUNK_SIZE};
 
 #[derive(Clone, Debug)]
 pub struct ChunkLightData {

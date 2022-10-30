@@ -14,20 +14,19 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 extern crate glam;
-extern crate rand;
 
-pub use self::block::BlockType;
 pub use self::character::{Character, RaycastReturn};
 pub use self::chungus::Chungus;
-pub use self::chunk::{Chunk, ChunkBlockData, ChunkLightData};
+pub use self::chunk::Chunk;
 pub use self::entity::Entity;
 pub use self::state::GameState;
 pub use event::GameEvent;
 
-mod block;
+pub mod block_types;
 mod character;
 mod chungus;
 mod chunk;
 mod entity;
 mod event;
 mod state;
+mod worldgen;

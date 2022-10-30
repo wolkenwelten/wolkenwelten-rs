@@ -13,28 +13,16 @@ An open voxel sandbox
 glutin = "0.29.1"
 gl = "0.14.0"
 winit = "0.27.5"
+wolkenwelten-client = { path = "client" }
+wolkenwelten-common = { path = "common" }
+wolkenwelten-game = { path = "game" }
+wolkenwelten-meshgen = { path = "meshgen" }
+wolkenwelten-scripting = { path = "scripting" }
+wolkenwelten-sound = { path = "sound" }
 
 [features]
 default = ["client"]
 client = []
-
-[dependencies.wolkenwelten-client]
-path = "client"
-
-[dependencies.wolkenwelten-common]
-path = "common"
-
-[dependencies.wolkenwelten-game]
-path = "game"
-
-[dependencies.wolkenwelten-meshgen]
-path = "meshgen"
-
-[dependencies.wolkenwelten-scripting]
-path = "scripting"
-
-[dependencies.wolkenwelten-sound]
-path = "sound"
 
 [workspace]
 members = [

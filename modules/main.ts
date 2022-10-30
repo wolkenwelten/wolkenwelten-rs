@@ -84,6 +84,6 @@ console.log("V8 Ready!");
     setInterval(() => {
         const secs = String(++seconds);
         const s = seconds > 1 ? "s" : "";
-        console.log(secs + " second" + s + " have elapesed.");
+        console.log(secs + " second" + s + " have elapsed.");
     }, 1000);
 })();
