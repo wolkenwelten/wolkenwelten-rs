@@ -44,13 +44,30 @@ pub struct AppState {
     pub sfx: SfxList,
 }
 
+pub fn grab_cursor(window: &Window) {
+    window.set_cursor_visible(false);
+    let e = window.set_cursor_grab(CursorGrabMode::Locked);
+    if e.is_ok() {
+        return;
+    }
+    let e = window.set_cursor_grab(CursorGrabMode::Confined);
+    if let Err(e) = e {
+        println!("Error when grabbing Cursor: {:?}", e);
+    }
+}
+
+pub fn ungrab_cursor(window: &Window) {
+    window.set_cursor_visible(true);
+    let _ = window.set_cursor_grab(CursorGrabMode::None);
+}
+
 pub fn init_glutin() -> (EventLoop<()>, ContextWrapper<PossiblyCurrent, Window>) {
     let title = format!("WolkenWelten - {}", env!("CARGO_PKG_VERSION"));
     let event_loop = EventLoop::new();
     let wb = WindowBuilder::new()
+        .with_title(title)
         .with_decorations(false)
-        .with_maximized(true)
-        .with_title(title);
+        .with_maximized(true);
 
     let windowed_context = ContextBuilder::new()
         .with_vsync(true)
@@ -61,14 +78,10 @@ pub fn init_glutin() -> (EventLoop<()>, ContextWrapper<PossiblyCurrent, Window>)
     gl::load_with(|ptr| windowed_context.get_proc_address(ptr) as *const _);
 
     let window = windowed_context.window();
-    window.set_cursor_visible(false);
     window.focus_window();
     let fs = Fullscreen::Borderless(window.current_monitor());
     window.set_fullscreen(Some(fs));
-
-    let _ = window
-        .set_cursor_grab(CursorGrabMode::Locked)
-        .or_else(|_e| window.set_cursor_grab(CursorGrabMode::Confined));
+    grab_cursor(window);
 
     (event_loop, windowed_context)
 }
@@ -82,13 +95,16 @@ pub fn run_event_loop(state: AppState) {
 
     event_loop.run(move |event, _, control_flow| match event {
         Event::LoopDestroyed => (),
-
         Event::DeviceEvent {
             event: DeviceEvent::MouseMotion { delta },
             ..
         } => {
             game_state.player.rot.x += delta.0 as f32 * 0.05;
             game_state.player.rot.y += delta.1 as f32 * 0.05;
+
+            let (x, y) = render_state.window_size();
+            let center = PhysicalPosition::new(x / 2, y / 2);
+            let _ = windowed_context.window().set_cursor_position(center);
         }
 
         Event::WindowEvent {
@@ -116,14 +132,10 @@ pub fn run_event_loop(state: AppState) {
             event: WindowEvent::Focused(b),
             ..
         } => {
-            let window = windowed_context.window();
-            window.set_cursor_visible(!b);
             if b {
-                let _ = window
-                    .set_cursor_grab(CursorGrabMode::Locked)
-                    .or_else(|_e| window.set_cursor_grab(CursorGrabMode::Confined));
+                grab_cursor(windowed_context.window());
             } else {
-                let _ = window.set_cursor_grab(CursorGrabMode::None);
+                ungrab_cursor(windowed_context.window());
             }
         }
 
