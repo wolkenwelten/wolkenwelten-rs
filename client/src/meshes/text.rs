@@ -13,80 +13,57 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-use gl::types::{GLsizeiptr, GLuint, GLvoid};
-
-use super::util;
-use super::util::{Vao, Vbo};
+use glium;
+use glium::implement_vertex;
 
 #[derive(Copy, Clone, Debug, Default)]
-#[repr(C, packed)]
-struct Vertex2D {
-    pub x: i16,
-    pub y: i16,
-
-    pub u: i16,
-    pub v: i16,
-
-    pub rgba: u32,
+pub struct Vertex2D {
+    pub pos: [i16; 2],
+    pub tex: [i16; 2],
+    pub color: [u8; 4],
 }
+implement_vertex!(Vertex2D, pos, tex, color);
 
-impl Vertex2D {
-    pub fn vertex_attrib_pointers() {
-        let stride = std::mem::size_of::<Self>();
-
-        unsafe {
-            let offset = util::vertex_attrib_pointer(stride, 0, 0, 2, gl::SHORT, 2, false);
-            let offset = util::vertex_attrib_pointer(stride, 1, offset, 2, gl::SHORT, 2, false);
-            util::vertex_attrib_pointer(stride, 2, offset, 4, gl::UNSIGNED_BYTE, 1, true);
-        }
-    }
-}
-
-#[derive(Debug, Default)]
 pub struct TextMesh {
-    vao: Vao,
-    vertex_count: GLuint,
+    buffer: glium::VertexBuffer<Vertex2D>,
+    vertex_count: usize,
 
     finished: bool,
     vertices: Vec<Vertex2D>,
 }
 
 impl TextMesh {
-    pub fn prepare(&mut self) -> &mut Self {
+    pub fn prepare(&mut self, display: &glium::Display) -> &mut Self {
         if !self.finished {
-            self.vao.bind();
-            let vbo_size = (self.vertices.len() * std::mem::size_of::<Vertex2D>()) as GLsizeiptr;
-            Vbo::buffer_data(
-                self.vertices.as_ptr() as *const GLvoid,
-                vbo_size.try_into().unwrap(),
-            );
-
-            self.vertex_count = self.vertices.len() as u32;
+            self.buffer = glium::VertexBuffer::dynamic(display, self.vertices.as_slice()).unwrap();
+            self.vertex_count = self.vertices.len();
             self.vertices.clear();
         }
         self
     }
 
-    pub fn draw(&self) {
-        if self.vertex_count == 0 {
-            return;
-        }
-        self.vao.draw(self.vertex_count)
+    pub fn buffer(&self) -> &glium::VertexBuffer<Vertex2D> {
+        &self.buffer
     }
 
-    pub fn new() -> Self {
-        let vao = Vao::new_empty("Text Mesh");
-        Vertex2D::vertex_attrib_pointers();
-        Self {
-            vao,
+    pub fn new(display: &glium::Display) -> Result<Self, glium::vertex::BufferCreationError> {
+        //let vao = Vao::new_empty("Text Mesh");
+        //Vertex2D::vertex_attrib_pointers();
+        let buffer = glium::VertexBuffer::empty(display, 0)?;
+        Ok(Self {
+            buffer,
             vertex_count: 0,
             finished: false,
             vertices: Vec::with_capacity(8),
-        }
+        })
     }
 
-    pub fn push_vertex(&mut self, x: i16, y: i16, u: i16, v: i16, rgba: u32) -> &mut Self {
-        self.vertices.push(Vertex2D { x, y, u, v, rgba });
+    pub fn push_vertex(&mut self, x: i16, y: i16, u: i16, v: i16, color: [u8; 4]) -> &mut Self {
+        self.vertices.push(Vertex2D {
+            pos: [x, y],
+            tex: [u, v],
+            color,
+        });
         self
     }
 
@@ -94,7 +71,7 @@ impl TextMesh {
         &mut self,
         (x, y, w, h): (i16, i16, i16, i16),
         (u, v, uw, vh): (i16, i16, i16, i16),
-        rgba: u32,
+        rgba: [u8; 4],
     ) -> &mut Self {
         self.push_vertex(x, y + h, u, v + vh, rgba)
             .push_vertex(x + w, y, u + uw, v, rgba)
@@ -104,7 +81,7 @@ impl TextMesh {
             .push_vertex(x + w, y + h, u + uw, v + vh, rgba)
     }
 
-    pub fn push_glyph(&mut self, x: i16, y: i16, size: i16, rgba: u32, c: char) -> &mut Self {
+    pub fn push_glyph(&mut self, x: i16, y: i16, size: i16, rgba: [u8; 4], c: char) -> &mut Self {
         let glyph_width: i16 = (8 * size) as i16;
 
         if x < -glyph_width {
@@ -128,7 +105,14 @@ impl TextMesh {
         self.push_box((x, y, glyph_width, glyph_width), (u, v, size, size), rgba)
     }
 
-    pub fn push_string(&mut self, x: i16, y: i16, size: i32, rgba: u32, text: &str) -> &mut Self {
+    pub fn push_string(
+        &mut self,
+        x: i16,
+        y: i16,
+        size: i32,
+        rgba: [u8; 4],
+        text: &str,
+    ) -> &mut Self {
         let glyph_width: i32 = 8 * size;
         text.chars().enumerate().for_each(|(i, c)| {
             let x: i16 = x + ((i as i32) * glyph_width) as i16;

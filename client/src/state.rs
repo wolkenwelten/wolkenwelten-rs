@@ -17,7 +17,7 @@ pub use self::static_meshes::MeshList;
 pub use self::static_shaders::ShaderList;
 pub use self::static_textures::TextureList;
 use crate::input::InputState;
-use crate::meshes::{BlockMesh, TextMesh, Vbo};
+use crate::meshes::{BlockMesh, TextMesh};
 use crate::RENDER_DISTANCE;
 use glam::f32::Vec3;
 use glam::i32::IVec3;
@@ -30,16 +30,16 @@ pub mod static_meshes;
 pub mod static_shaders;
 pub mod static_textures;
 
-#[derive(Debug)]
 pub struct ClientState {
     instant: Instant,
 
-    block_index_buffer: Vbo,
+    block_index_buffer: glium::IndexBuffer<u16>,
     pub world_mesh: HashMap<IVec3, BlockMesh>,
 
     window_width: u32,
     window_height: u32,
 
+    pub display: glium::Display,
     pub meshes: MeshList,
     pub shaders: ShaderList,
     pub textures: TextureList,
@@ -56,21 +56,28 @@ pub struct ClientState {
     wireframe: bool,
 }
 
-impl Default for ClientState {
-    fn default() -> Self {
+impl ClientState {
+    pub fn new(display: glium::Display) -> Self {
+        let meshes = MeshList::new(&display);
+        let shaders = ShaderList::new(&display).unwrap();
+        let ui_mesh = TextMesh::new(&display).unwrap();
+        let textures = TextureList::new(&display);
+        let block_index_buffer = BlockMesh::gen_index_buffer(&display, 65536 / 4);
+
         Self {
             instant: Instant::now(),
-            block_index_buffer: BlockMesh::gen_index_buffer(65536 / 4),
+            block_index_buffer,
             world_mesh: HashMap::new(),
 
             window_width: 640,
             window_height: 480,
 
-            meshes: MeshList::new(),
-            shaders: ShaderList::new(),
+            display,
+            meshes,
+            shaders,
             input: InputState::new(),
-            textures: TextureList::new(),
-            ui_mesh: TextMesh::new(),
+            textures,
+            ui_mesh,
 
             cur_fov: 90.0,
             cur_fps: 0,
@@ -79,14 +86,8 @@ impl Default for ClientState {
             wireframe: false,
         }
     }
-}
 
-impl ClientState {
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    pub fn block_indeces(&self) -> &Vbo {
+    pub fn block_indeces(&self) -> &glium::IndexBuffer<u16> {
         &self.block_index_buffer
     }
 

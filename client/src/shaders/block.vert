@@ -1,12 +1,12 @@
-uniform mat4 matMVP;
-uniform vec3 transPos;
+uniform mat4 mat_mvp;
+uniform vec3 trans_pos;
 
-in uvec4 pos;
-in uint textureIndex;
-in uint packedSideAndLight;
+in uvec3 pos;
+in uint texture_index;
+in uint side_and_light;
 
-out vec3 texCoord;
-out float lightValue;
+out vec3 tex_coord;
+out float light_value;
 
 void main(){
 
@@ -21,24 +21,25 @@ void main(){
      | side is used select the correct spatial axes for usage as texture
      | coordinates.
      */
-	uint side = packedSideAndLight & 0x7u;
+	uint side = side_and_light & 0x7u;
 
     /* We divide the uv coordinates by 2 since we have 4 variations per
      | texture right now. If we ever add more we have to increase this value.
+     | Here we also mirror the textures, so that they are the right side up.
      */
-	texCoord = vec3(uvec3(taxis[side >> 1], textureIndex)) / vec3(2.0,2.0,1.0);
+	tex_coord = vec3(uvec3(taxis[side >> 1], texture_index)) * vec3(0.5, -0.5, 1.0);
 
     /* Finally we extract the 4-bit lightness value, turn it into a float
      | in the range of 0.0-1.0 and then multiply it by itself to make theater
      | lightness curve look non-linear
      */
-	float lightRaw = float(packedSideAndLight >> 4) * (1.0 / 16.0);
-	lightValue = lightRaw * lightRaw;
+	float light_raw = float(side_and_light >> 4) * (1.0 / 16.0);
+	light_value = light_raw * light_raw;
 
     /* To determine the position we multiply by our MVP matrix after adding
      | our transPos uniform value, this is done so that our position within
      | a chunk can fit in 5-bits, without this step we would need 16-bit
      | values, per axis...
      */
-	gl_Position = matMVP * (vec4(pos) + vec4(transPos,0.0));
+	gl_Position = mat_mvp * (vec4(pos, 1.0) + vec4(trans_pos,0.0));
 }

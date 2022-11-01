@@ -1,14 +1,14 @@
-uniform mat4 matMVP;
+uniform mat4 mat_mvp;
 
-in vec4 pos;
+in vec2 pos;
 in vec2 tex;
 in vec4 color;
 
-out vec2 multiTexCoord;
-out vec4 frontColor;
+out vec2 multi_tex_coord;
+out vec4 front_color;
 
 void main(){
-	gl_Position   = matMVP * pos;
-	multiTexCoord = tex * 0.0078125; // 1/128
-	frontColor    = color;
+	gl_Position     = mat_mvp * vec4(pos, 1.0, 1.0);
+	multi_tex_coord = tex * 0.0078125; // 1/128
+	front_color     = color * vec4(1.0/256.0, 1.0/256.0, 1.0/256.0, 1.0/256.0);
 }

@@ -1,9 +1,9 @@
-uniform sampler2DArray curTex;
-uniform float colorAlpha;
+uniform sampler2DArray cur_tex;
+uniform float color_alpha;
 
-in vec3 texCoord;
-in float lightValue;
-out vec4 fragColor;
+in vec3 tex_coord;
+in float light_value;
+out vec4 frag_color;
 
 void main() {
 /* Very simple shader, we look up the currents pixel color according to
@@ -12,6 +12,6 @@ void main() {
  | stored as a uniform because we only fadeIn entire chunks just after
  | they have been generated so their sudden appearance is less jarring.
  */
-	vec3 lightColor = vec3(lightValue, lightValue, lightValue);
-	fragColor = vec4(texture(curTex, texCoord).rgb * lightColor, colorAlpha);
+	vec3 light_color = vec3(light_value, light_value, light_value);
+	frag_color = vec4(texture(cur_tex, tex_coord).rgb * light_color, color_alpha);
 }
