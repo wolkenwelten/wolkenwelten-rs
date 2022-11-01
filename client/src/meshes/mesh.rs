@@ -13,11 +13,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-use gl::types::{GLuint, GLvoid};
 use glam::f32::{Vec2, Vec3};
-
-use super::util;
-use super::util::Vao;
 
 #[derive(Copy, Clone, Debug, Default)]
 #[repr(C, packed)]
@@ -26,7 +22,7 @@ struct MeshVertex {
     pub tex: Vec2,
     pub c: f32,
 }
-
+/*
 impl MeshVertex {
     pub fn vertex_attrib_pointers() {
         let stride = std::mem::size_of::<Self>();
@@ -38,26 +34,26 @@ impl MeshVertex {
         }
     }
 }
+ */
 
 #[derive(Debug, Default)]
 pub struct Mesh {
-    vao: Vao,
-    vertex_count: u32,
+    vertex_count: usize,
 }
 
 impl Mesh {
     pub fn draw(&self) {
-        self.vao.draw(self.vertex_count);
+        //self.vao.draw(self.vertex_count);
     }
 
     fn from_vec(vertices: &Vec<MeshVertex>) -> Result<Self, String> {
         let vbo_size: u32 = (vertices.len() * std::mem::size_of::<MeshVertex>())
             .try_into()
             .unwrap();
-        let vao = Vao::new("Block Mesh", vertices.as_ptr() as *const GLvoid, vbo_size);
-        MeshVertex::vertex_attrib_pointers();
-        let vertex_count: GLuint = vertices.len().try_into().unwrap();
-        Ok(Self { vao, vertex_count })
+        //let vao = Vao::new("Block Mesh", vertices.as_ptr() as *const GLvoid, vbo_size);
+        //MeshVertex::vertex_attrib_pointers();
+        let vertex_count = vertices.len();
+        Ok(Self { vertex_count })
     }
 
     pub fn from_obj_string(s: &str) -> Result<Self, String> {

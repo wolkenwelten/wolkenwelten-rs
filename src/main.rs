@@ -26,9 +26,9 @@ use wolkenwelten_sound::SfxList;
 mod lib;
 
 pub fn main() {
-    let (event_loop, windowed_context) = lib::init_glutin(); // This opens a window, and initialized OpenGL
+    let (event_loop, display) = lib::init(); // This opens a window, and initialized OpenGL
     render_init(); // This is separate because it has no dependency on glutin, just OpenGL
-    let render_state = ClientState::new(); // Now that we have setup an OpenGL context, we cam load all meshes/textures/shaders
+    let render_state = ClientState::new(display); // Now that we have setup an OpenGL context, we cam load all meshes/textures/shaders
 
     // And after having set up everything we can start up the event loop
     lib::run_event_loop(lib::AppState {
@@ -36,7 +36,6 @@ pub fn main() {
         render_state,
         event_loop,
         runtime: Runtime::new(),
-        windowed_context,
         sfx: SfxList::new(),
     })
 }

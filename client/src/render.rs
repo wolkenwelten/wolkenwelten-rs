@@ -16,15 +16,17 @@
 use super::meshes::BlockMesh;
 use super::Frustum;
 use crate::ClientState;
-use gl::types::GLint;
 use glam::f32::{Mat4, Vec3};
 use glam::IVec3;
+use glium::uniform;
 use std::cmp::Ordering;
 use std::collections::BinaryHeap;
 use std::sync::RwLock;
 use std::time::Instant;
 use wolkenwelten_common::{CHUNK_BITS, CHUNK_SIZE};
 use wolkenwelten_game::{Character, Entity, GameState};
+
+use glium::Surface;
 
 pub const RENDER_DISTANCE: f32 = 192.0;
 const FADE_DISTANCE: f32 = 32.0;
@@ -52,7 +54,7 @@ pub fn set_gl_version(major_version: i32, minor_version: i32) {
 
 pub fn set_viewport(fe: &ClientState) {
     let (w, h) = fe.window_size();
-    unsafe { gl::Viewport(0, 0, w.try_into().unwrap(), h.try_into().unwrap()) }
+    // unsafe { gl::Viewport(0, 0, w.try_into().unwrap(), h.try_into().unwrap()) }
 }
 
 fn draw_entity(fe: &ClientState, entity: &Entity, view: &Mat4, projection: &Mat4) {
@@ -65,12 +67,13 @@ fn draw_entity(fe: &ClientState, entity: &Entity, view: &Mat4, projection: &Mat4
     let vp = projection.mul_mat4(view);
     let mvp = vp.mul_mat4(&model);
 
-    fe.shaders.mesh.set_mvp(&mvp);
-    fe.textures.pear.bind();
-    fe.meshes.pear.draw();
+    //fe.shaders.mesh.set_mvp(&mvp);
+    //fe.textures.pear.bind();
+    //fe.meshes.pear.draw();
 }
 
 pub fn render_init() {
+    /*
     unsafe {
         gl::ClearColor(0.32, 0.63, 0.96, 1.0);
         gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
@@ -97,6 +100,7 @@ pub fn render_init() {
         tmp
     };
     set_gl_version(major_version, minor_version);
+     */
 }
 
 pub fn prepare_chunk(fe: &mut ClientState, game: &GameState, pos: IVec3, now: Instant) {
@@ -136,14 +140,14 @@ fn prepare_chunks(fe: &mut ClientState, game: &GameState) {
 fn prepare_ui(fe: &mut ClientState, game: &GameState) {
     let fps_text = format!("FPS: {}", fe.fps());
     fe.ui_mesh
-        .push_string(8, 8, 2, 0xFFFFFFFF, fps_text.as_str());
+        .push_string(8, 8, 2, [0xFF, 0xFF, 0xFF, 0xFF], fps_text.as_str());
 
     let pos_text = format!(
         "X:{:8.2} Y:{:8.2} Z:{:8.2}   Ticks:{}",
         game.player.pos[0], game.player.pos[1], game.player.pos[2], game.ticks_elapsed
     );
     fe.ui_mesh
-        .push_string(8, 40, 2, 0xFFFFFFFF, pos_text.as_str());
+        .push_string(8, 40, 2, [0xFF, 0xFF, 0xFF, 0xFF], pos_text.as_str());
 
     let block_name = game.world.blocks[game.player.block_selection() as usize].name();
     let block_sel_text = format!("Block selection: {}", block_name);
@@ -151,7 +155,7 @@ fn prepare_ui(fe: &mut ClientState, game: &GameState) {
         8,
         fe.window_size().1 as i16 - 20,
         2,
-        0xFFFFFFFF,
+        [0xFF, 0xFF, 0xFF, 0xFF],
         block_sel_text.as_str(),
     );
 
@@ -168,8 +172,8 @@ fn prepare_ui(fe: &mut ClientState, game: &GameState) {
             fe.world_mesh.len(),
         );
         fe.ui_mesh
-            .push_string(8, 60, 2, 0xFFFFFFFF, rot_text.as_str())
-            .push_string(8, 100, 2, 0xFFFFFFFF, col_text.as_str());
+            .push_string(8, 60, 2, [0xFF, 0xFF, 0xFF, 0xFF], rot_text.as_str())
+            .push_string(8, 100, 2, [0xFF, 0xFF, 0xFF, 0xFF], col_text.as_str());
     }
     let (window_width, window_height) = fe.window_size();
 
@@ -180,8 +184,8 @@ fn prepare_ui(fe: &mut ClientState, game: &GameState) {
         32,
     );
     let tex = (200, 252, 4, 4);
-    fe.ui_mesh.push_box(pos, tex, 0x7FFFFFFF);
-    fe.ui_mesh.prepare();
+    fe.ui_mesh.push_box(pos, tex, [0x7F, 0xFF, 0xFF, 0xFF]);
+    fe.ui_mesh.prepare(&fe.display);
 }
 
 pub fn prepare_frame(fe: &mut ClientState, game: &GameState) {
@@ -277,20 +281,22 @@ fn render_chungus(fe: &ClientState, game: &GameState, mvp: &Mat4) {
     let render_queue = build_render_queue(game.player.pos, &frustum);
     let now = Instant::now();
 
-    fe.shaders.block.set_used();
-    fe.shaders.block.set_mvp(mvp);
-    fe.textures.blocks.bind();
+    //fe.shaders.block.set_used();
+    //fe.shaders.block.set_mvp(mvp);
+    //fe.textures.blocks.bind();
 
     for entry in render_queue.iter() {
         if let Some(mesh) = fe.world_mesh.get(&entry.pos) {
             let td = (now - mesh.get_first_created()).as_millis();
             let fade_in = (td as f32 / 500.0).clamp(0.0, 1.0);
             let alpha = entry.alpha * fade_in;
-            fe.shaders.block.set_alpha(alpha);
+            //fe.shaders.block.set_alpha(alpha);
+            /*
             fe.shaders
                 .block
                 .set_trans(entry.trans.x, entry.trans.y, entry.trans.z);
             mesh.draw(entry.mask)
+             */
         }
     }
 }
@@ -299,11 +305,13 @@ fn render_sky(fe: &ClientState, _game: &GameState, view: Mat4, projection: Mat4)
     let s = RENDER_DISTANCE + CHUNK_SIZE as f32 * 2.0;
     let view = view * Mat4::from_scale(Vec3::new(s, s, s));
     let mvp = projection * view;
+    /*
     fe.shaders.mesh.set_used();
     fe.shaders.mesh.set_color(1.0, 1.0, 1.0, 1.0);
     fe.textures.sky.bind();
     fe.shaders.mesh.set_mvp(&mvp);
     fe.meshes.dome.draw();
+     */
 }
 
 fn render_game(fe: &ClientState, game: &GameState) {
@@ -321,27 +329,16 @@ fn render_game(fe: &ClientState, game: &GameState) {
     let view = view * Mat4::from_translation(-game.player.pos);
     let mvp = projection * view;
 
-    fe.textures.pear.bind();
+    //fe.textures.pear.texture()
     game.entities
         .iter()
         .for_each(|entity| draw_entity(fe, entity, &view, &projection));
     render_chungus(fe, game, &mvp);
 }
 
-pub fn render_frame(fe: &ClientState, game: &GameState) {
-    unsafe {
-        gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
-        gl::Enable(gl::DEPTH_TEST);
-        if fe.wireframe() {
-            gl::PolygonMode(gl::FRONT_AND_BACK, gl::LINE);
-        }
-    };
+pub fn render_frame(frame: &mut glium::Frame, fe: &ClientState, game: &GameState) {
+    frame.clear(None, Some((0.32, 0.63, 0.96, 1.0)), true, Some(0.0), None);
     render_game(fe, game);
-    unsafe {
-        if fe.wireframe() {
-            gl::PolygonMode(gl::FRONT_AND_BACK, gl::FILL);
-        }
-    };
 
     let (window_width, window_height) = fe.window_size();
     let perspective = Mat4::orthographic_rh_gl(
@@ -352,9 +349,26 @@ pub fn render_frame(fe: &ClientState, game: &GameState) {
         -10.0,
         10.0,
     );
-    unsafe { gl::Disable(gl::DEPTH_TEST) }
+    let matMVP = perspective.to_cols_array_2d();
+    let curTex = fe.textures.gui.texture();
+    frame.draw(
+        fe.ui_mesh.buffer(),
+        glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList),
+        &fe.shaders.text,
+        &uniform! {
+            matMVP: matMVP,
+            curTex: curTex,
+        },
+        &glium::DrawParameters {
+            blend: glium::draw_parameters::Blend::alpha_blending(),
+            ..Default::default()
+        },
+    );
+    // unsafe { gl::Disable(gl::DEPTH_TEST) }
+    /*
     fe.shaders.text.set_used();
     fe.shaders.text.set_mvp(&perspective);
     fe.textures.gui.bind();
     fe.ui_mesh.draw();
+     */
 }

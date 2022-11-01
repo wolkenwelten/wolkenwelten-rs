@@ -23,7 +23,6 @@ pub use self::meshes::Mesh;
 pub use self::render::{
     prepare_frame, render_frame, render_init, set_viewport, RENDER_DISTANCE, VIEW_STEPS,
 };
-pub use self::shader::Program;
 pub use self::state::ClientState;
 pub use self::texture::{Texture, TextureArray};
 pub use event::InputEvent;
@@ -33,6 +32,5 @@ mod frustum;
 mod input;
 mod meshes;
 mod render;
-mod shader;
 mod state;
 mod texture;

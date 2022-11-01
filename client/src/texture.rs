@@ -14,72 +14,37 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 use crate::render;
-use gl::types::GLuint;
+use glium;
 use std::ffi::{c_void, CString};
 
-#[derive(Debug, Default)]
 pub struct Texture {
-    id: GLuint,
+    texture: glium::texture::SrgbTexture2d,
 }
-#[derive(Debug, Default)]
+
 pub struct TextureArray {
-    id: GLuint,
+    id: i32,
 }
 
 impl Texture {
     pub fn from_bytes(
+        display: &glium::Display,
         label: &str,
         bytes: &'static [u8],
         linear: bool,
     ) -> Result<Self, image::ImageError> {
-        let img = image::load_from_memory(bytes)?;
-        let width: u16 = img.width().try_into().unwrap();
-        let height: u16 = img.height().try_into().unwrap();
+        let img = image::load_from_memory(bytes).unwrap();
+        let img = img.flipv().to_rgba8();
 
-        let img = match img {
-            image::DynamicImage::ImageRgba8(img) => img,
-            x => x.to_rgba8(),
-        };
-
-        let label = CString::new(label).unwrap();
-        let id = unsafe {
-            let mut id = 0;
-            gl::GenTextures(1, &mut id);
-            gl::BindTexture(gl::TEXTURE_2D, id);
-            if render::can_use_object_labels() {
-                gl::ObjectLabel(gl::TEXTURE, id, -1, label.as_ptr());
-            }
-            let filter = if linear { gl::LINEAR } else { gl::NEAREST };
-            gl::TexParameteri(
-                gl::TEXTURE_2D,
-                gl::TEXTURE_MIN_FILTER,
-                filter.try_into().unwrap(),
-            );
-            gl::TexParameteri(
-                gl::TEXTURE_2D,
-                gl::TEXTURE_MAG_FILTER,
-                filter.try_into().unwrap(),
-            );
-            gl::TexImage2D(
-                gl::TEXTURE_2D,
-                0,
-                gl::RGBA.try_into().unwrap(),
-                width.try_into().unwrap(),
-                height.try_into().unwrap(),
-                0,
-                gl::RGBA,
-                gl::UNSIGNED_BYTE,
-                (&img as &[u8]).as_ptr() as *const c_void,
-            );
-            id
-        };
-        Ok(Self { id })
+        //let label = CString::new(label).unwrap();
+        let image_dimensions = img.dimensions();
+        let img =
+            glium::texture::RawImage2d::from_raw_rgba_reversed(&img.into_raw(), image_dimensions);
+        let texture = glium::texture::SrgbTexture2d::new(display, img).unwrap();
+        Ok(Self { texture })
     }
 
-    pub fn bind(&self) {
-        unsafe {
-            gl::BindTexture(gl::TEXTURE_2D, self.id);
-        }
+    pub fn texture(&self) -> &glium::texture::SrgbTexture2d {
+        &self.texture
     }
 }
 
@@ -95,6 +60,7 @@ impl TextureArray {
         };
 
         let label = CString::new(label).unwrap();
+        /*
         let id = unsafe {
             let mut id = 0;
             gl::GenTextures(1, &mut id);
@@ -126,27 +92,10 @@ impl TextureArray {
             );
             id
         };
+         */
+        let id = 23;
         Ok(Self { id })
     }
 
-    pub fn bind(&self) {
-        unsafe {
-            gl::BindTexture(gl::TEXTURE_2D, self.id);
-        }
-    }
-}
-
-impl Drop for TextureArray {
-    fn drop(&mut self) {
-        unsafe {
-            gl::DeleteTextures(1, std::ptr::addr_of_mut!(self.id));
-        }
-    }
-}
-impl Drop for Texture {
-    fn drop(&mut self) {
-        unsafe {
-            gl::DeleteTextures(1, std::ptr::addr_of_mut!(self.id));
-        }
-    }
+    pub fn bind(&self) {}
 }

@@ -15,7 +15,6 @@
  */
 use crate::{Texture, TextureArray};
 
-#[derive(Debug, Default)]
 pub struct TextureList {
     pub blocks: TextureArray,
     pub gui: Texture,
@@ -24,25 +23,28 @@ pub struct TextureList {
 }
 
 impl TextureList {
-    pub fn new() -> TextureList {
+    pub fn new(display: &glium::Display) -> TextureList {
         let blocks = TextureArray::from_bytes(
             "Blocks Texture",
             include_bytes!("../assets/textures/blocks.png"),
         )
         .unwrap();
         let gui = Texture::from_bytes(
+            display,
             "GUI Texture",
             include_bytes!("../assets/textures/gui.png"),
             false,
         )
         .unwrap();
         let sky = Texture::from_bytes(
+            display,
             "Sky Texture",
             include_bytes!("../assets/textures/sky.png"),
             true,
         )
         .unwrap();
         let pear: Texture = Texture::from_bytes(
+            display,
             "Pear Texture",
             include_bytes!("../assets/textures/pear.png"),
             true,

@@ -13,7 +13,6 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-extern crate glutin;
 extern crate wolkenwelten_client;
 extern crate wolkenwelten_game;
 extern crate wolkenwelten_scripting;
@@ -24,7 +23,6 @@ use winit::event::{
 use winit::event_loop::{ControlFlow, EventLoop};
 use winit::window::{CursorGrabMode, Fullscreen, Window, WindowBuilder};
 
-use glutin::{ContextBuilder, ContextWrapper, PossiblyCurrent};
 use winit::dpi::PhysicalPosition;
 use wolkenwelten_client::{
     input_tick, prepare_frame, render_frame, set_viewport, ClientState, InputEvent, Key,
@@ -39,7 +37,6 @@ pub struct AppState {
     pub game_state: GameState,
     pub render_state: ClientState,
     pub event_loop: EventLoop<()>,
-    pub windowed_context: ContextWrapper<PossiblyCurrent, Window>,
     pub runtime: Runtime,
     pub sfx: SfxList,
 }
@@ -61,7 +58,7 @@ pub fn ungrab_cursor(window: &Window) {
     let _ = window.set_cursor_grab(CursorGrabMode::None);
 }
 
-pub fn init_glutin() -> (EventLoop<()>, ContextWrapper<PossiblyCurrent, Window>) {
+pub fn init() -> (EventLoop<()>, glium::Display) {
     let title = format!("WolkenWelten - {}", env!("CARGO_PKG_VERSION"));
     let event_loop = EventLoop::new();
     let wb = WindowBuilder::new()
@@ -69,21 +66,19 @@ pub fn init_glutin() -> (EventLoop<()>, ContextWrapper<PossiblyCurrent, Window>)
         .with_decorations(false)
         .with_maximized(true);
 
-    let windowed_context = ContextBuilder::new()
-        .with_vsync(true)
-        .build_windowed(wb, &event_loop)
-        .unwrap();
+    let cb = glium::glutin::ContextBuilder::new();
+    let display = glium::Display::new(wb, cb, &event_loop).unwrap();
 
-    let windowed_context = unsafe { windowed_context.make_current().unwrap() };
-    gl::load_with(|ptr| windowed_context.get_proc_address(ptr) as *const _);
+    {
+        let ctx = display.gl_window();
+        let window = ctx.window();
+        window.focus_window();
+        let fs = Fullscreen::Borderless(window.current_monitor());
+        window.set_fullscreen(Some(fs));
+        grab_cursor(window);
+    }
 
-    let window = windowed_context.window();
-    window.focus_window();
-    let fs = Fullscreen::Borderless(window.current_monitor());
-    window.set_fullscreen(Some(fs));
-    grab_cursor(window);
-
-    (event_loop, windowed_context)
+    (event_loop, display)
 }
 
 pub fn run_event_loop(state: AppState) {
@@ -91,7 +86,6 @@ pub fn run_event_loop(state: AppState) {
     let mut game_state = state.game_state;
     let event_loop = state.event_loop;
     let mut runtime = state.runtime;
-    let windowed_context = state.windowed_context;
 
     event_loop.run(move |event, _, control_flow| match event {
         Event::LoopDestroyed => (),
@@ -106,7 +100,10 @@ pub fn run_event_loop(state: AppState) {
             {
                 let (x, y) = render_state.window_size();
                 let center = PhysicalPosition::new(x / 2, y / 2);
-                let _ = windowed_context.window().set_cursor_position(center);
+
+                let ctx = render_state.display.gl_window();
+                let window = ctx.window();
+                let _ = window.set_cursor_position(center);
             }
         }
 
@@ -136,9 +133,9 @@ pub fn run_event_loop(state: AppState) {
             ..
         } => {
             if b {
-                grab_cursor(windowed_context.window());
+                grab_cursor(render_state.display.gl_window().window());
             } else {
-                ungrab_cursor(windowed_context.window());
+                ungrab_cursor(render_state.display.gl_window().window());
             }
         }
 
@@ -245,15 +242,17 @@ pub fn run_event_loop(state: AppState) {
             event: WindowEvent::Resized(physical_size),
             ..
         } => {
-            windowed_context.resize(physical_size);
+            render_state.display.gl_window().resize(physical_size);
             render_state.set_window_size((physical_size.width, physical_size.height));
             set_viewport(&render_state);
         }
         Event::RedrawRequested(_) => {
             runtime.tick(game_state.get_millis());
+            let mut frame = render_state.display.draw();
             prepare_frame(&mut render_state, &game_state);
-            render_frame(&render_state, &game_state);
-            windowed_context.swap_buffers().unwrap();
+            render_frame(&mut frame, &render_state, &game_state);
+            frame.finish().unwrap();
+            //windowed_context.swap_buffers().unwrap();
         }
         Event::MainEventsCleared => {
             let events = input_tick(&mut game_state, &render_state);
@@ -275,7 +274,7 @@ pub fn run_event_loop(state: AppState) {
                 }
             });
             game_state.prepare_world(VIEW_STEPS, render_distance);
-            windowed_context.window().request_redraw();
+            render_state.display.gl_window().window().request_redraw();
         }
         _ => {}
     });

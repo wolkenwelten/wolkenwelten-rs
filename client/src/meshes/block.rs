@@ -13,9 +13,6 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-use super::util;
-use super::{Vao, Vbo};
-use gl::types::GLvoid;
 use std::time::Instant;
 use wolkenwelten_common::{ChunkBlockData, ChunkLightData};
 use wolkenwelten_game::GameState;
@@ -24,7 +21,6 @@ use wolkenwelten_meshgen::BlockVertex;
 
 #[derive(Debug)]
 pub struct BlockMesh {
-    vao: Vao,
     first_created: Instant,
     last_updated: Instant,
     side_square_count: [usize; 6],
@@ -32,7 +28,7 @@ pub struct BlockMesh {
 }
 
 impl BlockMesh {
-    pub fn gen_index_buffer(square_count: usize) -> Vbo {
+    pub fn gen_index_buffer(square_count: usize) -> Vec<u16> {
         let mut v: Vec<u16> = Vec::with_capacity(square_count * 6);
         for i in 0..square_count {
             v.push((i * 4) as u16);
@@ -44,11 +40,14 @@ impl BlockMesh {
             v.push((i * 4) as u16);
         }
         let vbo_size: u32 = square_count as u32 * 6 * 2;
+        /*
         Vbo::new(
             "BlockMesh Index Buffer",
             v.as_ptr() as *const GLvoid,
             vbo_size,
         )
+         */
+        v
     }
 
     pub fn get_last_updated(&self) -> Instant {
@@ -70,28 +69,31 @@ impl BlockMesh {
 
     pub fn draw(&self, mask: u8) {
         if mask == 0b111111 {
+            /*
             self.vao.draw_elements(
                 0,
                 ((self.side_start[5] + self.side_square_count[5]) * 6) as u32,
             );
+             */
         } else {
             (0..6).filter(|i| (mask & (1 << i)) != 0).for_each(|i| {
                 let start_offset = self.side_start[i] * 6 * 2;
                 let index_count = self.side_square_count[i] * 6;
                 if index_count > 0 {
+                    /*
                     self.vao
                         .draw_elements(start_offset as u32, index_count as u32);
+                     */
                 }
             });
         }
     }
 
-    pub fn new(index_vbo: &Vbo) -> Self {
-        let vao = Vao::new_empty("BlockMesh");
-        Self::vertex_attrib_pointers();
-        index_vbo.bind_element();
+    pub fn new(index_vbo: &Vec<u16>) -> Self {
+        //let vao = Vao::new_empty("BlockMesh");
+        //Self::vertex_attrib_pointers();
+        //index_vbo.bind_element();
         Self {
-            vao,
             side_square_count: [0; 6],
             side_start: [0; 6],
             first_created: Instant::now(),
@@ -117,12 +119,13 @@ impl BlockMesh {
             self.side_start[i] = self.side_start[i - 1] + self.side_square_count[i - 1];
         }
 
-        self.vao.bind();
+        //self.vao.bind();
         let vbo_size: usize = vertices.len() * std::mem::size_of::<BlockVertex>();
-        Vbo::buffer_data(vertices.as_ptr() as *const GLvoid, vbo_size as u32);
-        Self::vertex_attrib_pointers();
+        //Vbo::buffer_data(vertices.as_ptr() as *const GLvoid, vbo_size as u32);
+        //Self::vertex_attrib_pointers();
     }
 
+    /*
     pub fn vertex_attrib_pointers() {
         let stride = std::mem::size_of::<BlockVertex>();
         unsafe {
@@ -132,4 +135,5 @@ impl BlockMesh {
             util::vertex_attrib_int_pointer(stride, 2, offset, gl::UNSIGNED_BYTE, 1, 1);
         }
     }
+     */
 }
