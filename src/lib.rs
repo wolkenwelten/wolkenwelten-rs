@@ -69,8 +69,7 @@ pub fn init() -> (EventLoop<()>, glium::Display) {
     let cb = glium::glutin::ContextBuilder::new()
         //.with_gl(glium::glutin::GlRequest::GlThenGles { opengl_version: (3,1), opengles_version: (3,0)})
         .with_gl_profile(glium::glutin::GlProfile::Core)
-        .with_vsync(true)
-        .with_double_buffer(Some(true));
+        .with_vsync(true);
 
     let display = glium::Display::new(wb, cb, &event_loop).unwrap();
 
