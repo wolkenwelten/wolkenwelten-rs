@@ -35,7 +35,6 @@ pub struct TextMesh {
 impl TextMesh {
     pub fn prepare(&mut self, display: &glium::Display) -> &mut Self {
         if !self.finished {
-            let vbo_size = (self.vertices.len() * std::mem::size_of::<Vertex2D>());
             self.buffer = glium::VertexBuffer::dynamic(display, self.vertices.as_slice()).unwrap();
             self.vertex_count = self.vertices.len();
             self.vertices.clear();
@@ -45,13 +44,6 @@ impl TextMesh {
 
     pub fn buffer(&self) -> &glium::VertexBuffer<Vertex2D> {
         &self.buffer
-    }
-
-    pub fn draw(&self) {
-        if self.vertex_count == 0 {
-            return;
-        }
-        //self.vao.draw(self.vertex_count)
     }
 
     pub fn new(display: &glium::Display) -> Result<Self, glium::vertex::BufferCreationError> {

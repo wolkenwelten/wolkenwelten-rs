@@ -2493,6 +2493,7 @@ dependencies = [
 name = "wolkenwelten-meshgen"
 version = "0.0.1"
 dependencies = [
+ "glium",
  "wolkenwelten-common",
 ]
 

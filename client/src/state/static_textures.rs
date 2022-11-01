@@ -24,32 +24,15 @@ pub struct TextureList {
 
 impl TextureList {
     pub fn new(display: &glium::Display) -> TextureList {
-        let blocks = TextureArray::from_bytes(
-            "Blocks Texture",
-            include_bytes!("../assets/textures/blocks.png"),
-        )
-        .unwrap();
-        let gui = Texture::from_bytes(
-            display,
-            "GUI Texture",
-            include_bytes!("../assets/textures/gui.png"),
-            false,
-        )
-        .unwrap();
-        let sky = Texture::from_bytes(
-            display,
-            "Sky Texture",
-            include_bytes!("../assets/textures/sky.png"),
-            true,
-        )
-        .unwrap();
-        let pear: Texture = Texture::from_bytes(
-            display,
-            "Pear Texture",
-            include_bytes!("../assets/textures/pear.png"),
-            true,
-        )
-        .unwrap();
+        let blocks =
+            TextureArray::from_bytes(display, include_bytes!("../assets/textures/blocks.png"))
+                .unwrap();
+        let gui =
+            Texture::from_bytes(display, include_bytes!("../assets/textures/gui.png")).unwrap();
+        let sky =
+            Texture::from_bytes(display, include_bytes!("../assets/textures/sky.png")).unwrap();
+        let pear: Texture =
+            Texture::from_bytes(display, include_bytes!("../assets/textures/pear.png")).unwrap();
         TextureList {
             blocks,
             gui,

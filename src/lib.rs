@@ -25,8 +25,8 @@ use winit::window::{CursorGrabMode, Fullscreen, Window, WindowBuilder};
 
 use winit::dpi::PhysicalPosition;
 use wolkenwelten_client::{
-    input_tick, prepare_frame, render_frame, set_viewport, ClientState, InputEvent, Key,
-    RENDER_DISTANCE, VIEW_STEPS,
+    input_tick, prepare_frame, render_frame, ClientState, InputEvent, Key, RENDER_DISTANCE,
+    VIEW_STEPS,
 };
 use wolkenwelten_scripting::Runtime;
 use wolkenwelten_sound::SfxList;
@@ -66,7 +66,10 @@ pub fn init() -> (EventLoop<()>, glium::Display) {
         .with_decorations(false)
         .with_maximized(true);
 
-    let cb = glium::glutin::ContextBuilder::new();
+    let cb = glium::glutin::ContextBuilder::new()
+        .with_vsync(true)
+        .with_double_buffer(Some(true));
+
     let display = glium::Display::new(wb, cb, &event_loop).unwrap();
 
     {
@@ -244,7 +247,6 @@ pub fn run_event_loop(state: AppState) {
         } => {
             render_state.display.gl_window().resize(physical_size);
             render_state.set_window_size((physical_size.width, physical_size.height));
-            set_viewport(&render_state);
         }
         Event::RedrawRequested(_) => {
             runtime.tick(game_state.get_millis());

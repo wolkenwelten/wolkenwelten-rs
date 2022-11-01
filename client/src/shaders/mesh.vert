@@ -1,15 +1,15 @@
-uniform mat4 matMVP;
-uniform vec4 inColor;
+uniform mat4 mat_mvp;
+uniform vec4 in_color;
 
-in vec4 pos;
+in vec3 pos;
 in vec2 tex;
-in float lval;
+in float lightness;
 
-out vec2 multiTexCoord;
+out vec2 multi_tex_coord;
 out vec4 color;
 
 void main() {
-	gl_Position = matMVP * pos;
-	multiTexCoord = tex;
-	color = vec4(inColor.rgb * vec3(lval, lval, lval), inColor.a);
+	gl_Position = mat_mvp * vec4(pos, 1.0);
+	multi_tex_coord = tex;
+	color = vec4(in_color.rgb * vec3(lightness, lightness, lightness), in_color.a);
 }

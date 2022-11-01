@@ -18,7 +18,7 @@ extern crate wolkenwelten_game;
 extern crate wolkenwelten_scripting;
 extern crate wolkenwelten_sound;
 
-use wolkenwelten_client::{render_init, ClientState};
+use wolkenwelten_client::ClientState;
 use wolkenwelten_game::GameState;
 use wolkenwelten_scripting::Runtime;
 use wolkenwelten_sound::SfxList;
@@ -27,7 +27,6 @@ mod lib;
 
 pub fn main() {
     let (event_loop, display) = lib::init(); // This opens a window, and initialized OpenGL
-    render_init(); // This is separate because it has no dependency on glutin, just OpenGL
     let render_state = ClientState::new(display); // Now that we have setup an OpenGL context, we cam load all meshes/textures/shaders
 
     // And after having set up everything we can start up the event loop

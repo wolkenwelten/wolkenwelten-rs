@@ -33,7 +33,7 @@ pub mod static_textures;
 pub struct ClientState {
     instant: Instant,
 
-    block_index_buffer: Vec<u16>,
+    block_index_buffer: glium::IndexBuffer<u16>,
     pub world_mesh: HashMap<IVec3, BlockMesh>,
 
     window_width: u32,
@@ -58,19 +58,22 @@ pub struct ClientState {
 
 impl ClientState {
     pub fn new(display: glium::Display) -> Self {
+        let meshes = MeshList::new(&display);
         let shaders = ShaderList::new(&display).unwrap();
         let ui_mesh = TextMesh::new(&display).unwrap();
         let textures = TextureList::new(&display);
+        let block_index_buffer = BlockMesh::gen_index_buffer(&display, 65536 / 4);
+
         Self {
             instant: Instant::now(),
-            block_index_buffer: BlockMesh::gen_index_buffer(65536 / 4),
+            block_index_buffer,
             world_mesh: HashMap::new(),
 
             window_width: 640,
             window_height: 480,
 
             display,
-            meshes: MeshList::new(),
+            meshes,
             shaders,
             input: InputState::new(),
             textures,
@@ -84,7 +87,7 @@ impl ClientState {
         }
     }
 
-    pub fn block_indeces(&self) -> &Vec<u16> {
+    pub fn block_indeces(&self) -> &glium::IndexBuffer<u16> {
         &self.block_index_buffer
     }
 
