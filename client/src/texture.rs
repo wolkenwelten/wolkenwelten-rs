@@ -13,140 +13,121 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-use crate::render;
-use gl::types::GLuint;
-use std::ffi::{c_void, CString};
+use anyhow::*;
+use image::GenericImageView;
 
-#[derive(Debug, Default)]
 pub struct Texture {
-    id: GLuint,
-}
-#[derive(Debug, Default)]
-pub struct TextureArray {
-    id: GLuint,
+    pub texture: wgpu::Texture,
+    pub view: wgpu::TextureView,
+    pub sampler: wgpu::Sampler,
+    pub group: wgpu::BindGroup,
 }
 
 impl Texture {
     pub fn from_bytes(
+        device: &wgpu::Device,
+        queue: &wgpu::Queue,
+        bytes: &[u8],
         label: &str,
-        bytes: &'static [u8],
-        linear: bool,
-    ) -> Result<Self, image::ImageError> {
+    ) -> Result<Self> {
         let img = image::load_from_memory(bytes)?;
-        let width: u16 = img.width().try_into().unwrap();
-        let height: u16 = img.height().try_into().unwrap();
+        Self::from_image(device, queue, &img, Some(label))
+    }
 
-        let img = match img {
-            image::DynamicImage::ImageRgba8(img) => img,
-            x => x.to_rgba8(),
+    pub fn from_image(
+        device: &wgpu::Device,
+        queue: &wgpu::Queue,
+        img: &image::DynamicImage,
+        label: Option<&str>,
+    ) -> Result<Self> {
+        let rgba = img.to_rgba8();
+        let dimensions = img.dimensions();
+
+        let size = wgpu::Extent3d {
+            width: dimensions.0,
+            height: dimensions.1,
+            depth_or_array_layers: 1,
         };
+        let texture = device.create_texture(&wgpu::TextureDescriptor {
+            label,
+            size,
+            mip_level_count: 1,
+            sample_count: 1,
+            dimension: wgpu::TextureDimension::D2,
+            format: wgpu::TextureFormat::Rgba8UnormSrgb,
+            usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
+        });
 
-        let label = CString::new(label).unwrap();
-        let id = unsafe {
-            let mut id = 0;
-            gl::GenTextures(1, &mut id);
-            gl::BindTexture(gl::TEXTURE_2D, id);
-            if render::can_use_object_labels() {
-                gl::ObjectLabel(gl::TEXTURE, id, -1, label.as_ptr());
-            }
-            let filter = if linear { gl::LINEAR } else { gl::NEAREST };
-            gl::TexParameteri(
-                gl::TEXTURE_2D,
-                gl::TEXTURE_MIN_FILTER,
-                filter.try_into().unwrap(),
-            );
-            gl::TexParameteri(
-                gl::TEXTURE_2D,
-                gl::TEXTURE_MAG_FILTER,
-                filter.try_into().unwrap(),
-            );
-            gl::TexImage2D(
-                gl::TEXTURE_2D,
-                0,
-                gl::RGBA.try_into().unwrap(),
-                width.try_into().unwrap(),
-                height.try_into().unwrap(),
-                0,
-                gl::RGBA,
-                gl::UNSIGNED_BYTE,
-                (&img as &[u8]).as_ptr() as *const c_void,
-            );
-            id
-        };
-        Ok(Self { id })
-    }
+        queue.write_texture(
+            wgpu::ImageCopyTexture {
+                aspect: wgpu::TextureAspect::All,
+                texture: &texture,
+                mip_level: 0,
+                origin: wgpu::Origin3d::ZERO,
+            },
+            &rgba,
+            wgpu::ImageDataLayout {
+                offset: 0,
+                bytes_per_row: std::num::NonZeroU32::new(4 * dimensions.0),
+                rows_per_image: std::num::NonZeroU32::new(dimensions.1),
+            },
+            size,
+        );
 
-    pub fn bind(&self) {
-        unsafe {
-            gl::BindTexture(gl::TEXTURE_2D, self.id);
-        }
-    }
-}
+        let view = texture.create_view(&wgpu::TextureViewDescriptor::default());
+        let sampler = device.create_sampler(&wgpu::SamplerDescriptor {
+            address_mode_u: wgpu::AddressMode::ClampToEdge,
+            address_mode_v: wgpu::AddressMode::ClampToEdge,
+            address_mode_w: wgpu::AddressMode::ClampToEdge,
+            mag_filter: wgpu::FilterMode::Nearest,
+            min_filter: wgpu::FilterMode::Nearest,
+            mipmap_filter: wgpu::FilterMode::Nearest,
+            ..Default::default()
+        });
 
-impl TextureArray {
-    pub fn from_bytes(label: &str, bytes: &'static [u8]) -> Result<Self, image::ImageError> {
-        let img = image::load_from_memory(bytes)?;
-        let tile_size: u32 = img.width();
-        let tile_count = img.height() / tile_size;
+        let texture_bind_group_layout =
+            device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+                entries: &[
+                    wgpu::BindGroupLayoutEntry {
+                        binding: 0,
+                        visibility: wgpu::ShaderStages::FRAGMENT,
+                        ty: wgpu::BindingType::Texture {
+                            multisampled: false,
+                            view_dimension: wgpu::TextureViewDimension::D2,
+                            sample_type: wgpu::TextureSampleType::Float { filterable: true },
+                        },
+                        count: None,
+                    },
+                    wgpu::BindGroupLayoutEntry {
+                        binding: 1,
+                        visibility: wgpu::ShaderStages::FRAGMENT,
+                        ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),
+                        count: None,
+                    },
+                ],
+                label: Some("texture_bind_group_layout"),
+            });
 
-        let img = match img {
-            image::DynamicImage::ImageRgba8(img) => img,
-            x => x.to_rgba8(),
-        };
+        let group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            layout: &texture_bind_group_layout,
+            entries: &[
+                wgpu::BindGroupEntry {
+                    binding: 0,
+                    resource: wgpu::BindingResource::TextureView(&view),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 1,
+                    resource: wgpu::BindingResource::Sampler(&sampler),
+                },
+            ],
+            label: Some("diffuse_bind_group"),
+        });
 
-        let label = CString::new(label).unwrap();
-        let id = unsafe {
-            let mut id = 0;
-            gl::GenTextures(1, &mut id);
-            gl::BindTexture(gl::TEXTURE_2D_ARRAY, id);
-            if render::can_use_object_labels() {
-                gl::ObjectLabel(gl::TEXTURE, id, -1, label.as_ptr());
-            }
-            gl::TexParameteri(
-                gl::TEXTURE_2D_ARRAY,
-                gl::TEXTURE_MIN_FILTER,
-                gl::NEAREST.try_into().unwrap(),
-            );
-            gl::TexParameteri(
-                gl::TEXTURE_2D_ARRAY,
-                gl::TEXTURE_MAG_FILTER,
-                gl::NEAREST.try_into().unwrap(),
-            );
-            gl::TexImage3D(
-                gl::TEXTURE_2D_ARRAY,
-                0,
-                gl::RGBA.try_into().unwrap(),
-                tile_size.try_into().unwrap(),
-                tile_size.try_into().unwrap(),
-                tile_count.try_into().unwrap(),
-                0,
-                gl::RGBA,
-                gl::UNSIGNED_BYTE,
-                (&img as &[u8]).as_ptr() as *const c_void,
-            );
-            id
-        };
-        Ok(Self { id })
-    }
-
-    pub fn bind(&self) {
-        unsafe {
-            gl::BindTexture(gl::TEXTURE_2D, self.id);
-        }
-    }
-}
-
-impl Drop for TextureArray {
-    fn drop(&mut self) {
-        unsafe {
-            gl::DeleteTextures(1, std::ptr::addr_of_mut!(self.id));
-        }
-    }
-}
-impl Drop for Texture {
-    fn drop(&mut self) {
-        unsafe {
-            gl::DeleteTextures(1, std::ptr::addr_of_mut!(self.id));
-        }
+        Ok(Self {
+            group,
+            texture,
+            view,
+            sampler,
+        })
     }
 }

@@ -13,46 +13,46 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-use crate::{Texture, TextureArray};
+use crate::Texture;
+use wgpu;
 
-#[derive(Debug, Default)]
 pub struct TextureList {
-    pub blocks: TextureArray,
+    //pub blocks: TextureArray,
     pub gui: Texture,
     pub pear: Texture,
     pub sky: Texture,
 }
 
 impl TextureList {
-    pub fn new() -> TextureList {
+    pub fn new(device: &wgpu::Device, queue: &wgpu::Queue) -> TextureList {
+        /*
         let blocks = TextureArray::from_bytes(
             "Blocks Texture",
             include_bytes!("../assets/textures/blocks.png"),
         )
         .unwrap();
+         */
         let gui = Texture::from_bytes(
-            "GUI Texture",
+            device,
+            queue,
             include_bytes!("../assets/textures/gui.png"),
-            false,
+            "GUI Texture",
         )
         .unwrap();
         let sky = Texture::from_bytes(
-            "Sky Texture",
+            device,
+            queue,
             include_bytes!("../assets/textures/sky.png"),
-            true,
+            "Sky Texture",
         )
         .unwrap();
         let pear: Texture = Texture::from_bytes(
-            "Pear Texture",
+            device,
+            queue,
             include_bytes!("../assets/textures/pear.png"),
-            true,
+            "Pear Texture",
         )
         .unwrap();
-        TextureList {
-            blocks,
-            gui,
-            pear,
-            sky,
-        }
+        TextureList { gui, pear, sky }
     }
 }

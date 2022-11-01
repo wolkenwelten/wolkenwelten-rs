@@ -13,54 +13,49 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-use gl::types::{GLuint, GLvoid};
 use glam::f32::{Vec2, Vec3};
-
-use super::util;
-use super::util::Vao;
+use std::mem;
+use wgpu;
+use wgpu::util::DeviceExt;
 
 #[derive(Copy, Clone, Debug, Default)]
 #[repr(C, packed)]
-struct MeshVertex {
+pub struct MeshVertex {
     pub pos: Vec3,
     pub tex: Vec2,
     pub c: f32,
 }
 
-impl MeshVertex {
-    pub fn vertex_attrib_pointers() {
-        let stride = std::mem::size_of::<Self>();
+unsafe impl bytemuck::Pod for MeshVertex {}
+unsafe impl bytemuck::Zeroable for MeshVertex {}
 
-        unsafe {
-            let offset = util::vertex_attrib_pointer(stride, 0, 0, 3, gl::FLOAT, 4, false);
-            let offset = util::vertex_attrib_pointer(stride, 1, offset, 2, gl::FLOAT, 4, true);
-            util::vertex_attrib_pointer(stride, 2, offset, 1, gl::FLOAT, 4, false);
-        }
-    }
-}
-
-#[derive(Debug, Default)]
 pub struct Mesh {
-    vao: Vao,
-    vertex_count: u32,
+    buffer: wgpu::Buffer,
+    vertices: Vec<MeshVertex>,
 }
 
 impl Mesh {
     pub fn draw(&self) {
-        self.vao.draw(self.vertex_count);
+        //lf.vao.draw(self.vertex_count);
     }
 
-    fn from_vec(vertices: &Vec<MeshVertex>) -> Result<Self, String> {
-        let vbo_size: u32 = (vertices.len() * std::mem::size_of::<MeshVertex>())
-            .try_into()
-            .unwrap();
-        let vao = Vao::new("Block Mesh", vertices.as_ptr() as *const GLvoid, vbo_size);
-        MeshVertex::vertex_attrib_pointers();
-        let vertex_count: GLuint = vertices.len().try_into().unwrap();
-        Ok(Self { vao, vertex_count })
+    pub fn buf(&self) -> &wgpu::Buffer {
+        &self.buffer
+    }
+    pub fn vertex_count(&self) -> u32 {
+        self.vertices.len() as u32
     }
 
-    pub fn from_obj_string(s: &str) -> Result<Self, String> {
+    fn from_vec(device: &wgpu::Device, vertices: Vec<MeshVertex>) -> Result<Self, String> {
+        let buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some("Mesh Vertex Buffer"),
+            contents: bytemuck::cast_slice(vertices.as_slice()),
+            usage: wgpu::BufferUsages::VERTEX,
+        });
+        Ok(Self { buffer, vertices })
+    }
+
+    pub fn from_obj_string(device: &wgpu::Device, s: &str) -> Result<Self, String> {
         let o = tobj::load_obj_buf(
             &mut s.as_bytes(),
             &tobj::LoadOptions {
@@ -91,6 +86,17 @@ impl Mesh {
                 }
             })
             .collect();
-        Self::from_vec(&vertices)
+        Self::from_vec(device, vertices)
+    }
+
+    const VERTEX_ATTRIBUTES: [wgpu::VertexAttribute; 3] =
+        wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x2, 2 => Float32];
+
+    pub fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
+        wgpu::VertexBufferLayout {
+            array_stride: mem::size_of::<MeshVertex>() as wgpu::BufferAddress,
+            step_mode: wgpu::VertexStepMode::Vertex,
+            attributes: &Self::VERTEX_ATTRIBUTES,
+        }
     }
 }

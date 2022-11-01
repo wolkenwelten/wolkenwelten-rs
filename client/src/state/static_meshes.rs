@@ -14,18 +14,19 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 use crate::Mesh;
+use wgpu;
 
-#[derive(Debug, Default)]
 pub struct MeshList {
     pub pear: Mesh,
     pub dome: Mesh,
 }
 
 impl MeshList {
-    pub fn new() -> Self {
+    pub fn new(device: &wgpu::Device) -> Self {
         Self {
-            dome: Mesh::from_obj_string(include_str!("../assets/meshes/skydome.obj")).unwrap(),
-            pear: Mesh::from_obj_string(include_str!("../assets/meshes/pear.obj")).unwrap(),
+            dome: Mesh::from_obj_string(device, include_str!("../assets/meshes/skydome.obj"))
+                .unwrap(),
+            pear: Mesh::from_obj_string(device, include_str!("../assets/meshes/pear.obj")).unwrap(),
         }
     }
 }

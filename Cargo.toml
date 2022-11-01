@@ -10,8 +10,7 @@ An open voxel sandbox
 """
 
 [dependencies]
-glutin = "0.29.1"
-gl = "0.14.0"
+tokio = { version = "1.21.2", features = ["full"] }
 winit = "0.27.5"
 wolkenwelten-client = { path = "client" }
 wolkenwelten-common = { path = "common" }
