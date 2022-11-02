@@ -25,6 +25,7 @@ use std::collections::HashMap;
 use std::time::Instant;
 use wolkenwelten_common::CHUNK_SIZE;
 use wolkenwelten_game::Character;
+use wolkenwelten_particles::ParticleMesh;
 
 pub mod static_meshes;
 pub mod static_shaders;
@@ -45,6 +46,7 @@ pub struct ClientState {
     pub textures: TextureList,
 
     pub ui_mesh: TextMesh,
+    pub particles: ParticleMesh,
 
     pub input: InputState,
 
@@ -63,6 +65,7 @@ impl ClientState {
         let ui_mesh = TextMesh::new(&display).unwrap();
         let textures = TextureList::new(&display);
         let block_index_buffer = BlockMesh::gen_index_buffer(&display, 65536 / 4);
+        let particles = ParticleMesh::new();
 
         Self {
             instant: Instant::now(),
@@ -78,6 +81,7 @@ impl ClientState {
             input: InputState::new(),
             textures,
             ui_mesh,
+            particles,
 
             cur_fov: 90.0,
             cur_fps: 0,

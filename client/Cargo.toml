@@ -10,7 +10,10 @@ winit = "0.27.5"
 glium = "0.32.1"
 glam = "0.22.0"
 tobj = "3.2.3"
+rand = "0.8.5"
+rand_chacha = "0.3.1"
 image = { version = "0.24.4", default-features = false, features = ["png"]}
 wolkenwelten-common = { path = "../common" }
 wolkenwelten-game = { path = "../game" }
 wolkenwelten-meshgen = { path = "../meshgen" }
+wolkenwelten-particles = { path = "../particles" }

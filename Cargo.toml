@@ -18,6 +18,7 @@ wolkenwelten-game = { path = "game" }
 wolkenwelten-meshgen = { path = "meshgen" }
 wolkenwelten-scripting = { path = "scripting" }
 wolkenwelten-sound = { path = "sound" }
+wolkenwelten-particles = { path = "particles" }
 
 [profile.opt-release]
 inherits = "release"
@@ -36,6 +37,7 @@ members = [
     "common",
     "client",
     "meshgen",
+    "particles",
     "scripting",
     "sound",
 ]
@@ -45,6 +47,7 @@ default-members = [
     "common",
     "client",
     "meshgen",
+    "particles",
     "scripting",
     "sound",
 ]

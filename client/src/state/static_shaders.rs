@@ -18,6 +18,7 @@ pub struct ShaderList {
     pub block: glium::Program,
     pub mesh: glium::Program,
     pub text: glium::Program,
+    pub particle: glium::Program,
 }
 
 const VERT_PREFIX: &str = if cfg!(target_arch = "arm") || cfg!(target_arch = "aarch64") {
@@ -63,6 +64,28 @@ impl ShaderList {
         glium::Program::from_source(display, &vert, &frag, None)
     }
 
+    fn new_point_program(
+        display: &glium::Display,
+        vert: &str,
+        frag: &str,
+    ) -> Result<glium::Program, glium::ProgramCreationError> {
+        let vert = format!("{}\n{}", VERT_PREFIX, vert);
+        let frag = format!("{}\n{}", FRAG_PREFIX, frag);
+        glium::Program::new(
+            display,
+            glium::program::ProgramCreationInput::SourceCode {
+                vertex_shader: &vert,
+                fragment_shader: &frag,
+                geometry_shader: None,
+                tessellation_control_shader: None,
+                tessellation_evaluation_shader: None,
+                transform_feedback_varyings: None,
+                outputs_srgb: false,
+                uses_point_size: true,
+            },
+        )
+    }
+
     pub fn new(display: &glium::Display) -> Result<Self, glium::ProgramCreationError> {
         let mesh = Self::new_program(
             display,
@@ -79,7 +102,17 @@ impl ShaderList {
             include_str!("../shaders/block.vert"),
             include_str!("../shaders/block.frag"),
         )?;
+        let particle = Self::new_point_program(
+            display,
+            include_str!("../shaders/particle.vert"),
+            include_str!("../shaders/particle.frag"),
+        )?;
 
-        Ok(Self { block, mesh, text })
+        Ok(Self {
+            block,
+            mesh,
+            particle,
+            text,
+        })
     }
 }

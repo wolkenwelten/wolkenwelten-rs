@@ -22,7 +22,7 @@ pub struct Vertex2D {
     pub tex: [i16; 2],
     pub color: [u8; 4],
 }
-implement_vertex!(Vertex2D, pos, tex, color);
+implement_vertex!(Vertex2D, pos normalize(false), tex normalize(false), color normalize(true));
 
 pub struct TextMesh {
     buffer: glium::VertexBuffer<Vertex2D>,

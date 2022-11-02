@@ -28,10 +28,10 @@ use wolkenwelten_client::{
     input_tick, prepare_frame, render_frame, ClientState, InputEvent, Key, RENDER_DISTANCE,
     VIEW_STEPS,
 };
+use wolkenwelten_game::{GameEvent, GameState};
+use wolkenwelten_particles::ParticleEmission;
 use wolkenwelten_scripting::Runtime;
 use wolkenwelten_sound::SfxList;
-
-use wolkenwelten_game::{GameEvent, GameState};
 
 pub struct AppState {
     pub game_state: GameState,
@@ -269,13 +269,18 @@ pub fn run_event_loop(state: AppState) {
 
             let render_distance = RENDER_DISTANCE * RENDER_DISTANCE;
             let events = game_state.tick(render_distance);
+            let mut emissions: Vec<ParticleEmission> = vec![];
             events.iter().for_each(|e| match e {
                 GameEvent::CharacterStomp(_pos) => state.sfx.play(&state.sfx.stomp, 0.3),
                 GameEvent::EntityCollision(pos) => {
                     game_state.world.add_explosion(pos, 5.0);
                     state.sfx.play(&state.sfx.bomb, 0.3);
+                    emissions.push(ParticleEmission::Explosion(*pos, 4.0));
                 }
             });
+            render_state
+                .particles
+                .reduce_emissions(&emissions, game_state.ticks_elapsed);
             game_state.prepare_world(VIEW_STEPS, render_distance);
             render_state.display.gl_window().window().request_redraw();
         }

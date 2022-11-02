@@ -10,5 +10,5 @@ out vec4 front_color;
 void main(){
 	gl_Position     = mat_mvp * vec4(pos, 1.0, 1.0);
 	multi_tex_coord = tex * 0.0078125; // 1/128
-	front_color     = color * vec4(1.0/256.0, 1.0/256.0, 1.0/256.0, 1.0/256.0);
+	front_color     = color;
 }

@@ -2452,6 +2452,7 @@ dependencies = [
  "wolkenwelten-common",
  "wolkenwelten-game",
  "wolkenwelten-meshgen",
+ "wolkenwelten-particles",
  "wolkenwelten-scripting",
  "wolkenwelten-sound",
 ]
@@ -2463,11 +2464,14 @@ dependencies = [
  "glam",
  "glium",
  "image",
+ "rand",
+ "rand_chacha",
  "tobj",
  "winit",
  "wolkenwelten-common",
  "wolkenwelten-game",
  "wolkenwelten-meshgen",
+ "wolkenwelten-particles",
 ]
 
 [[package]]
@@ -2494,6 +2498,17 @@ name = "wolkenwelten-meshgen"
 version = "0.0.1"
 dependencies = [
  "glium",
+ "wolkenwelten-common",
+]
+
+[[package]]
+name = "wolkenwelten-particles"
+version = "0.0.1"
+dependencies = [
+ "glam",
+ "glium",
+ "rand",
+ "rand_chacha",
  "wolkenwelten-common",
 ]
 

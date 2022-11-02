@@ -143,10 +143,11 @@ fn prepare_ui(fe: &mut ClientState, game: &GameState) {
             game.player.rot[0], game.player.rot[1], game.player.rot[2]
         );
         let col_text = format!(
-            "Entities: {}   Chunks: {}   BlockMeshes: {}",
+            "Entities: {}   Chunks: {}   BlockMeshes: {}  Particles: {}",
             game.get_entity_count(),
             game.world.chunks.len(),
             fe.world_mesh.len(),
+            fe.particles.len(),
         );
         fe.ui_mesh
             .push_string(8, 60, 2, [0xFF, 0xFF, 0xFF, 0xFF], rot_text.as_str())
@@ -171,6 +172,7 @@ pub fn prepare_frame(fe: &mut ClientState, game: &GameState) {
     fe.gc(&game.player);
     fe.set_fov(calc_fov(fe.fov(), &game.player));
     prepare_chunks(fe, game);
+    fe.particles.update(game.player.pos, RENDER_DISTANCE);
 }
 
 #[derive(Debug, Default)]
@@ -373,6 +375,9 @@ fn render_game(frame: &mut glium::Frame, fe: &ClientState, game: &GameState) {
 
     let view = view * Mat4::from_translation(-game.player.pos);
     let mvp = projection * view;
+    fe.particles
+        .draw(frame, &fe.display, &fe.shaders.particle, &mvp)
+        .unwrap();
 
     game.entities
         .iter()
