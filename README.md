@@ -1,5 +1,5 @@
 # WolkenWelten
-![Have a screenshot](https://github.com/wolkenwelten/wolkenwelten-screenshots/raw/main/2022_10_29.jpg)
+![Have a screenshot](https://github.com/wolkenwelten/wolkenwelten-screenshots/raw/main/2022_11_03.jpg)
 
 WolkenWelten aspires to be the **open voxel sandbox** you can modify while it's running.
 
