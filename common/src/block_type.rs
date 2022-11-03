@@ -6,16 +6,23 @@ use crate::Side;
 pub struct BlockType {
     name: String,
     texture_index: [u8; 6],
+    colors: [[u8; 4]; 2]
 }
 
 impl BlockType {
     pub fn new(name: &str) -> Self {
         let texture_index: [u8; 6] = [0; 6];
         let name = name.to_string();
+        let colors = [[0xFF;4];2];
         Self {
             name,
             texture_index,
+            colors,
         }
+    }
+    pub fn with_colors(mut self, a: [u8;4], b: [u8;4]) -> Self {
+        self.colors = [a,b];
+        self
     }
     pub fn with_texture(mut self, tex: u8) -> Self {
         self.texture_index = [tex; 6];
@@ -28,6 +35,9 @@ impl BlockType {
     }
     pub fn name(&self) -> &str {
         &self.name
+    }
+    pub fn colors(&self) -> [[u8; 4]; 2] {
+        self.colors
     }
 
     pub fn with_texture_top(self, tex: u8) -> Self {

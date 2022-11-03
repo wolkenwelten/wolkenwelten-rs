@@ -1,7 +1,7 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
 use super::Chungus;
-use glam::{IVec3, Vec3};
+use glam::{IVec3, Vec3, Vec3Swizzles};
 use std::f32::consts::PI;
 use wolkenwelten_common::GameEvent;
 
@@ -23,6 +23,9 @@ pub enum RaycastReturn {
     Front,
 }
 
+const CHARACTER_ACCELERATION: f32 = 0.01;
+const CHARACTER_STOP_RATE: f32 = CHARACTER_ACCELERATION * 3.0;
+
 const COL_WIDTH: f32 = 0.4;
 const COL_DEPTH: f32 = 0.4;
 
@@ -43,6 +46,9 @@ impl Character {
     pub fn rot(&self) -> Vec3 {
         self.rot
     }
+    pub fn vel(&self) -> Vec3 {
+        self.vel
+    }
 
     pub fn no_clip(&self) -> bool {
         self.no_clip
@@ -51,11 +57,14 @@ impl Character {
         self.no_clip = no_clip;
     }
 
-    pub fn set_vel(&mut self, vel: &Vec3) {
-        self.vel = *vel;
+    pub fn set_vel(&mut self, vel: Vec3) {
+        self.vel = vel;
     }
-    pub fn set_pos(&mut self, pos: &Vec3) {
-        self.pos = *pos;
+    pub fn set_pos(&mut self, pos: Vec3) {
+        self.pos = pos;
+    }
+    pub fn set_rot(&mut self, rot: Vec3) {
+        self.rot = rot;
     }
 
     pub fn may_jump(&self, world: &Chungus) -> bool {
@@ -98,6 +107,8 @@ impl Character {
         self.block_selection + 1
     }
 
+
+
     pub fn wrap_rot(&mut self) {
         if self.rot[0] < 0.0 {
             self.rot[0] += 360.0;
@@ -114,11 +125,26 @@ impl Character {
         }
     }
 
-    pub fn tick(&mut self, events: &mut Vec<GameEvent>, world: &Chungus) {
+    pub fn tick(&mut self, v: Vec3, events: &mut Vec<GameEvent>, world: &Chungus) {
         if self.no_clip {
             self.pos += self.vel;
             return;
         }
+
+
+        let accel = if v.xz().length() > 0.01 {
+            CHARACTER_ACCELERATION
+        } else {
+            CHARACTER_STOP_RATE
+        };
+        let accel = if self.may_jump(world) {
+            accel
+        } else {
+            accel * 0.2 // Slow down player movement changes during jumps
+        };
+
+        self.vel.x = self.vel.x * (1.0 - accel) + (v.x * 0.02) * accel;
+        self.vel.z = self.vel.z * (1.0 - accel) + (v.z * 0.02) * accel;
 
         self.vel.y -= 0.0005;
         let old = self.vel;

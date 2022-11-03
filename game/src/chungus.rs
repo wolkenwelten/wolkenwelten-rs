@@ -90,6 +90,16 @@ impl Chungus {
         }
     }
 
+    pub fn get_block(&mut self, pos: IVec3) -> Option<u8> {
+        let cp = pos >> CHUNK_BITS;
+        if let Some(chnk) = self.get(&cp) {
+            let pos = pos & CHUNK_MASK;
+            Some(chnk.get_block((pos.x, pos.y, pos.z)))
+        } else {
+           None
+        }
+    }
+
     pub fn add_explosion(&mut self, pos: &Vec3, power: f32) {
         let pos = pos.floor().as_ivec3();
         let p = power.round() as i32;

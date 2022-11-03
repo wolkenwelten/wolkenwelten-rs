@@ -1,19 +1,16 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
 use super::{Character, Chungus, Chunk, Entity};
-use glam::{IVec3, Vec3, Vec3Swizzles};
+use glam::{IVec3, Vec3};
 use std::cmp::Ordering;
 use std::collections::BinaryHeap;
 use std::time::Instant;
 use wolkenwelten_common::{ChunkBlockData, ChunkLightData, GameEvent, InputEvent, CHUNK_BITS, CHUNK_MASK, CHUNK_SIZE};
 
 const MS_PER_TICK: u64 = 4;
-const CHARACTER_ACCELERATION: f32 = 0.08;
-const CHARACTER_STOP_RATE: f32 = CHARACTER_ACCELERATION * 3.0;
 
 #[cfg(debug_assertions)]
 const MAX_CHUNKS_GENERATED_PER_FRAME: usize = 1;
-
 #[cfg(not(debug_assertions))]
 const MAX_CHUNKS_GENERATED_PER_FRAME: usize = 8;
 
@@ -64,7 +61,7 @@ impl Default for GameState {
         let running = true;
         let entities = Vec::new();
         let mut player = Character::new();
-        player.set_pos(&Vec3::new(15.0, 0.0, -15.0));
+        player.set_pos(Vec3::new(15.0, 0.0, -15.0));
 
         Self {
             clock: Instant::now(),
@@ -90,6 +87,7 @@ impl GameState {
     pub fn get_entity_count(&self) -> usize {
         self.entities.len()
     }
+
     pub fn push_entity(&mut self, e: Entity) {
         self.entities.push(e);
     }
@@ -99,6 +97,7 @@ impl GameState {
         let now = self.get_millis();
         let ticks_goal = now / MS_PER_TICK;
         let to_run = ticks_goal - self.ticks_elapsed;
+        let mut player_movement = Vec3::ZERO;
 
         self.player.wrap_rot();
 
@@ -108,19 +107,7 @@ impl GameState {
                     self.player.jump();
                     events.push(GameEvent::CharacterJump(self.player.pos))
                 }
-                let accel = if v.xz().length() > 0.01 {
-                    CHARACTER_ACCELERATION
-                } else {
-                    CHARACTER_STOP_RATE
-                };
-                let accel = if self.player.may_jump(&self.world) {
-                    accel
-                } else {
-                    accel * 0.2 // Slow down player movement changes during jumps
-                };
-
-                self.player.vel.x = self.player.vel.x * (1.0 - accel) + (v.x * 0.02) * accel;
-                self.player.vel.z = self.player.vel.z * (1.0 - accel) + (v.z * 0.02) * accel;
+                player_movement = *v;
             }
             InputEvent::PlayerFly(v) => {
                 self.player.vel = *v * 0.15
@@ -137,16 +124,21 @@ impl GameState {
             }
             InputEvent::PlayerBlockMine(pos) => {
                 if self.player.may_act(now) {
-                    self.player.set_cooldown(now + 300);
-                    self.world.set_block(*pos, 0);
-                    events.push(GameEvent::BlockMine(*pos))
+                    if let Some(b) = self.world.get_block(*pos) {
+                        self.player.set_cooldown(now + 300);
+                        self.world.set_block(*pos, 0);
+                        events.push(GameEvent::BlockMine(*pos, b))
+                    }
                 }
             }
             InputEvent::PlayerBlockPlace(pos) => {
                 if self.player.may_act(now) {
-                    self.player.set_cooldown(now + 300);
-                    self.world.set_block(*pos, self.player.block_selection());
-                    events.push(GameEvent::BlockPlace(*pos))
+                    if self.world.get_block(*pos).unwrap_or(0) == 0 {
+                        self.player.set_cooldown(now + 300);
+                        let b = self.player.block_selection();
+                        self.world.set_block(*pos, b);
+                        events.push(GameEvent::BlockPlace(*pos, b))
+                    }
                 }
             }
         });
@@ -154,7 +146,7 @@ impl GameState {
         for _ in 0..to_run {
             self.ticks_elapsed += 1;
             Entity::tick(&mut self.entities, &mut events, &self.player, &self.world);
-            self.player.tick(&mut events, &self.world);
+            self.player.tick(player_movement, &mut events, &self.world);
         }
         if self.ticks_elapsed > self.last_gc {
             self.world.gc(&self.player, render_distance);
@@ -180,6 +172,7 @@ impl GameState {
     pub fn has_chunk(&self, pos: IVec3) -> bool {
         self.world.get(&pos).is_some()
     }
+
     pub fn should_update(&self, pos: IVec3) -> bool {
         if let Some(chunk) = self.world.get_chunk(&pos) {
             chunk.should_update()
@@ -191,6 +184,7 @@ impl GameState {
     pub fn get_chunk_block(&self, pos: IVec3) -> Option<&ChunkBlockData> {
         self.world.get(&pos)
     }
+
     pub fn get_chunk_light(&self, pos: IVec3) -> Option<&ChunkLightData> {
         self.world.get_light(&pos)
     }

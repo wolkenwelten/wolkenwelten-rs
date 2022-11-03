@@ -255,8 +255,16 @@ pub fn run_event_loop(state: AppState) {
             game_events.iter().for_each(|e| match e {
                 GameEvent::CharacterJump(_) => state.sfx.play(&state.sfx.jump, 0.2),
                 GameEvent::CharacterShoot(_) => state.sfx.play(&state.sfx.hook_fire, 0.4),
-                GameEvent::BlockMine(_) => state.sfx.play(&state.sfx.tock, 0.3),
-                GameEvent::BlockPlace(_) => state.sfx.play(&state.sfx.pock, 0.3),
+                GameEvent::BlockMine(pos, b) => {
+                    let color = game_state.world.get_block_type(*b).colors();
+                    emissions.push(ParticleEmission::BlockBreak(*pos, color));
+                    state.sfx.play(&state.sfx.tock, 0.3);
+                }
+                GameEvent::BlockPlace(pos, b) => {
+                    let color = game_state.world.get_block_type(*b).colors();
+                    emissions.push(ParticleEmission::BlockPlace(*pos, color));
+                    state.sfx.play(&state.sfx.pock, 0.3);
+                }
                 GameEvent::CharacterStomp(_pos) => state.sfx.play(&state.sfx.stomp, 0.3),
                 GameEvent::EntityCollision(pos) => {
                     game_state.world.add_explosion(pos, 5.0);

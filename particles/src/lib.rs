@@ -1,6 +1,6 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
-use glam::{Mat4, Vec3};
+use glam::{Mat4, IVec3, Vec3};
 use glium::implement_vertex;
 use glium::Surface;
 use rand::prelude::*;
@@ -10,6 +10,8 @@ use rand_chacha::ChaCha8Rng;
 #[derive(Copy, Clone, Debug)]
 pub enum ParticleEmission {
     Explosion(Vec3, f32),
+    BlockBreak(IVec3, [[u8; 4]; 2]),
+    BlockPlace(IVec3, [[u8; 4]; 2])
 }
 
 #[derive(Copy, Clone, Debug)]
@@ -55,82 +57,116 @@ impl ParticleMesh {
         })
     }
 
+    fn fx_explosion(&mut self, rng: &mut ChaCha8Rng, pos: Vec3, power: f32) {
+        let power = power * 0.66;
+        for _ in 1..256 {
+            let pos = [
+                pos.x + rng.gen_range(-power..power),
+                pos.y + rng.gen_range(-power..power),
+                pos.z + rng.gen_range(-power..power),
+                192.0,
+            ];
+            let vel = [
+                rng.gen_range(-0.3..0.3),
+                rng.gen_range(-0.2..0.4),
+                rng.gen_range(-0.3..0.3),
+                -7.0,
+            ];
+            let color = [
+                rng.gen_range(0xf0..0xff),
+                rng.gen_range(0x30..0x50),
+                rng.gen_range(0x18..0x28),
+                0xFF,
+            ];
+            self.particles.push(ParticleVertex { pos, vel, color });
+        }
+
+        let power = power * 0.66;
+        for _ in 1..128 {
+            let pos = [
+                pos.x + rng.gen_range(-power..power),
+                pos.y + rng.gen_range(-power..power),
+                pos.z + rng.gen_range(-power..power),
+                256.0,
+            ];
+            let vel = [
+                rng.gen_range(-0.3..0.3),
+                rng.gen_range(-0.2..0.4),
+                rng.gen_range(-0.3..0.3),
+                -10.0,
+            ];
+            let color = [
+                rng.gen_range(0xc0..0xe0),
+                rng.gen_range(0x10..0x18),
+                rng.gen_range(0x04..0x0a),
+                0xFF,
+            ];
+            self.particles.push(ParticleVertex { pos, vel, color });
+        }
+
+        let power = power * 0.66;
+        for _ in 1..64 {
+            let pos = [
+                pos.x + rng.gen_range(-power..power),
+                pos.y + rng.gen_range(-power..power),
+                pos.z + rng.gen_range(-power..power),
+                320.0,
+            ];
+            let vel = [
+                rng.gen_range(-0.4..0.4),
+                rng.gen_range(-0.3..0.5),
+                rng.gen_range(-0.4..0.4),
+                -13.0,
+            ];
+            let color = [
+                rng.gen_range(0xa0..0xc0),
+                rng.gen_range(0x08..0x10),
+                rng.gen_range(0x04..0x0a),
+                0xFF,
+            ];
+            self.particles.push(ParticleVertex { pos, vel, color });
+        }
+    }
+
+    fn fx_block_break(&mut self, rng: &mut ChaCha8Rng, pos: IVec3, color: [[u8; 4]; 2]) {
+        for color in color.iter() {
+            for _ in 1..64 {
+                let pos = [
+                    pos.x as f32 + rng.gen_range(0.0..1.0),
+                    pos.y as f32 + rng.gen_range(0.0..1.0),
+                    pos.z as f32 + rng.gen_range(0.0..1.0),
+                    200.0
+                ];
+                let vel = [
+                    rng.gen_range(-0.02..0.02),
+                    rng.gen_range( 0.00..0.04),
+                    rng.gen_range(-0.02..0.02),
+                    -23.0,
+                ];
+                let color = [
+                    ((color[0] as f32 / 255.0 * rng.gen_range(0.6..1.1)).clamp(0.0, 1.0)*255.0) as u8,
+                    ((color[1] as f32 / 255.0 * rng.gen_range(0.6..1.1)).clamp(0.0, 1.0)*255.0) as u8,
+                    ((color[2] as f32 / 255.0 * rng.gen_range(0.6..1.1)).clamp(0.0, 1.0)*255.0) as u8,
+                    0xFF,
+                ];
+                self.particles.push(ParticleVertex { pos, vel, color });
+            }
+        }
+    }
+
+    fn fx_block_place(&mut self, rng: &mut ChaCha8Rng, pos: IVec3, color: [[u8; 4]; 2]) {
+        self.fx_block_break(rng, pos, color)
+    }
+
     pub fn reduce_emissions(&mut self, emissions: &Vec<ParticleEmission>, rng_seed: u64) {
         if emissions.is_empty() {
             return;
         }
         let mut rng = ChaCha8Rng::seed_from_u64(rng_seed);
         emissions.iter().for_each(|e| match e {
-            ParticleEmission::Explosion(pos, power) => {
-                let power = power * 0.66;
-                for _ in 1..256 {
-                    let pos = [
-                        pos.x + rng.gen_range(-power..power),
-                        pos.y + rng.gen_range(-power..power),
-                        pos.z + rng.gen_range(-power..power),
-                        192.0,
-                    ];
-                    let vel = [
-                        rng.gen_range(-0.3..0.3),
-                        rng.gen_range(-0.2..0.4),
-                        rng.gen_range(-0.3..0.3),
-                        -7.0,
-                    ];
-                    let color = [
-                        rng.gen_range(0xf0..0xff),
-                        rng.gen_range(0x30..0x50),
-                        rng.gen_range(0x18..0x28),
-                        0xFF,
-                    ];
-                    self.particles.push(ParticleVertex { pos, vel, color });
-                }
-
-                let power = power * 0.66;
-                for _ in 1..128 {
-                    let pos = [
-                        pos.x + rng.gen_range(-power..power),
-                        pos.y + rng.gen_range(-power..power),
-                        pos.z + rng.gen_range(-power..power),
-                        256.0,
-                    ];
-                    let vel = [
-                        rng.gen_range(-0.3..0.3),
-                        rng.gen_range(-0.2..0.4),
-                        rng.gen_range(-0.3..0.3),
-                        -10.0,
-                    ];
-                    let color = [
-                        rng.gen_range(0xc0..0xe0),
-                        rng.gen_range(0x10..0x18),
-                        rng.gen_range(0x04..0x0a),
-                        0xFF,
-                    ];
-                    self.particles.push(ParticleVertex { pos, vel, color });
-                }
-
-                let power = power * 0.66;
-                for _ in 1..64 {
-                    let pos = [
-                        pos.x + rng.gen_range(-power..power),
-                        pos.y + rng.gen_range(-power..power),
-                        pos.z + rng.gen_range(-power..power),
-                        320.0,
-                    ];
-                    let vel = [
-                        rng.gen_range(-0.4..0.4),
-                        rng.gen_range(-0.3..0.5),
-                        rng.gen_range(-0.4..0.4),
-                        -13.0,
-                    ];
-                    let color = [
-                        rng.gen_range(0xa0..0xc0),
-                        rng.gen_range(0x08..0x10),
-                        rng.gen_range(0x04..0x0a),
-                        0xFF,
-                    ];
-                    self.particles.push(ParticleVertex { pos, vel, color });
-                }
-            }
+            ParticleEmission::Explosion(pos, power) => self.fx_explosion(&mut rng, *pos, *power),
+            ParticleEmission::BlockBreak(pos, color) => self.fx_block_break(&mut rng, *pos, *color),
+            ParticleEmission::BlockPlace(pos, color) => self.fx_block_place(&mut rng, *pos, *color),
         });
     }
 

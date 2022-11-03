@@ -14,7 +14,7 @@ pub enum GameEvent {
     CharacterJump(Vec3),
     CharacterStomp(Vec3),
     CharacterShoot(Vec3),
-    BlockMine(IVec3),
-    BlockPlace(IVec3),
+    BlockMine(IVec3, u8),
+    BlockPlace(IVec3, u8),
     EntityCollision(Vec3),
 }
