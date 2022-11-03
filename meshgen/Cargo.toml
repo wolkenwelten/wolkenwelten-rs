@@ -6,6 +6,6 @@ license = "AGPL-3.0-or-later"
 homepage = "https://wolkenwelten.net"
 
 [dependencies]
-glium = "0.32.1"
+glium = "0.32"
 wolkenwelten-common = { path = "../common" }
 

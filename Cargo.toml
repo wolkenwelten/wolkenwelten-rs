@@ -10,8 +10,8 @@ An open voxel sandbox
 """
 
 [dependencies]
-glium = "0.32.1"
-winit = "0.27.5"
+glium = "0.32"
+winit = "0.27"
 wolkenwelten-client = { path = "client" }
 wolkenwelten-common = { path = "common" }
 wolkenwelten-game = { path = "game" }
