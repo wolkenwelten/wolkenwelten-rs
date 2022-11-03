@@ -1,8 +1,7 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
 use std::time::Instant;
-use wolkenwelten_common::{ChunkBlockData, ChunkLightData};
-use wolkenwelten_game::GameState;
+use wolkenwelten_common::{ChunkBlockData, ChunkLightData, BlockType};
 use wolkenwelten_meshgen;
 use wolkenwelten_meshgen::BlockVertex;
 
@@ -81,12 +80,12 @@ impl BlockMesh {
         display: &glium::Display,
         chunk: &ChunkBlockData,
         light: &ChunkLightData,
-        game: &GameState,
+        block_types: &Vec<BlockType>,
         now: Instant,
     ) {
         self.last_updated = now;
 
-        let block_types = &game.world.blocks;
+
         let (vertices, side_start_count) =
             wolkenwelten_meshgen::generate(chunk, light, block_types);
         self.side_square_count = side_start_count;

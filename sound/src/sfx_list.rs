@@ -22,12 +22,12 @@ impl Default for SfxList {
             _stream,
             stream_handle,
 
-            bomb: Sfx::from_bytes(include_bytes!("../assets/bomb.ogg")),
-            jump: Sfx::from_bytes(include_bytes!("../assets/jump.ogg")),
-            hook_fire: Sfx::from_bytes(include_bytes!("../assets/hookFire.ogg")),
-            stomp: Sfx::from_bytes(include_bytes!("../assets/stomp.ogg")),
-            pock: Sfx::from_bytes(include_bytes!("../assets/pock.ogg")),
-            tock: Sfx::from_bytes(include_bytes!("../assets/tock.ogg")),
+            bomb: Sfx::from_bytes(include_bytes!("../../assets/sfx/bomb.ogg")),
+            jump: Sfx::from_bytes(include_bytes!("../../assets/sfx/jump.ogg")),
+            hook_fire: Sfx::from_bytes(include_bytes!("../../assets/sfx/hookFire.ogg")),
+            stomp: Sfx::from_bytes(include_bytes!("../../assets/sfx/stomp.ogg")),
+            pock: Sfx::from_bytes(include_bytes!("../../assets/sfx/pock.ogg")),
+            tock: Sfx::from_bytes(include_bytes!("../../assets/sfx/tock.ogg")),
         }
     }
 }

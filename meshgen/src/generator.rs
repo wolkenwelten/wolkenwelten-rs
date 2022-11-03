@@ -714,7 +714,7 @@ pub fn generate(
     light: &ChunkLightData,
     block_types: &Vec<BlockType>,
 ) -> (Vec<BlockVertex>, [usize; 6]) {
-    let mut vertices: Vec<BlockVertex> = Vec::with_capacity(8192);
+    let mut vertices: Vec<BlockVertex> = Vec::with_capacity(1024);
 
     let mut block_data: BlockBuffer = [[[0; CHUNK_SIZE + 2]; CHUNK_SIZE + 2]; CHUNK_SIZE + 2];
     let mut light_data: BlockBuffer = [[[15; CHUNK_SIZE + 2]; CHUNK_SIZE + 2]; CHUNK_SIZE + 2];

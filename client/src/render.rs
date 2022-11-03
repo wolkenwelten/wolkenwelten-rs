@@ -34,26 +34,31 @@ fn draw_entity(
     let rot = entity.rot();
     let pos = entity.pos();
 
-    let model = Mat4::from_rotation_x(rot.x);
+    let model = Mat4::from_scale(Vec3::new(1.0/16.0,1.0/16.0,1.0/16.0));
+    let model = Mat4::from_rotation_x(rot.x - 90.0) * model;
     let model = Mat4::from_rotation_y(rot.y) * model;
     let model = Mat4::from_translation(pos) * model;
     let vp = projection.mul_mat4(view);
     let mvp = vp.mul_mat4(&model);
     let mat_mvp = mvp.to_cols_array_2d();
-    let in_color: [f32; 4] = [1.0, 1.0, 1.0, 1.0];
+
+    let trans_pos:[f32; 3] = fe.meshes.grenade.trans_pos();
+    let color_alpha:f32 = 1.0;
 
     frame
         .draw(
-            fe.meshes.pear.buffer(),
-            glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList),
-            &fe.shaders.mesh,
+            fe.meshes.grenade.buffer(),
+            fe.block_indeces(),
+            &fe.shaders.block,
             &uniform! {
                 mat_mvp: mat_mvp,
-                in_color: in_color,
-                cur_tex: fe.textures.pear.texture(),
+                trans_pos: trans_pos,
+                color_alpha: color_alpha,
+                cur_tex: fe.meshes.grenade.texture(),
             },
             &glium::DrawParameters {
                 backface_culling: glium::draw_parameters::BackfaceCullingMode::CullClockwise,
+                blend: glium::draw_parameters::Blend::alpha_blending(),
                 depth: glium::draw_parameters::Depth {
                     test: glium::draw_parameters::DepthTest::IfLess,
                     write: true,
@@ -71,11 +76,11 @@ pub fn prepare_chunk(fe: &mut ClientState, game: &GameState, pos: IVec3, now: In
             if chunk.get_light().get_last_updated() < mesh.get_last_updated() {
                 return;
             }
-            mesh.update(&fe.display, chunk.get_block(), chunk.get_light(), game, now);
+            mesh.update(&fe.display, chunk.get_block(), chunk.get_light(), &game.world.blocks, now);
             return;
         }
         let mut mesh = BlockMesh::new(&fe.display);
-        mesh.update(&fe.display, chunk.get_block(), chunk.get_light(), game, now);
+        mesh.update(&fe.display, chunk.get_block(), chunk.get_light(), &game.world.blocks, now);
         fe.world_mesh.insert(pos, mesh);
     }
 }
@@ -280,18 +285,15 @@ fn render_chungus(frame: &mut glium::Frame, fe: &ClientState, game: &GameState, 
             };
 
             if mask == 0b111111 {
-                let index_count = mesh.index_count() as usize;
-                if let Some(indeces) = fe.block_indeces().slice(0..index_count) {
-                    frame
-                        .draw(
-                            mesh.buffer(),
-                            indeces,
-                            &fe.shaders.block,
-                            &uniforms,
-                            &draw_parameters,
-                        )
-                        .unwrap();
-                }
+                frame
+                    .draw(
+                        mesh.buffer(),
+                        fe.block_indeces(),
+                        &fe.shaders.block,
+                        &uniforms,
+                        &draw_parameters,
+                    )
+                    .unwrap();
             } else {
                 (0..6).filter(|i| (mask & (1 << i)) != 0).for_each(|i| {
                     let start_offset = mesh.side_start[i] * 6;

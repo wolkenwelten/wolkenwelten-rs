@@ -10,6 +10,17 @@ pub struct BlockType {
 }
 
 impl BlockType {
+    fn init_vox_types() -> Vec<Self> {
+        let mut ret = vec![];
+        for i in 0..255 {
+            ret.push(Self::new("").with_texture(i));
+        }
+        ret
+    }
+    pub fn get_vox_types() -> Vec<Self> {
+        Self::init_vox_types()
+    }
+
     pub fn new(name: &str) -> Self {
         let texture_index: [u8; 6] = [0; 6];
         let name = name.to_string();

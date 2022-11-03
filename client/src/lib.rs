@@ -6,7 +6,7 @@ extern crate wolkenwelten_game;
 
 pub use self::frustum::Frustum;
 pub use self::input::{input_tick, InputState, Key};
-pub use self::meshes::Mesh;
+pub use self::meshes::{BlockMesh, Mesh, VoxelMesh};
 pub use self::render::{prepare_frame, render_frame, RENDER_DISTANCE, VIEW_STEPS};
 pub use self::state::ClientState;
 pub use self::texture::{Texture, TextureArray};
