@@ -1,27 +1,15 @@
-/* Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-use super::{Character, Chungus, Chunk, Entity, GameEvent};
-use glam::f32::Vec3;
-use glam::i32::IVec3;
+// Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
+// All rights reserved. AGPL-3.0+ license.
+use super::{Character, Chungus, Chunk, Entity};
+use glam::{IVec3, Vec3, Vec3Swizzles};
 use std::cmp::Ordering;
 use std::collections::BinaryHeap;
 use std::time::Instant;
-use wolkenwelten_common::{ChunkBlockData, ChunkLightData, CHUNK_BITS, CHUNK_MASK, CHUNK_SIZE};
+use wolkenwelten_common::{ChunkBlockData, ChunkLightData, GameEvent, InputEvent, CHUNK_BITS, CHUNK_MASK, CHUNK_SIZE};
 
 const MS_PER_TICK: u64 = 4;
+const CHARACTER_ACCELERATION: f32 = 0.08;
+const CHARACTER_STOP_RATE: f32 = CHARACTER_ACCELERATION * 3.0;
 
 #[cfg(debug_assertions)]
 const MAX_CHUNKS_GENERATED_PER_FRAME: usize = 1;
@@ -106,10 +94,62 @@ impl GameState {
         self.entities.push(e);
     }
 
-    pub fn tick(&mut self, render_distance: f32) -> Vec<GameEvent> {
+    pub fn tick(&mut self, render_distance: f32, input_events: Vec<InputEvent>) -> Vec<GameEvent> {
         let mut events: Vec<GameEvent> = Vec::new();
-        let ticks_goal = self.clock.elapsed().as_millis() as u64 / MS_PER_TICK;
+        let now = self.get_millis();
+        let ticks_goal = now / MS_PER_TICK;
         let to_run = ticks_goal - self.ticks_elapsed;
+
+        self.player.wrap_rot();
+
+        input_events.iter().for_each(|e| match e  {
+            InputEvent::PlayerMove(v) => {
+                if v.y > 0.0 && self.player.may_jump(&self.world) {
+                    self.player.jump();
+                    events.push(GameEvent::CharacterJump(self.player.pos))
+                }
+                let accel = if v.xz().length() > 0.01 {
+                    CHARACTER_ACCELERATION
+                } else {
+                    CHARACTER_STOP_RATE
+                };
+                let accel = if self.player.may_jump(&self.world) {
+                    accel
+                } else {
+                    accel * 0.2 // Slow down player movement changes during jumps
+                };
+
+                self.player.vel.x = self.player.vel.x * (1.0 - accel) + (v.x * 0.02) * accel;
+                self.player.vel.z = self.player.vel.z * (1.0 - accel) + (v.z * 0.02) * accel;
+            }
+            InputEvent::PlayerFly(v) => {
+                self.player.vel = *v * 0.15
+            }
+            InputEvent::PlayerShoot() => {
+                if self.player.may_act(now) {
+                    self.player.set_cooldown(now + 600);
+                    let mut e = Entity::new();
+                    e.set_pos(self.player.pos());
+                    e.set_vel(self.player.direction() * 0.4);
+                    self.push_entity(e);
+                    events.push(GameEvent::CharacterShoot(self.player.pos))
+                }
+            }
+            InputEvent::PlayerBlockMine(pos) => {
+                if self.player.may_act(now) {
+                    self.player.set_cooldown(now + 300);
+                    self.world.set_block(*pos, 0);
+                    events.push(GameEvent::BlockMine(*pos))
+                }
+            }
+            InputEvent::PlayerBlockPlace(pos) => {
+                if self.player.may_act(now) {
+                    self.player.set_cooldown(now + 300);
+                    self.world.set_block(*pos, self.player.block_selection());
+                    events.push(GameEvent::BlockPlace(*pos))
+                }
+            }
+        });
 
         for _ in 0..to_run {
             self.ticks_elapsed += 1;

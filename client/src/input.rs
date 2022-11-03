@@ -1,26 +1,11 @@
-/* Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-use crate::{ClientState, InputEvent};
+// Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
+// All rights reserved. AGPL-3.0+ license.
+use crate::ClientState;
 use glam::swizzles::Vec4Swizzles;
-use glam::{Vec3, Vec3Swizzles};
+use glam::Vec3;
 use winit::event::MouseButton;
-use wolkenwelten_game::{Entity, GameState, RaycastReturn};
-
-const CHARACTER_ACCELERATION: f32 = 0.08;
-const CHARACTER_STOP_RATE: f32 = CHARACTER_ACCELERATION * 3.0;
+use wolkenwelten_common::InputEvent;
+use wolkenwelten_game::{GameState, RaycastReturn};
 
 #[derive(Debug, Default)]
 pub enum Key {
@@ -33,11 +18,6 @@ pub enum Key {
     Jump,
     Crouch,
     Sprint,
-
-    RotateUp,
-    RotateDown,
-    RotateLeft,
-    RotateRight,
 }
 
 #[derive(Debug, Default)]
@@ -103,17 +83,6 @@ impl InputState {
             2.0
         }
     }
-    pub fn get_jump(&self) -> f32 {
-        (if self.button_states[Key::Crouch as usize] {
-            -1.0
-        } else {
-            0.0
-        }) + (if self.button_states[Key::Jump as usize] {
-            1.0
-        } else {
-            0.0
-        })
-    }
     pub fn get_movement_vector(&self) -> Vec3 {
         Vec3::new(
             (if self.button_states[Key::Left as usize] {
@@ -125,7 +94,15 @@ impl InputState {
             } else {
                 0.0
             }),
-            0.0,
+            (if self.button_states[Key::Crouch as usize] {
+                -1.0
+            } else {
+                0.0
+            }) + (if self.button_states[Key::Jump as usize] {
+                1.0
+            } else {
+                0.0
+            }),
             (if self.button_states[Key::Up as usize] {
                 -1.0
             } else {
@@ -137,122 +114,46 @@ impl InputState {
             }),
         )
     }
-
-    pub fn get_rotation_movement_vector(&self) -> Vec3 {
-        Vec3::new(
-            (if self.button_states[Key::RotateLeft as usize] {
-                -1.0
-            } else {
-                0.0
-            }) + (if self.button_states[Key::RotateRight as usize] {
-                1.0
-            } else {
-                0.0
-            }),
-            (if self.button_states[Key::RotateDown as usize] {
-                -1.0
-            } else {
-                0.0
-            }) + (if self.button_states[Key::RotateUp as usize] {
-                1.0
-            } else {
-                0.0
-            }),
-            0.0,
-        )
-    }
 }
 
-fn input_tick_no_clip(game: &mut GameState, fe: &ClientState) -> Vec<InputEvent> {
+fn input_tick_no_clip(game: &GameState, fe: &ClientState) -> Vec<InputEvent> {
     let view = glam::Mat4::from_rotation_y(-game.player.rot[0].to_radians());
     let view = view * glam::Mat4::from_rotation_x(-game.player.rot[1].to_radians());
     let v = glam::Vec4::from((fe.input.get_movement_vector(), 1.0_f32));
     let move_vec = (view * v).xyz();
-    let speed = fe.input.get_speed() * 0.15;
-    game.player.vel = move_vec * speed;
-    game.player.vel.y += fe.input.get_jump() * speed;
 
-    Vec::new()
+    vec![InputEvent::PlayerFly(move_vec * fe.input.get_speed())]
 }
 
-fn input_tick_default(game: &mut GameState, fe: &ClientState) -> Vec<InputEvent> {
-    let mut events = Vec::new();
+fn input_tick_default(game: &GameState, fe: &ClientState) -> Vec<InputEvent> {
     let view = glam::Mat4::from_rotation_y(-game.player.rot[0].to_radians());
-    let v = glam::Vec4::from((fe.input.get_movement_vector(), 1.0_f32));
-    let move_vec = (view * v).xyz() * fe.input.get_speed() * 0.02;
-    // Different rates for moving/stopping since this makes the player feel more responsive
-    let acc = if move_vec.xz().length() > 0.001 {
-        CHARACTER_ACCELERATION
-    } else {
-        CHARACTER_STOP_RATE
-    };
+    let m = fe.input.get_movement_vector();
+    let v = glam::Vec4::from((m, 1.0_f32));
+    let move_vec = (view * v).xyz() * fe.input.get_speed();
 
-    let acc = if game.player.may_jump(&game.world) {
-        acc
-    } else {
-        acc * 0.2
-    };
-
-    game.player.vel.x += (move_vec.x - game.player.vel.x) * acc;
-    game.player.vel.z += (move_vec.z - game.player.vel.z) * acc;
-
-    if (fe.input.get_jump() > 0.0) && game.player.may_jump(&game.world) {
-        game.player.jump();
-        events.push(InputEvent::PlayerJump());
-    }
-    events
+    vec![InputEvent::PlayerMove(Vec3::new(move_vec.x, m.y, move_vec.z))]
 }
 
-pub fn input_tick(game: &mut GameState, fe: &ClientState) -> Vec<InputEvent> {
-    let rot_vec = fe.input.get_rotation_movement_vector();
-    let now = game.get_millis();
-
-    game.player.rot[0] += (rot_vec[0] * 0.2) + fe.input.xrel() * 16.0;
-    game.player.rot[1] += (rot_vec[1] * 0.2) + fe.input.yrel() * 16.0;
-    game.player.rot[2] += rot_vec[2] * 0.2;
-
-    if game.player.rot[0] < 0.0 {
-        game.player.rot[0] += 360.0;
-    }
-    if game.player.rot[0] > 360.0 {
-        game.player.rot[0] -= 360.0;
-    }
-
-    if game.player.rot[1] < -90.0 {
-        game.player.rot[1] = -90.0;
-    }
-    if game.player.rot[1] > 90.0 {
-        game.player.rot[1] = 90.0;
-    }
-
+pub fn input_tick(game: &GameState, fe: &ClientState) -> Vec<InputEvent> {
     let mut events = if game.player.no_clip() {
         input_tick_no_clip(game, fe)
     } else {
         input_tick_default(game, fe)
     };
 
-    if fe.input.mouse.left && game.player.may_act(now) {
+    if fe.input.mouse.left {
         if let Some(pos) = game.player.raycast(&game.world, RaycastReturn::Within) {
-            game.player.set_cooldown(now + 300);
-            game.world.set_block(pos, 0);
             events.push(InputEvent::PlayerBlockMine(pos));
         }
     }
 
-    if fe.input.mouse.right && game.player.may_act(now) {
+    if fe.input.mouse.right {
         if let Some(pos) = game.player.raycast(&game.world, RaycastReturn::Front) {
-            game.player.set_cooldown(now + 300);
-            game.world.set_block(pos, game.player.block_selection());
             events.push(InputEvent::PlayerBlockPlace(pos));
         }
     }
 
-    if fe.input.mouse.middle && game.player.may_act(now) {
-        game.player.set_cooldown(now + 600);
-        let mut e = Entity::new();
-        e.set_pos(game.player.pos());
-        e.set_vel(game.player.direction() * 0.4);
-        game.push_entity(e);
+    if fe.input.mouse.middle {
         events.push(InputEvent::PlayerShoot());
     }
 

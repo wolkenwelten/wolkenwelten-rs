@@ -1,18 +1,5 @@
-/* Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
+// All rights reserved. AGPL-3.0+ license.
 extern crate wolkenwelten_client;
 extern crate wolkenwelten_game;
 extern crate wolkenwelten_scripting;
@@ -25,10 +12,10 @@ use winit::window::{CursorGrabMode, Fullscreen, Window, WindowBuilder};
 
 use winit::dpi::PhysicalPosition;
 use wolkenwelten_client::{
-    input_tick, prepare_frame, render_frame, ClientState, InputEvent, Key, RENDER_DISTANCE,
-    VIEW_STEPS,
+    input_tick, prepare_frame, render_frame, ClientState, Key, RENDER_DISTANCE, VIEW_STEPS,
 };
-use wolkenwelten_game::{GameEvent, GameState};
+use wolkenwelten_common::GameEvent;
+use wolkenwelten_game::GameState;
 use wolkenwelten_particles::ParticleEmission;
 use wolkenwelten_scripting::Runtime;
 use wolkenwelten_sound::SfxList;
@@ -258,19 +245,18 @@ pub fn run_event_loop(state: AppState) {
             //windowed_context.swap_buffers().unwrap();
         }
         Event::MainEventsCleared => {
-            let events = input_tick(&mut game_state, &render_state);
-            events.iter().for_each(|e| match e {
-                InputEvent::PlayerJump() => state.sfx.play(&state.sfx.jump, 0.2),
-                InputEvent::PlayerShoot() => state.sfx.play(&state.sfx.hook_fire, 0.4),
-                InputEvent::PlayerBlockMine(_) => state.sfx.play(&state.sfx.tock, 0.3),
-                InputEvent::PlayerBlockPlace(_) => state.sfx.play(&state.sfx.pock, 0.3),
-            });
+            let input_events = input_tick(&game_state, &render_state);
             render_state.input.mouse_flush();
 
             let render_distance = RENDER_DISTANCE * RENDER_DISTANCE;
-            let events = game_state.tick(render_distance);
+            let game_events = game_state.tick(render_distance, input_events);
+
             let mut emissions: Vec<ParticleEmission> = vec![];
-            events.iter().for_each(|e| match e {
+            game_events.iter().for_each(|e| match e {
+                GameEvent::CharacterJump(_) => state.sfx.play(&state.sfx.jump, 0.2),
+                GameEvent::CharacterShoot(_) => state.sfx.play(&state.sfx.hook_fire, 0.4),
+                GameEvent::BlockMine(_) => state.sfx.play(&state.sfx.tock, 0.3),
+                GameEvent::BlockPlace(_) => state.sfx.play(&state.sfx.pock, 0.3),
                 GameEvent::CharacterStomp(_pos) => state.sfx.play(&state.sfx.stomp, 0.3),
                 GameEvent::EntityCollision(pos) => {
                     game_state.world.add_explosion(pos, 5.0);
@@ -278,6 +264,7 @@ pub fn run_event_loop(state: AppState) {
                     emissions.push(ParticleEmission::Explosion(*pos, 4.0));
                 }
             });
+
             render_state
                 .particles
                 .reduce_emissions(&emissions, game_state.ticks_elapsed);
