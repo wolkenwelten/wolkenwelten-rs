@@ -18,6 +18,7 @@ pub enum Key {
     Jump,
     Crouch,
     Sprint,
+    Shoot,
 }
 
 #[derive(Debug, Default)]
@@ -29,7 +30,7 @@ struct MouseState {
 
 #[derive(Debug, Default)]
 pub struct InputState {
-    button_states: [bool; 11],
+    button_states: [bool; 32],
     mouse_xrel: f32,
     mouse_yrel: f32,
     mouse: MouseState,
@@ -153,7 +154,7 @@ pub fn input_tick(game: &GameState, fe: &ClientState) -> Vec<InputEvent> {
         }
     }
 
-    if fe.input.mouse.middle {
+    if fe.input.mouse.middle || fe.input.button_states[Key::Shoot as usize] {
         events.push(InputEvent::PlayerShoot());
     }
 

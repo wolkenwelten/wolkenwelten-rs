@@ -173,6 +173,14 @@ pub fn run_event_loop(state: AppState) {
 
             KeyboardInput {
                 state,
+                virtual_keycode: Some(VirtualKeyCode::E),
+                ..
+            } => render_state
+                .input
+                .key_up_down(Key::Shoot, state == ElementState::Pressed),
+
+            KeyboardInput {
+                state,
                 virtual_keycode: Some(VirtualKeyCode::W),
                 ..
             } => render_state
