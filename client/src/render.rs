@@ -408,6 +408,14 @@ fn render_game(frame: &mut glium::Frame, fe: &ClientState, game: &GameState) {
         .iter()
         .for_each(|entity| draw_entity(frame, fe, entity, &view, &projection));
     render_chungus(frame, fe, game, &mvp);
+
+    frame.clear(
+        None,
+        None,
+        true,
+        Some(4000.0),
+        None,
+    );
     render_held_item(frame, fe, &projection);
 }
 
