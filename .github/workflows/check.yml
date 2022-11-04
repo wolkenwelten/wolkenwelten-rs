@@ -1,4 +1,4 @@
-name: WolkenWelten CI
+name: WolkenWelten Checks
 
 on:
   push:
@@ -14,6 +14,7 @@ jobs:
       uses: actions/checkout@v3
     - name: Run cargo fmt
       run: cargo fmt --all --check
+
   cargo-clippy:
     name: Check code with clippy
     runs-on: ubuntu-latest
@@ -24,6 +25,7 @@ jobs:
         run: sudo apt-get -y install libasound2-dev
       - name: Run clippy
         run: cargo clippy --no-deps
+
   cargo-test:
     name: Run testsuite
     runs-on: ubuntu-latest
