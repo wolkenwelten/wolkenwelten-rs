@@ -58,9 +58,7 @@ pub fn init() -> (EventLoop<()>, glium::Display) {
         .with_decorations(false)
         .with_maximized(true);
 
-    let cb = glium::glutin::ContextBuilder::new()
-        .with_gl_profile(glium::glutin::GlProfile::Core)
-        .with_vsync(true);
+    let cb = glium::glutin::ContextBuilder::new().with_vsync(true);
 
     let display = glium::Display::new(wb, cb, &event_loop).unwrap();
 
