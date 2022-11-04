@@ -35,11 +35,49 @@ fn draw_entity(
     let pos = entity.pos();
 
     let model = Mat4::from_scale(Vec3::new(1.0/16.0,1.0/16.0,1.0/16.0));
-    let model = Mat4::from_rotation_x(rot.x - 90.0) * model;
-    let model = Mat4::from_rotation_y(rot.y) * model;
+    let model = Mat4::from_rotation_x((rot.x - 90.0).to_radians()) * model;
+    let model = Mat4::from_rotation_y(rot.y.to_radians()) * model;
     let model = Mat4::from_translation(pos) * model;
     let vp = projection.mul_mat4(view);
     let mvp = vp.mul_mat4(&model);
+    let mat_mvp = mvp.to_cols_array_2d();
+
+    let trans_pos:[f32; 3] = fe.meshes.grenade.trans_pos();
+    let color_alpha:f32 = 1.0;
+
+    frame
+        .draw(
+            fe.meshes.grenade.buffer(),
+            fe.block_indeces(),
+            &fe.shaders.block,
+            &uniform! {
+                mat_mvp: mat_mvp,
+                trans_pos: trans_pos,
+                color_alpha: color_alpha,
+                cur_tex: fe.meshes.grenade.texture(),
+            },
+            &glium::DrawParameters {
+                backface_culling: glium::draw_parameters::BackfaceCullingMode::CullClockwise,
+                blend: glium::draw_parameters::Blend::alpha_blending(),
+                depth: glium::draw_parameters::Depth {
+                    test: glium::draw_parameters::DepthTest::IfLess,
+                    write: true,
+                    ..Default::default()
+                },
+                ..Default::default()
+            },
+        )
+        .unwrap();
+}
+
+fn render_held_item(frame: &mut glium::Frame, fe: &ClientState, projection: &Mat4) {
+    let t = (fe.ticks() as f32 / 512.0).sin();
+    let model = Mat4::from_scale(Vec3::new(1.0/16.0,1.0/16.0,1.0/16.0));
+    let model = Mat4::from_rotation_x((-90.0 + t*6.0).to_radians()) * model;
+    let model = Mat4::from_rotation_y((-10.0_+ t*1.0).to_radians()) * model;
+    let pos = Vec3::new(1.0,-0.5 + t * 0.05,-1.0);
+    let model = Mat4::from_translation(pos) * model;
+    let mvp = projection.mul_mat4(&model);
     let mat_mvp = mvp.to_cols_array_2d();
 
     let trans_pos:[f32; 3] = fe.meshes.grenade.trans_pos();
@@ -370,6 +408,7 @@ fn render_game(frame: &mut glium::Frame, fe: &ClientState, game: &GameState) {
         .iter()
         .for_each(|entity| draw_entity(frame, fe, entity, &view, &projection));
     render_chungus(frame, fe, game, &mvp);
+    render_held_item(frame, fe, &projection);
 }
 
 pub fn render_frame(frame: &mut glium::Frame, fe: &ClientState, game: &GameState) {

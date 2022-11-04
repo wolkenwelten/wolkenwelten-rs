@@ -4,7 +4,6 @@ use crate::{VoxelMesh, Mesh};
 
 pub struct MeshList {
     pub grenade: VoxelMesh,
-    pub pear: Mesh,
     pub dome: Mesh,
 }
 
@@ -14,8 +13,6 @@ impl MeshList {
             grenade: VoxelMesh::from_vox_data(display, include_bytes!("../../../assets/voxel_meshes/grenade.vox"))
                 .unwrap(),
             dome: Mesh::from_obj_string(display, include_str!("../../../assets/meshes/skydome.obj"))
-                .unwrap(),
-            pear: Mesh::from_obj_string(display, include_str!("../../../assets/meshes/pear.obj"))
                 .unwrap(),
         }
     }

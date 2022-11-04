@@ -35,6 +35,7 @@ pub struct ClientState {
 
     pub input: InputState,
 
+    ticks: u64,
     cur_fov: f32,
     cur_fps: u32,
     frame_count: u32,
@@ -71,9 +72,14 @@ impl ClientState {
             cur_fov: 90.0,
             cur_fps: 0,
             frame_count: 0,
+            ticks: 0,
             last_ticks: 0,
             wireframe: false,
         }
+    }
+
+    pub fn ticks(&self) -> u64 {
+        self.ticks
     }
 
     pub fn block_indeces(&self) -> &glium::IndexBuffer<u16> {
@@ -85,6 +91,7 @@ impl ClientState {
     }
     pub fn calc_fps(&mut self) {
         let ticks = self.instant.elapsed().as_millis();
+        self.ticks = ticks as u64;
         if ticks > self.last_ticks + 1000 {
             self.cur_fps = (((self.frame_count as f64) / ((ticks - self.last_ticks) as f64))
                 * 1000.0)
