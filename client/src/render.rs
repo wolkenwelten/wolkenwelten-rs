@@ -3,7 +3,10 @@
 use super::meshes::BlockMesh;
 use super::Frustum;
 use crate::ClientState;
-use glam::{IVec3, f32::{Mat4, Vec3}};
+use glam::{
+    f32::{Mat4, Vec3},
+    IVec3,
+};
 use glium::uniform;
 use std::cmp::Ordering;
 use std::collections::BinaryHeap;
@@ -34,7 +37,7 @@ fn draw_entity(
     let rot = entity.rot();
     let pos = entity.pos();
 
-    let model = Mat4::from_scale(Vec3::new(1.0/16.0,1.0/16.0,1.0/16.0));
+    let model = Mat4::from_scale(Vec3::new(1.0 / 16.0, 1.0 / 16.0, 1.0 / 16.0));
     let model = Mat4::from_rotation_x((rot.x - 90.0).to_radians()) * model;
     let model = Mat4::from_rotation_y(rot.y.to_radians()) * model;
     let model = Mat4::from_translation(pos) * model;
@@ -42,8 +45,8 @@ fn draw_entity(
     let mvp = vp.mul_mat4(&model);
     let mat_mvp = mvp.to_cols_array_2d();
 
-    let trans_pos:[f32; 3] = fe.meshes.grenade.trans_pos();
-    let color_alpha:f32 = 1.0;
+    let trans_pos: [f32; 3] = fe.meshes.grenade.trans_pos();
+    let color_alpha: f32 = 1.0;
 
     frame
         .draw(
@@ -72,16 +75,16 @@ fn draw_entity(
 
 fn render_held_item(frame: &mut glium::Frame, fe: &ClientState, projection: &Mat4) {
     let t = (fe.ticks() as f32 / 512.0).sin();
-    let model = Mat4::from_scale(Vec3::new(1.0/16.0,1.0/16.0,1.0/16.0));
-    let model = Mat4::from_rotation_x((-90.0 + t*6.0).to_radians()) * model;
-    let model = Mat4::from_rotation_y((-10.0_+ t*1.0).to_radians()) * model;
-    let pos = Vec3::new(1.0,-0.5 + t * 0.05,-1.0);
+    let model = Mat4::from_scale(Vec3::new(1.0 / 16.0, 1.0 / 16.0, 1.0 / 16.0));
+    let model = Mat4::from_rotation_x((-90.0 + t * 6.0).to_radians()) * model;
+    let model = Mat4::from_rotation_y((-10.0_ + t * 1.0).to_radians()) * model;
+    let pos = Vec3::new(1.0, -0.5 + t * 0.05, -1.0);
     let model = Mat4::from_translation(pos) * model;
     let mvp = projection.mul_mat4(&model);
     let mat_mvp = mvp.to_cols_array_2d();
 
-    let trans_pos:[f32; 3] = fe.meshes.grenade.trans_pos();
-    let color_alpha:f32 = 1.0;
+    let trans_pos: [f32; 3] = fe.meshes.grenade.trans_pos();
+    let color_alpha: f32 = 1.0;
 
     frame
         .draw(
@@ -114,11 +117,23 @@ pub fn prepare_chunk(fe: &mut ClientState, game: &GameState, pos: IVec3, now: In
             if chunk.get_light().get_last_updated() < mesh.get_last_updated() {
                 return;
             }
-            mesh.update(&fe.display, chunk.get_block(), chunk.get_light(), &game.world.blocks, now);
+            mesh.update(
+                &fe.display,
+                chunk.get_block(),
+                chunk.get_light(),
+                &game.world.blocks,
+                now,
+            );
             return;
         }
         let mut mesh = BlockMesh::new(&fe.display);
-        mesh.update(&fe.display, chunk.get_block(), chunk.get_light(), &game.world.blocks, now);
+        mesh.update(
+            &fe.display,
+            chunk.get_block(),
+            chunk.get_light(),
+            &game.world.blocks,
+            now,
+        );
         fe.world_mesh.insert(pos, mesh);
     }
 }
@@ -409,13 +424,7 @@ fn render_game(frame: &mut glium::Frame, fe: &ClientState, game: &GameState) {
         .for_each(|entity| draw_entity(frame, fe, entity, &view, &projection));
     render_chungus(frame, fe, game, &mvp);
 
-    frame.clear(
-        None,
-        None,
-        true,
-        Some(4000.0),
-        None,
-    );
+    frame.clear(None, None, true, Some(4000.0), None);
     render_held_item(frame, fe, &projection);
 }
 

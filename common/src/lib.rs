@@ -7,8 +7,8 @@ mod iter;
 
 pub use block_type::*;
 pub use chunk::*;
-pub use iter::*;
 pub use events::*;
+pub use iter::*;
 
 pub const CHUNK_BITS: i32 = 5;
 pub const CHUNK_SIZE: usize = 1 << CHUNK_BITS;

@@ -6,7 +6,7 @@ use glium::implement_vertex;
 #[derive(Debug)]
 pub enum MeshCreationError {
     LoadError(tobj::LoadError),
-    BufferCreationError(glium::vertex::BufferCreationError)
+    BufferCreationError(glium::vertex::BufferCreationError),
 }
 
 impl From<tobj::LoadError> for MeshCreationError {
@@ -19,9 +19,6 @@ impl From<glium::vertex::BufferCreationError> for MeshCreationError {
         Self::BufferCreationError(err)
     }
 }
-
-
-
 
 #[derive(Copy, Clone, Debug)]
 pub struct MeshVertex {
@@ -37,7 +34,10 @@ pub struct Mesh {
 }
 
 impl Mesh {
-    fn from_vec(display: &glium::Display, vertices: &Vec<MeshVertex>) -> Result<Self, MeshCreationError> {
+    fn from_vec(
+        display: &glium::Display,
+        vertices: &Vec<MeshVertex>,
+    ) -> Result<Self, MeshCreationError> {
         let buffer = glium::VertexBuffer::dynamic(display, vertices.as_slice())?;
         Ok(Self { buffer })
     }
@@ -55,7 +55,8 @@ impl Mesh {
                 ..Default::default()
             },
             |_p| unreachable!(),
-        )?.0;
+        )?
+        .0;
         let m = &o[0].mesh;
 
         let vertices = m

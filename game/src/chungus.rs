@@ -96,7 +96,7 @@ impl Chungus {
             let pos = pos & CHUNK_MASK;
             Some(chnk.get_block((pos.x, pos.y, pos.z)))
         } else {
-           None
+            None
         }
     }
 

@@ -132,7 +132,9 @@ fn input_tick_default(game: &GameState, fe: &ClientState) -> Vec<InputEvent> {
     let v = glam::Vec4::from((m, 1.0_f32));
     let move_vec = (view * v).xyz() * fe.input.get_speed();
 
-    vec![InputEvent::PlayerMove(Vec3::new(move_vec.x, m.y, move_vec.z))]
+    vec![InputEvent::PlayerMove(Vec3::new(
+        move_vec.x, m.y, move_vec.z,
+    ))]
 }
 
 pub fn input_tick(game: &GameState, fe: &ClientState) -> Vec<InputEvent> {

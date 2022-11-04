@@ -107,8 +107,6 @@ impl Character {
         self.block_selection + 1
     }
 
-
-
     pub fn wrap_rot(&mut self) {
         if self.rot[0] < 0.0 {
             self.rot[0] += 360.0;
@@ -130,7 +128,6 @@ impl Character {
             self.pos += self.vel;
             return;
         }
-
 
         let accel = if v.xz().length() > 0.01 {
             CHARACTER_ACCELERATION

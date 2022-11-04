@@ -1,6 +1,6 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
-use crate::{VoxelMesh, VoxelMeshCreationError, Mesh, meshes::mesh::MeshCreationError};
+use crate::{meshes::mesh::MeshCreationError, Mesh, VoxelMesh, VoxelMeshCreationError};
 
 #[derive(Debug)]
 pub struct MeshList {
@@ -28,8 +28,14 @@ impl From<MeshCreationError> for MeshListCreationError {
 impl MeshList {
     pub fn new(display: &glium::Display) -> Result<Self, MeshListCreationError> {
         Ok(Self {
-            grenade: VoxelMesh::from_vox_data(display, include_bytes!("../../../assets/voxel_meshes/grenade.vox"))?,
-            dome: Mesh::from_obj_string(display, include_str!("../../../assets/meshes/skydome.obj"))?,
+            grenade: VoxelMesh::from_vox_data(
+                display,
+                include_bytes!("../../../assets/voxel_meshes/grenade.vox"),
+            )?,
+            dome: Mesh::from_obj_string(
+                display,
+                include_str!("../../../assets/meshes/skydome.obj"),
+            )?,
         })
     }
 }

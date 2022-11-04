@@ -1,8 +1,8 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
 use super::{Character, Chungus};
-use wolkenwelten_common::GameEvent;
 use glam::Vec3;
+use wolkenwelten_common::GameEvent;
 
 const ENTITY_SIZE: f32 = 0.6;
 const ENTITY_BOUNCE_RATE: f32 = 0.6;

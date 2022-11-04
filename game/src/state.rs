@@ -5,7 +5,9 @@ use glam::{IVec3, Vec3};
 use std::cmp::Ordering;
 use std::collections::BinaryHeap;
 use std::time::Instant;
-use wolkenwelten_common::{ChunkBlockData, ChunkLightData, GameEvent, InputEvent, CHUNK_BITS, CHUNK_MASK, CHUNK_SIZE};
+use wolkenwelten_common::{
+    ChunkBlockData, ChunkLightData, GameEvent, InputEvent, CHUNK_BITS, CHUNK_MASK, CHUNK_SIZE,
+};
 
 const MS_PER_TICK: u64 = 4;
 
@@ -101,7 +103,7 @@ impl GameState {
 
         self.player.wrap_rot();
 
-        input_events.iter().for_each(|e| match e  {
+        input_events.iter().for_each(|e| match e {
             InputEvent::PlayerMove(v) => {
                 if v.y > 0.0 && self.player.may_jump(&self.world) {
                     self.player.jump();
@@ -109,9 +111,7 @@ impl GameState {
                 }
                 player_movement = *v;
             }
-            InputEvent::PlayerFly(v) => {
-                self.player.vel = *v * 0.15
-            }
+            InputEvent::PlayerFly(v) => self.player.vel = *v * 0.15,
             InputEvent::PlayerShoot() => {
                 if self.player.may_act(now) {
                     self.player.set_cooldown(now + 600);

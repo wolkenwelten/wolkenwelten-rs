@@ -1,6 +1,6 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
-use glam::{Mat4, IVec3, Vec3};
+use glam::{IVec3, Mat4, Vec3};
 use glium::implement_vertex;
 use glium::Surface;
 use rand::prelude::*;
@@ -11,7 +11,7 @@ use rand_chacha::ChaCha8Rng;
 pub enum ParticleEmission {
     Explosion(Vec3, f32),
     BlockBreak(IVec3, [[u8; 4]; 2]),
-    BlockPlace(IVec3, [[u8; 4]; 2])
+    BlockPlace(IVec3, [[u8; 4]; 2]),
 }
 
 #[derive(Copy, Clone, Debug)]
@@ -135,18 +135,21 @@ impl ParticleMesh {
                     pos.x as f32 + rng.gen_range(0.0..1.0),
                     pos.y as f32 + rng.gen_range(0.0..1.0),
                     pos.z as f32 + rng.gen_range(0.0..1.0),
-                    200.0
+                    200.0,
                 ];
                 let vel = [
                     rng.gen_range(-0.02..0.02),
-                    rng.gen_range( 0.00..0.04),
+                    rng.gen_range(0.00..0.04),
                     rng.gen_range(-0.02..0.02),
                     -23.0,
                 ];
                 let color = [
-                    ((color[0] as f32 / 255.0 * rng.gen_range(0.6..1.1)).clamp(0.0, 1.0)*255.0) as u8,
-                    ((color[1] as f32 / 255.0 * rng.gen_range(0.6..1.1)).clamp(0.0, 1.0)*255.0) as u8,
-                    ((color[2] as f32 / 255.0 * rng.gen_range(0.6..1.1)).clamp(0.0, 1.0)*255.0) as u8,
+                    ((color[0] as f32 / 255.0 * rng.gen_range(0.6..1.1)).clamp(0.0, 1.0) * 255.0)
+                        as u8,
+                    ((color[1] as f32 / 255.0 * rng.gen_range(0.6..1.1)).clamp(0.0, 1.0) * 255.0)
+                        as u8,
+                    ((color[2] as f32 / 255.0 * rng.gen_range(0.6..1.1)).clamp(0.0, 1.0) * 255.0)
+                        as u8,
                     0xFF,
                 ];
                 self.particles.push(ParticleVertex { pos, vel, color });

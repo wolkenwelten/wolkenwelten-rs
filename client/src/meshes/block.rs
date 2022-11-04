@@ -1,7 +1,7 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
 use std::time::Instant;
-use wolkenwelten_common::{ChunkBlockData, ChunkLightData, BlockType};
+use wolkenwelten_common::{BlockType, ChunkBlockData, ChunkLightData};
 use wolkenwelten_meshgen;
 use wolkenwelten_meshgen::BlockVertex;
 
@@ -84,7 +84,6 @@ impl BlockMesh {
         now: Instant,
     ) {
         self.last_updated = now;
-
 
         let (vertices, side_start_count) =
             wolkenwelten_meshgen::generate(chunk, light, block_types);

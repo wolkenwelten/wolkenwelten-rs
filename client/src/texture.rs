@@ -45,12 +45,14 @@ impl TextureArray {
         let tile_byte_size = (tile_size * tile_size * 4) as usize;
         let raw = &img.into_raw();
 
-        let tiles = (0..tile_count).map(|y| {
-            let from = y as usize * tile_byte_size;
-            let to = from + tile_byte_size;
-            let raw = &raw[from..to];
-            glium::texture::RawImage2d::from_raw_rgba_reversed(raw, image_dimensions)
-        }).collect();
+        let tiles = (0..tile_count)
+            .map(|y| {
+                let from = y as usize * tile_byte_size;
+                let to = from + tile_byte_size;
+                let raw = &raw[from..to];
+                glium::texture::RawImage2d::from_raw_rgba_reversed(raw, image_dimensions)
+            })
+            .collect();
 
         let texture = glium::texture::SrgbTexture2dArray::new(display, tiles).unwrap();
 
