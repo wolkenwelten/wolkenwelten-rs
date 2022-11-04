@@ -2,14 +2,12 @@
 // All rights reserved. AGPL-3.0+ license.
 use super::meshes::BlockMesh;
 use super::Frustum;
-use crate::ClientState;
+use crate::{ClientState, QueueEntry};
 use glam::{
     f32::{Mat4, Vec3},
     IVec3,
 };
-use glium::uniform;
-use std::cmp::Ordering;
-use std::collections::BinaryHeap;
+use glium::{uniform, DrawError};
 use std::time::Instant;
 use wolkenwelten_common::{CHUNK_BITS, CHUNK_SIZE};
 use wolkenwelten_game::{Character, Entity, GameState};
@@ -17,7 +15,7 @@ use wolkenwelten_game::{Character, Entity, GameState};
 use glium::Surface;
 
 pub const RENDER_DISTANCE: f32 = 192.0;
-const FADE_DISTANCE: f32 = 32.0;
+pub const FADE_DISTANCE: f32 = 32.0;
 const FADEOUT_DISTANCE: f32 = FADE_DISTANCE * FADE_DISTANCE;
 const FADEOUT_START_DISTANCE: f32 = (RENDER_DISTANCE - 32.0) * (RENDER_DISTANCE - 32.0);
 pub const VIEW_STEPS: i32 = (RENDER_DISTANCE as i32 / CHUNK_SIZE as i32) + 1;
@@ -33,7 +31,7 @@ fn draw_entity(
     entity: &Entity,
     view: &Mat4,
     projection: &Mat4,
-) {
+) -> Result<(), DrawError> {
     let rot = entity.rot();
     let pos = entity.pos();
 
@@ -43,37 +41,16 @@ fn draw_entity(
     let model = Mat4::from_translation(pos) * model;
     let vp = projection.mul_mat4(view);
     let mvp = vp.mul_mat4(&model);
-    let mat_mvp = mvp.to_cols_array_2d();
-
-    let trans_pos: [f32; 3] = fe.meshes.grenade.trans_pos();
-    let color_alpha: f32 = 1.0;
-
-    frame
-        .draw(
-            fe.meshes.grenade.buffer(),
-            fe.block_indeces(),
-            &fe.shaders.block,
-            &uniform! {
-                mat_mvp: mat_mvp,
-                trans_pos: trans_pos,
-                color_alpha: color_alpha,
-                cur_tex: fe.meshes.grenade.texture(),
-            },
-            &glium::DrawParameters {
-                backface_culling: glium::draw_parameters::BackfaceCullingMode::CullClockwise,
-                blend: glium::draw_parameters::Blend::alpha_blending(),
-                depth: glium::draw_parameters::Depth {
-                    test: glium::draw_parameters::DepthTest::IfLess,
-                    write: true,
-                    ..Default::default()
-                },
-                ..Default::default()
-            },
-        )
-        .unwrap();
+    fe.meshes
+        .grenade
+        .draw(frame, fe.block_indeces(), &fe.shaders.block, &mvp, 1.0)
 }
 
-fn render_held_item(frame: &mut glium::Frame, fe: &ClientState, projection: &Mat4) {
+fn render_held_item(
+    frame: &mut glium::Frame,
+    fe: &ClientState,
+    projection: &Mat4,
+) -> Result<(), DrawError> {
     let t = (fe.ticks() as f32 / 512.0).sin();
     let model = Mat4::from_scale(Vec3::new(1.0 / 16.0, 1.0 / 16.0, 1.0 / 16.0));
     let model = Mat4::from_rotation_x((-90.0 + t * 6.0).to_radians()) * model;
@@ -81,64 +58,48 @@ fn render_held_item(frame: &mut glium::Frame, fe: &ClientState, projection: &Mat
     let pos = Vec3::new(1.0, -0.5 + t * 0.05, -1.0);
     let model = Mat4::from_translation(pos) * model;
     let mvp = projection.mul_mat4(&model);
-    let mat_mvp = mvp.to_cols_array_2d();
 
-    let trans_pos: [f32; 3] = fe.meshes.grenade.trans_pos();
-    let color_alpha: f32 = 1.0;
-
-    frame
-        .draw(
-            fe.meshes.grenade.buffer(),
-            fe.block_indeces(),
-            &fe.shaders.block,
-            &uniform! {
-                mat_mvp: mat_mvp,
-                trans_pos: trans_pos,
-                color_alpha: color_alpha,
-                cur_tex: fe.meshes.grenade.texture(),
-            },
-            &glium::DrawParameters {
-                backface_culling: glium::draw_parameters::BackfaceCullingMode::CullClockwise,
-                blend: glium::draw_parameters::Blend::alpha_blending(),
-                depth: glium::draw_parameters::Depth {
-                    test: glium::draw_parameters::DepthTest::IfLess,
-                    write: true,
-                    ..Default::default()
-                },
-                ..Default::default()
-            },
-        )
-        .unwrap();
+    fe.meshes
+        .grenade
+        .draw(frame, fe.block_indeces(), &fe.shaders.block, &mvp, 1.0)
 }
 
-pub fn prepare_chunk(fe: &mut ClientState, game: &GameState, pos: IVec3, now: Instant) {
+pub fn prepare_chunk(
+    fe: &mut ClientState,
+    game: &GameState,
+    pos: IVec3,
+    now: Instant,
+) -> Result<(), glium::vertex::BufferCreationError> {
     if let Some(chunk) = game.world.get_chunk(&pos) {
         if let Some(mesh) = fe.world_mesh.get_mut(&pos) {
-            if chunk.get_light().get_last_updated() < mesh.get_last_updated() {
-                return;
+            if chunk.get_light().get_last_updated() >= mesh.get_last_updated() {
+                mesh.update(
+                    &fe.display,
+                    chunk.get_block(),
+                    chunk.get_light(),
+                    &game.world.blocks,
+                    now,
+                )?;
             }
+        } else {
+            let mut mesh = BlockMesh::new(&fe.display)?;
             mesh.update(
                 &fe.display,
                 chunk.get_block(),
                 chunk.get_light(),
                 &game.world.blocks,
                 now,
-            );
-            return;
+            )?;
+            fe.world_mesh.insert(pos, mesh);
         }
-        let mut mesh = BlockMesh::new(&fe.display);
-        mesh.update(
-            &fe.display,
-            chunk.get_block(),
-            chunk.get_light(),
-            &game.world.blocks,
-            now,
-        );
-        fe.world_mesh.insert(pos, mesh);
     }
+    Ok(())
 }
 
-fn prepare_chunks(fe: &mut ClientState, game: &GameState) {
+fn prepare_chunks(
+    fe: &mut ClientState,
+    game: &GameState,
+) -> Result<(), glium::vertex::BufferCreationError> {
     let now = Instant::now();
     let px = (game.player.pos.x as i32) >> CHUNK_BITS;
     let py = (game.player.pos.y as i32) >> CHUNK_BITS;
@@ -150,11 +111,12 @@ fn prepare_chunks(fe: &mut ClientState, game: &GameState) {
                 let d = (pos.as_vec3() * CHUNK_SIZE as f32) - game.player.pos;
                 let d = d.dot(d);
                 if d < FADEOUT_DISTANCE + FADEOUT_START_DISTANCE {
-                    prepare_chunk(fe, game, pos, now);
+                    prepare_chunk(fe, game, pos, now)?;
                 }
             }
         }
     }
+    Ok(())
 }
 
 fn prepare_ui(fe: &mut ClientState, game: &GameState) {
@@ -209,98 +171,27 @@ fn prepare_ui(fe: &mut ClientState, game: &GameState) {
     fe.ui_mesh.prepare(&fe.display);
 }
 
-pub fn prepare_frame(fe: &mut ClientState, game: &GameState) {
+pub fn prepare_frame(
+    fe: &mut ClientState,
+    game: &GameState,
+) -> Result<(), glium::vertex::BufferCreationError> {
     prepare_ui(fe, game);
     fe.calc_fps();
     fe.gc(&game.player);
     fe.set_fov(calc_fov(fe.fov(), &game.player));
-    prepare_chunks(fe, game);
+    prepare_chunks(fe, game)?;
     fe.particles.update(game.player.pos, RENDER_DISTANCE);
+    Ok(())
 }
 
-#[derive(Debug, Default)]
-struct QueueEntry {
-    dist: i64,
-    pos: IVec3,
-    trans: Vec3,
-    mask: u8,
-    alpha: f32,
-}
-
-impl QueueEntry {
-    pub fn new(pos: IVec3, trans: Vec3, dist: i64, mask: u8, alpha: f32) -> Self {
-        Self {
-            dist,
-            pos,
-            trans,
-            mask,
-            alpha,
-        }
-    }
-}
-
-impl Ord for QueueEntry {
-    fn cmp(&self, other: &Self) -> Ordering {
-        //self.dist.cmp(&other.dist)
-        other.dist.cmp(&self.dist)
-    }
-}
-
-impl PartialOrd for QueueEntry {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-impl Eq for QueueEntry {}
-impl PartialEq for QueueEntry {
-    fn eq(&self, other: &Self) -> bool {
-        self.pos == other.pos
-    }
-}
-
-fn build_render_queue(player_pos: Vec3, frustum: &Frustum) -> BinaryHeap<QueueEntry> {
-    let mut render_queue: BinaryHeap<QueueEntry> = BinaryHeap::with_capacity(512);
-    let px = (player_pos.x.floor() as i32) >> CHUNK_BITS;
-    let py = (player_pos.y.floor() as i32) >> CHUNK_BITS;
-    let pz = (player_pos.z.floor() as i32) >> CHUNK_BITS;
-
-    for cx in -VIEW_STEPS..=VIEW_STEPS {
-        for cy in -VIEW_STEPS..=VIEW_STEPS {
-            for cz in -VIEW_STEPS..=VIEW_STEPS {
-                let x = px + cx;
-                let y = py + cy;
-                let z = pz + cz;
-                let trans_x = x as f32 * CHUNK_SIZE as f32;
-                let trans_y = y as f32 * CHUNK_SIZE as f32;
-                let trans_z = z as f32 * CHUNK_SIZE as f32;
-                if !frustum.contains_cube(Vec3::new(trans_x, trans_y, trans_z), CHUNK_SIZE as f32) {
-                    continue;
-                } else {
-                    let trans = Vec3::new(trans_x, trans_y, trans_z);
-                    let dist = trans - player_pos;
-                    let dist = dist.length();
-                    if dist < RENDER_DISTANCE {
-                        let alpha = if dist < (RENDER_DISTANCE - FADE_DISTANCE) {
-                            1.0
-                        } else {
-                            1.0 - ((dist - (RENDER_DISTANCE - FADE_DISTANCE)) / FADE_DISTANCE)
-                        };
-                        let dist = (dist * 8192.0) as i64;
-                        let pos = IVec3::new(x, y, z);
-                        let mask = BlockMesh::calc_mask(cx, cy, cz);
-                        render_queue.push(QueueEntry::new(pos, trans, dist, mask, alpha));
-                    }
-                }
-            }
-        }
-    }
-    render_queue
-}
-
-fn render_chungus(frame: &mut glium::Frame, fe: &ClientState, game: &GameState, mvp: &Mat4) {
+fn render_chungus(
+    frame: &mut glium::Frame,
+    fe: &ClientState,
+    game: &GameState,
+    mvp: &Mat4,
+) -> Result<(), DrawError> {
     let frustum = Frustum::extract(mvp);
-    let render_queue = build_render_queue(game.player.pos, &frustum);
+    let render_queue = QueueEntry::build(game.player.pos, &frustum);
     let now = Instant::now();
     let mat_mvp = mvp.to_cols_array_2d();
 
@@ -338,37 +229,34 @@ fn render_chungus(frame: &mut glium::Frame, fe: &ClientState, game: &GameState, 
             };
 
             if mask == 0b111111 {
-                frame
-                    .draw(
-                        mesh.buffer(),
-                        fe.block_indeces(),
-                        &fe.shaders.block,
-                        &uniforms,
-                        &draw_parameters,
-                    )
-                    .unwrap();
+                frame.draw(
+                    mesh.buffer(),
+                    fe.block_indeces(),
+                    &fe.shaders.block,
+                    &uniforms,
+                    &draw_parameters,
+                )?;
             } else {
-                (0..6).filter(|i| (mask & (1 << i)) != 0).for_each(|i| {
+                for i in (0..6).filter(|i| (mask & (1 << i)) != 0) {
                     let start_offset = mesh.side_start[i] * 6;
                     let index_count = start_offset + (mesh.side_square_count[i] * 6);
                     if index_count == 0 {
-                        return;
+                        continue;
                     }
                     if let Some(indeces) = fe.block_indeces().slice(start_offset..index_count) {
-                        frame
-                            .draw(
-                                mesh.buffer(),
-                                indeces,
-                                &fe.shaders.block,
-                                &uniforms,
-                                &draw_parameters,
-                            )
-                            .unwrap();
+                        frame.draw(
+                            mesh.buffer(),
+                            indeces,
+                            &fe.shaders.block,
+                            &uniforms,
+                            &draw_parameters,
+                        )?;
                     }
-                });
+                }
             }
         }
     }
+    Ok(())
 }
 
 fn render_sky(
@@ -377,31 +265,33 @@ fn render_sky(
     _game: &GameState,
     view: Mat4,
     projection: Mat4,
-) {
+) -> Result<(), DrawError> {
     let s = RENDER_DISTANCE + CHUNK_SIZE as f32 * 2.0;
     let view = view * Mat4::from_scale(Vec3::new(s, s, s));
     let mat_mvp = (projection * view).to_cols_array_2d();
     let in_color: [f32; 4] = [1.0, 1.0, 1.0, 1.0];
 
-    frame
-        .draw(
-            fe.meshes.dome.buffer(),
-            glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList),
-            &fe.shaders.mesh,
-            &uniform! {
-                mat_mvp: mat_mvp,
-                in_color: in_color,
-                cur_tex: fe.textures.sky.texture(),
-            },
-            &glium::DrawParameters {
-                backface_culling: glium::draw_parameters::BackfaceCullingMode::CullClockwise,
-                ..Default::default()
-            },
-        )
-        .unwrap();
+    frame.draw(
+        fe.meshes.dome.buffer(),
+        glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList),
+        &fe.shaders.mesh,
+        &uniform! {
+            mat_mvp: mat_mvp,
+            in_color: in_color,
+            cur_tex: fe.textures.sky.texture(),
+        },
+        &glium::DrawParameters {
+            backface_culling: glium::draw_parameters::BackfaceCullingMode::CullClockwise,
+            ..Default::default()
+        },
+    )
 }
 
-fn render_game(frame: &mut glium::Frame, fe: &ClientState, game: &GameState) {
+fn render_game(
+    frame: &mut glium::Frame,
+    fe: &ClientState,
+    game: &GameState,
+) -> Result<(), DrawError> {
     let (window_width, window_height) = fe.window_size();
     let projection = Mat4::perspective_rh_gl(
         fe.fov().to_radians(),
@@ -411,24 +301,27 @@ fn render_game(frame: &mut glium::Frame, fe: &ClientState, game: &GameState) {
     );
     let view = Mat4::from_rotation_x(game.player.rot[1].to_radians());
     let view = view * Mat4::from_rotation_y(game.player.rot[0].to_radians());
-    render_sky(frame, fe, game, view, projection);
+    render_sky(frame, fe, game, view, projection)?;
 
     let view = view * Mat4::from_translation(-game.player.pos);
     let mvp = projection * view;
     fe.particles
-        .draw(frame, &fe.display, &fe.shaders.particle, &mvp)
-        .unwrap();
+        .draw(frame, &fe.display, &fe.shaders.particle, &mvp)?;
 
-    game.entities
-        .iter()
-        .for_each(|entity| draw_entity(frame, fe, entity, &view, &projection));
-    render_chungus(frame, fe, game, &mvp);
+    for entity in game.entities.iter() {
+        draw_entity(frame, fe, entity, &view, &projection)?;
+    }
+    render_chungus(frame, fe, game, &mvp)?;
 
     frame.clear(None, None, true, Some(4000.0), None);
-    render_held_item(frame, fe, &projection);
+    render_held_item(frame, fe, &projection)
 }
 
-pub fn render_frame(frame: &mut glium::Frame, fe: &ClientState, game: &GameState) {
+pub fn render_frame(
+    frame: &mut glium::Frame,
+    fe: &ClientState,
+    game: &GameState,
+) -> Result<(), DrawError> {
     frame.clear(
         None,
         Some((0.32, 0.63, 0.96, 1.0)),
@@ -437,7 +330,7 @@ pub fn render_frame(frame: &mut glium::Frame, fe: &ClientState, game: &GameState
         None,
     );
 
-    render_game(frame, fe, game);
+    render_game(frame, fe, game)?;
 
     let (window_width, window_height) = fe.window_size();
     let perspective = Mat4::orthographic_rh_gl(
@@ -450,20 +343,18 @@ pub fn render_frame(frame: &mut glium::Frame, fe: &ClientState, game: &GameState
     );
     let mat_mvp = perspective.to_cols_array_2d();
     let cur_tex = fe.textures.gui.texture();
-    frame
-        .draw(
-            fe.ui_mesh.buffer(),
-            glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList),
-            &fe.shaders.text,
-            &uniform! {
-                mat_mvp: mat_mvp,
-                cur_tex: cur_tex,
-            },
-            &glium::DrawParameters {
-                backface_culling: glium::draw_parameters::BackfaceCullingMode::CullClockwise,
-                blend: glium::draw_parameters::Blend::alpha_blending(),
-                ..Default::default()
-            },
-        )
-        .unwrap();
+    frame.draw(
+        fe.ui_mesh.buffer(),
+        glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList),
+        &fe.shaders.text,
+        &uniform! {
+            mat_mvp: mat_mvp,
+            cur_tex: cur_tex,
+        },
+        &glium::DrawParameters {
+            backface_culling: glium::draw_parameters::BackfaceCullingMode::CullClockwise,
+            blend: glium::draw_parameters::Blend::alpha_blending(),
+            ..Default::default()
+        },
+    )
 }

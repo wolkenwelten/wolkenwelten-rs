@@ -21,19 +21,24 @@ impl Entity {
         let vel = Vec3::ZERO;
         Self { pos, rot, vel }
     }
+    #[inline]
     pub fn pos(&self) -> Vec3 {
         self.pos
     }
+    #[inline]
     pub fn rot(&self) -> Vec3 {
         self.rot
     }
+    #[inline]
     pub fn vel(&self) -> Vec3 {
         self.vel
     }
 
+    #[inline]
     pub fn set_vel(&mut self, vel: Vec3) {
         self.vel = vel;
     }
+    #[inline]
     pub fn set_pos(&mut self, pos: Vec3) {
         self.pos = pos;
     }

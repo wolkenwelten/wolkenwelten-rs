@@ -28,8 +28,11 @@ After that executing the `cargo run --release` command should build and run the 
 |--------|------------------|--------------------------------|
 | x86_64 | Arch Linux       | Regular manual testing         |
 | ARM64  | Raspberry Pi OS  | Regular manual testing         |
-| x86_64 | MacOS            | Irregular manual testing       |
-| x86_64 | Windows 10       | Irregular manual testing       |
-| x86_64 | Chrome OS        | Very infrequent manual testing |
-| x86_64 | FreeBSD          | Not working (for now)          |
+| x86_64 | MacOS            | Regular manual testing         |
+| x86_64 | Windows 10       | Regular manual testing         |
+| x86_64 | Chrome OS        | Irregular manual testing       |
+| ARM64  | Windows 11       | Not working (yet)              |
+| x86_64 | FreeBSD          | Not working (yet)              |
+| x86_64 | NetBSD           | Not working (yet)              |
+| x86_64 | OpenBSD          | Not working (yet)              |
 | WASM   | Browsers         | Not supported                  |

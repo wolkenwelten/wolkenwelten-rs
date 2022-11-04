@@ -36,34 +36,17 @@ pub struct InputState {
     mouse: MouseState,
 }
 
-const MOUSE_ACCELERATION: f32 = 0.03;
-
 impl InputState {
     pub fn new() -> Self {
         Self::default()
     }
 
-    pub fn mouse_motion(&mut self, xrel: f32, yrel: f32) {
-        self.mouse_xrel = (xrel as f32) * MOUSE_ACCELERATION;
-        self.mouse_yrel = (yrel as f32) * MOUSE_ACCELERATION;
-    }
     pub fn mouse_flush(&mut self) {
         self.mouse_xrel = 0.0;
         self.mouse_yrel = 0.0;
     }
-    pub fn xrel(&self) -> f32 {
-        self.mouse_xrel
-    }
-    pub fn yrel(&self) -> f32 {
-        self.mouse_yrel
-    }
 
-    pub fn key_down(&mut self, code: Key) {
-        self.button_states[code as usize] = true;
-    }
-    pub fn key_up(&mut self, code: Key) {
-        self.button_states[code as usize] = false;
-    }
+    #[inline]
     pub fn key_up_down(&mut self, code: Key, pressed: bool) {
         self.button_states[code as usize] = pressed;
     }
@@ -77,6 +60,7 @@ impl InputState {
         }
     }
 
+    #[inline]
     pub fn get_speed(&self) -> f32 {
         if self.button_states[Key::Sprint as usize] {
             4.0
@@ -84,6 +68,7 @@ impl InputState {
             2.0
         }
     }
+
     pub fn get_movement_vector(&self) -> Vec3 {
         Vec3::new(
             (if self.button_states[Key::Left as usize] {

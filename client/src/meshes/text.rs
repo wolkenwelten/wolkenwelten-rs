@@ -21,13 +21,12 @@ pub struct TextMesh {
 }
 
 impl TextMesh {
-    pub fn prepare(&mut self, display: &glium::Display) -> &mut Self {
+    pub fn prepare(&mut self, display: &glium::Display) {
         if !self.finished {
             self.buffer = glium::VertexBuffer::dynamic(display, self.vertices.as_slice()).unwrap();
             self.vertex_count = self.vertices.len();
             self.vertices.clear();
         }
-        self
     }
 
     pub fn buffer(&self) -> &glium::VertexBuffer<Vertex2D> {

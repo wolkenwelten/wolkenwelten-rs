@@ -6,12 +6,13 @@ use glium::Surface;
 use rand::prelude::*;
 use rand::Rng;
 use rand_chacha::ChaCha8Rng;
+use rgb::RGBA8;
 
 #[derive(Copy, Clone, Debug)]
 pub enum ParticleEmission {
     Explosion(Vec3, f32),
-    BlockBreak(IVec3, [[u8; 4]; 2]),
-    BlockPlace(IVec3, [[u8; 4]; 2]),
+    BlockBreak(IVec3, [RGBA8; 2]),
+    BlockPlace(IVec3, [RGBA8; 2]),
 }
 
 #[derive(Copy, Clone, Debug)]
@@ -128,7 +129,7 @@ impl ParticleMesh {
         }
     }
 
-    fn fx_block_break(&mut self, rng: &mut ChaCha8Rng, pos: IVec3, color: [[u8; 4]; 2]) {
+    fn fx_block_break(&mut self, rng: &mut ChaCha8Rng, pos: IVec3, color: [RGBA8; 2]) {
         for color in color.iter() {
             for _ in 1..64 {
                 let pos = [
@@ -144,11 +145,11 @@ impl ParticleMesh {
                     -23.0,
                 ];
                 let color = [
-                    ((color[0] as f32 / 255.0 * rng.gen_range(0.6..1.1)).clamp(0.0, 1.0) * 255.0)
+                    ((color.r as f32 / 255.0 * rng.gen_range(0.6..1.1)).clamp(0.0, 1.0) * 255.0)
                         as u8,
-                    ((color[1] as f32 / 255.0 * rng.gen_range(0.6..1.1)).clamp(0.0, 1.0) * 255.0)
+                    ((color.g as f32 / 255.0 * rng.gen_range(0.6..1.1)).clamp(0.0, 1.0) * 255.0)
                         as u8,
-                    ((color[2] as f32 / 255.0 * rng.gen_range(0.6..1.1)).clamp(0.0, 1.0) * 255.0)
+                    ((color.b as f32 / 255.0 * rng.gen_range(0.6..1.1)).clamp(0.0, 1.0) * 255.0)
                         as u8,
                     0xFF,
                 ];
@@ -157,7 +158,7 @@ impl ParticleMesh {
         }
     }
 
-    fn fx_block_place(&mut self, rng: &mut ChaCha8Rng, pos: IVec3, color: [[u8; 4]; 2]) {
+    fn fx_block_place(&mut self, rng: &mut ChaCha8Rng, pos: IVec3, color: [RGBA8; 2]) {
         self.fx_block_break(rng, pos, color)
     }
 

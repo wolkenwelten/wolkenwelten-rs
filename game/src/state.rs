@@ -82,14 +82,17 @@ impl GameState {
         Self::default()
     }
 
+    #[inline]
     pub fn get_millis(&self) -> u64 {
         self.clock.elapsed().as_millis().try_into().unwrap()
     }
 
+    #[inline]
     pub fn get_entity_count(&self) -> usize {
         self.entities.len()
     }
 
+    #[inline]
     pub fn push_entity(&mut self, e: Entity) {
         self.entities.push(e);
     }
@@ -169,6 +172,7 @@ impl GameState {
         }
     }
 
+    #[inline]
     pub fn has_chunk(&self, pos: IVec3) -> bool {
         self.world.get(&pos).is_some()
     }
@@ -181,10 +185,12 @@ impl GameState {
         }
     }
 
+    #[inline]
     pub fn get_chunk_block(&self, pos: IVec3) -> Option<&ChunkBlockData> {
         self.world.get(&pos)
     }
 
+    #[inline]
     pub fn get_chunk_light(&self, pos: IVec3) -> Option<&ChunkLightData> {
         self.world.get_light(&pos)
     }

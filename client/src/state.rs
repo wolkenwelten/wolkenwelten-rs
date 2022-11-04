@@ -16,6 +16,7 @@ pub use self::static_meshes::MeshList;
 use self::static_meshes::MeshListCreationError;
 pub use self::static_shaders::ShaderList;
 pub use self::static_textures::TextureList;
+use self::static_textures::TextureListLoadError;
 
 #[derive(Debug)]
 pub struct ClientState {
@@ -42,15 +43,15 @@ pub struct ClientState {
     cur_fps: u32,
     frame_count: u32,
     last_ticks: u128,
-
-    wireframe: bool,
 }
 
 #[derive(Debug)]
 pub enum ClientStateCreationError {
     MeshListCreationError(MeshListCreationError),
+    TextureListLoadError(TextureListLoadError),
     ProgramCreationError(glium::ProgramCreationError),
-    BufferCreationError(glium::vertex::BufferCreationError),
+    VertexBufferCreationError(glium::vertex::BufferCreationError),
+    IndexBufferCreationError(glium::index::BufferCreationError),
 }
 
 impl From<MeshListCreationError> for ClientStateCreationError {
@@ -65,7 +66,17 @@ impl From<glium::ProgramCreationError> for ClientStateCreationError {
 }
 impl From<glium::vertex::BufferCreationError> for ClientStateCreationError {
     fn from(err: glium::vertex::BufferCreationError) -> Self {
-        Self::BufferCreationError(err)
+        Self::VertexBufferCreationError(err)
+    }
+}
+impl From<TextureListLoadError> for ClientStateCreationError {
+    fn from(err: TextureListLoadError) -> Self {
+        Self::TextureListLoadError(err)
+    }
+}
+impl From<glium::index::BufferCreationError> for ClientStateCreationError {
+    fn from(err: glium::index::BufferCreationError) -> Self {
+        Self::IndexBufferCreationError(err)
     }
 }
 
@@ -74,8 +85,8 @@ impl ClientState {
         let meshes = MeshList::new(&display)?;
         let shaders = ShaderList::new(&display)?;
         let ui_mesh = TextMesh::new(&display)?;
-        let textures = TextureList::new(&display);
-        let block_index_buffer = BlockMesh::gen_index_buffer(&display, 65536 / 4);
+        let textures = TextureList::new(&display)?;
+        let block_index_buffer = BlockMesh::gen_index_buffer(&display, 65536 / 4)?;
         let particles = ParticleMesh::new();
 
         Ok(Self {
@@ -99,18 +110,20 @@ impl ClientState {
             frame_count: 0,
             ticks: 0,
             last_ticks: 0,
-            wireframe: false,
         })
     }
 
+    #[inline]
     pub fn ticks(&self) -> u64 {
         self.ticks
     }
 
+    #[inline]
     pub fn block_indeces(&self) -> &glium::IndexBuffer<u16> {
         &self.block_index_buffer
     }
 
+    #[inline]
     pub fn fps(&self) -> u32 {
         self.cur_fps
     }
@@ -135,23 +148,20 @@ impl ClientState {
         });
     }
 
-    pub fn set_wireframe(&mut self, w: bool) {
-        self.wireframe = w;
-    }
-    pub fn wireframe(&self) -> bool {
-        self.wireframe
-    }
-
+    #[inline]
     pub fn set_fov(&mut self, fov: f32) {
         self.cur_fov = fov;
     }
+    #[inline]
     pub fn fov(&self) -> f32 {
         self.cur_fov
     }
 
+    #[inline]
     pub fn window_size(&self) -> (u32, u32) {
         (self.window_width, self.window_height)
     }
+    #[inline]
     pub fn set_window_size(&mut self, (w, h): (u32, u32)) {
         self.window_width = w;
         self.window_height = h;

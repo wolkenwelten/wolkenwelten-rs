@@ -1,12 +1,14 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
 use crate::Side;
+use rgb::RGBA8;
 
+const WHITE: RGBA8 = RGBA8::new(255, 255, 255, 255);
 #[derive(Clone, Debug, Default)]
 pub struct BlockType {
     name: String,
     texture_index: [u8; 6],
-    colors: [[u8; 4]; 2],
+    colors: [RGBA8; 2],
 }
 
 impl BlockType {
@@ -17,6 +19,7 @@ impl BlockType {
         }
         ret
     }
+    #[inline]
     pub fn get_vox_types() -> Vec<Self> {
         Self::init_vox_types()
     }
@@ -24,14 +27,14 @@ impl BlockType {
     pub fn new(name: &str) -> Self {
         let texture_index: [u8; 6] = [0; 6];
         let name = name.to_string();
-        let colors = [[0xFF; 4]; 2];
+        let colors = [WHITE; 2];
         Self {
             name,
             texture_index,
             colors,
         }
     }
-    pub fn with_colors(mut self, a: [u8; 4], b: [u8; 4]) -> Self {
+    pub fn with_colors(mut self, a: RGBA8, b: RGBA8) -> Self {
         self.colors = [a, b];
         self
     }
@@ -44,10 +47,12 @@ impl BlockType {
         self.texture_index[i] = tex;
         self
     }
+    #[inline]
     pub fn name(&self) -> &str {
         &self.name
     }
-    pub fn colors(&self) -> [[u8; 4]; 2] {
+    #[inline]
+    pub fn colors(&self) -> [RGBA8; 2] {
         self.colors
     }
 
@@ -58,21 +63,27 @@ impl BlockType {
         self.with_texture_side(tex, Side::Bottom)
     }
 
+    #[inline]
     pub fn tex_front(&self) -> u8 {
         self.texture_index[Side::Front as usize]
     }
+    #[inline]
     pub fn tex_back(&self) -> u8 {
         self.texture_index[Side::Back as usize]
     }
+    #[inline]
     pub fn tex_left(&self) -> u8 {
         self.texture_index[Side::Left as usize]
     }
+    #[inline]
     pub fn tex_right(&self) -> u8 {
         self.texture_index[Side::Right as usize]
     }
+    #[inline]
     pub fn tex_top(&self) -> u8 {
         self.texture_index[Side::Top as usize]
     }
+    #[inline]
     pub fn tex_bottom(&self) -> u8 {
         self.texture_index[Side::Bottom as usize]
     }

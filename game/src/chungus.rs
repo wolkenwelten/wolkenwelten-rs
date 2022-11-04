@@ -25,10 +25,12 @@ impl Chungus {
         });
     }
 
+    #[inline]
     pub fn get_chunk(&self, k: &IVec3) -> Option<&Chunk> {
         self.chunks.get(k)
     }
 
+    #[inline]
     pub fn get_chunk_mut(&mut self, k: &IVec3) -> Option<&mut Chunk> {
         self.chunks.get_mut(k)
     }
@@ -54,6 +56,7 @@ impl Chungus {
         }
     }
 
+    #[inline]
     pub fn get_block_type(&self, i: u8) -> &BlockType {
         &self.blocks[i as usize]
     }

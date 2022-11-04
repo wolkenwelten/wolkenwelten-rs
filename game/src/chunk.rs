@@ -17,23 +17,28 @@ impl Chunk {
         Self { block, light }
     }
 
+    #[inline]
     pub fn get_block(&self) -> &ChunkBlockData {
         &self.block
     }
+    #[inline]
     pub fn get_block_mut(&mut self) -> &mut ChunkBlockData {
         &mut self.block
     }
+    #[inline]
     pub fn get_light(&self) -> &ChunkLightData {
         &self.light
     }
+    #[inline]
     pub fn get_light_mut(&mut self) -> &mut ChunkLightData {
         &mut self.light
     }
 
+    #[inline]
     pub fn should_update(&self) -> bool {
         self.block.get_last_updated() >= self.light.get_last_updated()
     }
-
+    #[inline]
     pub fn tick(&mut self) {
         if self.should_update() {
             self.light.calculate(&self.block);

@@ -22,10 +22,12 @@ impl ChunkBlockData {
         Self { data, last_updated }
     }
 
+    #[inline]
     pub fn get_last_updated(&self) -> Instant {
         self.last_updated
     }
 
+    #[inline]
     pub fn get_block(&self, (x, y, z): (i32, i32, i32)) -> u8 {
         self.data[x as usize][y as usize][z as usize]
     }

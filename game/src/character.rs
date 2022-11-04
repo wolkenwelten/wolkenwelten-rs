@@ -40,42 +40,54 @@ impl Character {
     pub fn new() -> Self {
         Self::default()
     }
+    #[inline]
     pub fn pos(&self) -> Vec3 {
         self.pos
     }
+    #[inline]
     pub fn rot(&self) -> Vec3 {
         self.rot
     }
+    #[inline]
     pub fn vel(&self) -> Vec3 {
         self.vel
     }
 
+    #[inline]
     pub fn no_clip(&self) -> bool {
         self.no_clip
     }
+    #[inline]
     pub fn set_no_clip(&mut self, no_clip: bool) {
         self.no_clip = no_clip;
     }
 
+    #[inline]
     pub fn set_vel(&mut self, vel: Vec3) {
         self.vel = vel;
     }
+    #[inline]
     pub fn set_pos(&mut self, pos: Vec3) {
         self.pos = pos;
     }
+    #[inline]
     pub fn set_rot(&mut self, rot: Vec3) {
         self.rot = rot;
     }
 
+    #[inline]
     pub fn may_jump(&self, world: &Chungus) -> bool {
         world.is_solid(self.pos + COL_POINT_BOTTOM)
     }
+    #[inline]
     pub fn may_act(&self, now: u64) -> bool {
         self.cooldown < now
     }
+    #[inline]
     pub fn jump(&mut self) {
         self.vel.y = 0.055;
     }
+    #[inline]
     pub fn set_cooldown(&mut self, until: u64) {
         self.cooldown = until;
     }
@@ -103,6 +115,7 @@ impl Character {
         self.block_selection = sel;
     }
 
+    #[inline]
     pub fn block_selection(&self) -> u8 {
         self.block_selection + 1
     }

@@ -20,6 +20,7 @@ impl ChunkLightData {
         ret
     }
 
+    #[inline]
     pub fn get_last_updated(&self) -> Instant {
         self.last_updated
     }

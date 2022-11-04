@@ -59,7 +59,6 @@ pub fn init() -> (EventLoop<()>, glium::Display) {
         .with_maximized(true);
 
     let cb = glium::glutin::ContextBuilder::new()
-        //.with_gl(glium::glutin::GlRequest::GlThenGles { opengl_version: (3,1), opengles_version: (3,0)})
         .with_gl_profile(glium::glutin::GlProfile::Core)
         .with_vsync(true);
 
@@ -167,17 +166,6 @@ pub fn run_event_loop(state: AppState) {
             } => game_state.player.set_no_clip(false),
 
             KeyboardInput {
-                state: ElementState::Pressed,
-                virtual_keycode: Some(VirtualKeyCode::O),
-                ..
-            } => render_state.set_wireframe(true),
-            KeyboardInput {
-                state: ElementState::Pressed,
-                virtual_keycode: Some(VirtualKeyCode::P),
-                ..
-            } => render_state.set_wireframe(false),
-
-            KeyboardInput {
                 state,
                 virtual_keycode: Some(VirtualKeyCode::E),
                 ..
@@ -253,9 +241,9 @@ pub fn run_event_loop(state: AppState) {
         Event::RedrawRequested(_) => {
             runtime.tick(game_state.get_millis());
             let mut frame = render_state.display.draw();
-            prepare_frame(&mut render_state, &game_state);
-            render_frame(&mut frame, &render_state, &game_state);
-            frame.finish().unwrap();
+            prepare_frame(&mut render_state, &game_state).expect("Error during frame preparation");
+            render_frame(&mut frame, &render_state, &game_state).expect("Error during rendering");
+            frame.finish().expect("Error during frame finish");
             //windowed_context.swap_buffers().unwrap();
         }
         Event::MainEventsCleared => {

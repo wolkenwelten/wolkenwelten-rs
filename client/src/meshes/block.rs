@@ -22,7 +22,7 @@ impl BlockMesh {
     pub fn gen_index_buffer(
         display: &glium::Display,
         square_count: usize,
-    ) -> glium::IndexBuffer<u16> {
+    ) -> Result<glium::IndexBuffer<u16>, glium::index::BufferCreationError> {
         let mut v: Vec<u16> = Vec::with_capacity(square_count * 6);
         for i in 0..square_count {
             v.push((i * 4) as u16);
@@ -33,13 +33,11 @@ impl BlockMesh {
             v.push((i * 4 + 3) as u16);
             v.push((i * 4) as u16);
         }
-        let buffer: glium::IndexBuffer<u16> = glium::IndexBuffer::new(
+        glium::IndexBuffer::new(
             display,
             glium::index::PrimitiveType::TrianglesList,
             v.as_slice(),
         )
-        .unwrap();
-        buffer
     }
 
     pub fn get_last_updated(&self) -> Instant {
@@ -63,16 +61,15 @@ impl BlockMesh {
         ((self.side_start[5] + self.side_square_count[5]) * 6) as u32
     }
 
-    pub fn new(display: &glium::Display) -> Self {
-        let buffer: glium::VertexBuffer<BlockVertex> =
-            glium::VertexBuffer::empty(display, 0).unwrap();
-        Self {
+    pub fn new(display: &glium::Display) -> Result<BlockMesh, glium::vertex::BufferCreationError> {
+        let buffer: glium::VertexBuffer<BlockVertex> = glium::VertexBuffer::empty(display, 0)?;
+        Ok(Self {
             buffer,
             side_square_count: [0; 6],
             side_start: [0; 6],
             first_created: Instant::now(),
             last_updated: Instant::now(),
-        }
+        })
     }
 
     pub fn update(
@@ -82,7 +79,7 @@ impl BlockMesh {
         light: &ChunkLightData,
         block_types: &Vec<BlockType>,
         now: Instant,
-    ) {
+    ) -> Result<(), glium::vertex::BufferCreationError> {
         self.last_updated = now;
 
         let (vertices, side_start_count) =
@@ -92,6 +89,7 @@ impl BlockMesh {
         for i in 1..6 {
             self.side_start[i] = self.side_start[i - 1] + self.side_square_count[i - 1];
         }
-        self.buffer = glium::VertexBuffer::dynamic(display, &vertices).unwrap();
+        self.buffer = glium::VertexBuffer::dynamic(display, &vertices)?;
+        Ok(())
     }
 }

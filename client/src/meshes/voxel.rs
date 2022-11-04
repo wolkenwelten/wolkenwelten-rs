@@ -2,6 +2,7 @@
 // All rights reserved. AGPL-3.0+ license.
 use crate::BlockMesh;
 use glium::texture::{SrgbTexture2dArray, TextureCreationError};
+use glium::{uniform, DrawError, Surface};
 use std::time::Instant;
 use wolkenwelten_common::{BlockType, ChunkBlockData, ChunkLightData};
 use wolkenwelten_meshgen;
@@ -12,6 +13,7 @@ pub enum VoxelMeshCreationError {
     MissingModel(),
     ReadError(vox_format::reader::Error),
     TextureCreationError(TextureCreationError),
+    BufferCreationError(glium::vertex::BufferCreationError),
 }
 
 impl From<vox_format::reader::Error> for VoxelMeshCreationError {
@@ -19,10 +21,14 @@ impl From<vox_format::reader::Error> for VoxelMeshCreationError {
         Self::ReadError(err)
     }
 }
-
 impl From<TextureCreationError> for VoxelMeshCreationError {
     fn from(err: TextureCreationError) -> Self {
         Self::TextureCreationError(err)
+    }
+}
+impl From<glium::vertex::BufferCreationError> for VoxelMeshCreationError {
+    fn from(err: glium::vertex::BufferCreationError) -> Self {
+        Self::BufferCreationError(err)
     }
 }
 
@@ -34,6 +40,40 @@ pub struct VoxelMesh {
 }
 
 impl VoxelMesh {
+    pub fn draw(
+        &self,
+        frame: &mut glium::Frame,
+        indeces: &glium::IndexBuffer<u16>,
+        program: &glium::Program,
+        mat_mvp: &glam::Mat4,
+        color_alpha: f32,
+    ) -> Result<(), DrawError> {
+        let trans_pos: [f32; 3] = self.trans_pos();
+        let mat_mvp = mat_mvp.to_cols_array_2d();
+
+        frame.draw(
+            self.mesh.buffer(),
+            indeces,
+            program,
+            &uniform! {
+                mat_mvp: mat_mvp,
+                trans_pos: trans_pos,
+                color_alpha: color_alpha,
+                cur_tex: &self.texture,
+            },
+            &glium::DrawParameters {
+                backface_culling: glium::draw_parameters::BackfaceCullingMode::CullClockwise,
+                blend: glium::draw_parameters::Blend::alpha_blending(),
+                depth: glium::draw_parameters::Depth {
+                    test: glium::draw_parameters::DepthTest::IfLess,
+                    write: true,
+                    ..Default::default()
+                },
+                ..Default::default()
+            },
+        )
+    }
+
     pub fn buffer(&self) -> &glium::VertexBuffer<BlockVertex> {
         self.mesh.buffer()
     }
@@ -77,14 +117,14 @@ impl VoxelMesh {
         });
         let light = ChunkLightData::new(&chunk);
 
-        let mut ret = BlockMesh::new(display);
+        let mut ret = BlockMesh::new(display)?;
         ret.update(
             display,
             &chunk,
             &light,
             &BlockType::get_vox_types(),
             Instant::now(),
-        );
+        )?;
         Ok(ret)
     }
 
