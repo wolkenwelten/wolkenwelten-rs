@@ -3,6 +3,26 @@
 use glium;
 use glium::implement_vertex;
 
+#[derive(Debug)]
+pub enum MeshCreationError {
+    LoadError(tobj::LoadError),
+    BufferCreationError(glium::vertex::BufferCreationError)
+}
+
+impl From<tobj::LoadError> for MeshCreationError {
+    fn from(err: tobj::LoadError) -> Self {
+        Self::LoadError(err)
+    }
+}
+impl From<glium::vertex::BufferCreationError> for MeshCreationError {
+    fn from(err: glium::vertex::BufferCreationError) -> Self {
+        Self::BufferCreationError(err)
+    }
+}
+
+
+
+
 #[derive(Copy, Clone, Debug)]
 pub struct MeshVertex {
     pub pos: [f32; 3],
@@ -11,17 +31,14 @@ pub struct MeshVertex {
 }
 implement_vertex!(MeshVertex, pos, tex, lightness);
 
+#[derive(Debug)]
 pub struct Mesh {
     buffer: glium::VertexBuffer<MeshVertex>,
 }
 
 impl Mesh {
-    pub fn draw(&self) {
-        //self.vao.draw(self.vertex_count);
-    }
-
-    fn from_vec(display: &glium::Display, vertices: &Vec<MeshVertex>) -> Result<Self, String> {
-        let buffer = glium::VertexBuffer::dynamic(display, vertices.as_slice()).unwrap();
+    fn from_vec(display: &glium::Display, vertices: &Vec<MeshVertex>) -> Result<Self, MeshCreationError> {
+        let buffer = glium::VertexBuffer::dynamic(display, vertices.as_slice())?;
         Ok(Self { buffer })
     }
 
@@ -29,7 +46,7 @@ impl Mesh {
         &self.buffer
     }
 
-    pub fn from_obj_string(display: &glium::Display, s: &str) -> Result<Self, String> {
+    pub fn from_obj_string(display: &glium::Display, s: &str) -> Result<Self, MeshCreationError> {
         let o = tobj::load_obj_buf(
             &mut s.as_bytes(),
             &tobj::LoadOptions {
@@ -38,9 +55,7 @@ impl Mesh {
                 ..Default::default()
             },
             |_p| unreachable!(),
-        )
-        .unwrap()
-        .0;
+        )?.0;
         let m = &o[0].mesh;
 
         let vertices = m
@@ -59,6 +74,6 @@ impl Mesh {
                 }
             })
             .collect();
-        Self::from_vec(display, &vertices)
+        Ok(Self::from_vec(display, &vertices)?)
     }
 }

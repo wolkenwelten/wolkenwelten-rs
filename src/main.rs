@@ -13,8 +13,8 @@ use wolkenwelten_sound::SfxList;
 mod lib;
 
 pub fn main() {
-    let (event_loop, display) = lib::init(); // This opens a window, and initialized OpenGL
-    let render_state = ClientState::new(display); // Now that we have setup an OpenGL context, we cam load all meshes/textures/shaders
+    let (event_loop, display) = lib::init();
+    let render_state = ClientState::new(display).expect("Can't create ClientState");
 
     // And after having set up everything we can start up the event loop
     lib::run_event_loop(lib::AppState {

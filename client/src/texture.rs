@@ -1,10 +1,12 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
 
+#[derive(Debug)]
 pub struct Texture {
     texture: glium::texture::SrgbTexture2d,
 }
 
+#[derive(Debug)]
 pub struct TextureArray {
     texture: glium::texture::SrgbTexture2dArray,
 }

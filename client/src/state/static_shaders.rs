@@ -1,6 +1,7 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
 
+#[derive(Debug)]
 pub struct ShaderList {
     pub block: glium::Program,
     pub mesh: glium::Program,

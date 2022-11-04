@@ -2,10 +2,29 @@
 // All rights reserved. AGPL-3.0+ license.
 use crate::BlockMesh;
 use std::time::Instant;
-use glium::texture::TextureCreationError;
+use glium::texture::{SrgbTexture2dArray, TextureCreationError};
 use wolkenwelten_common::{ChunkBlockData, ChunkLightData, BlockType};
 use wolkenwelten_meshgen;
 use wolkenwelten_meshgen::BlockVertex;
+
+#[derive(Debug)]
+pub enum VoxelMeshCreationError {
+    MissingModel(),
+    ReadError(vox_format::reader::Error),
+    TextureCreationError(TextureCreationError)
+}
+
+impl From<vox_format::reader::Error> for VoxelMeshCreationError {
+    fn from(err: vox_format::reader::Error) -> Self {
+        Self::ReadError(err)
+    }
+}
+
+impl From<TextureCreationError> for VoxelMeshCreationError {
+    fn from(err: TextureCreationError) -> Self {
+        Self::TextureCreationError(err)
+    }
+}
 
 #[derive(Debug)]
 pub struct VoxelMesh {
@@ -27,15 +46,16 @@ impl VoxelMesh {
         self.trans_pos
     }
 
-    fn texture_from_palette(display: &glium::Display, palette: &vox_format::types::Palette) -> Result<glium::texture::SrgbTexture2dArray, TextureCreationError> {
+    fn texture_from_palette(display: &glium::Display, palette: &vox_format::types::Palette) -> Result<SrgbTexture2dArray, VoxelMeshCreationError> {
         let tiles = palette.iter().map(|(_i,c)| {
             let buf = [c.r, c.g, c.b, c.a];
             glium::texture::RawImage2d::from_raw_rgba_reversed(&buf[0..], (1,1))
         }).collect();
-        glium::texture::SrgbTexture2dArray::new(display, tiles)
+        let ret = SrgbTexture2dArray::new(display, tiles)?;
+        Ok(ret)
     }
 
-    fn mesh_from_model(display: &glium::Display, model: &vox_format::types::Model) -> BlockMesh {
+    fn mesh_from_model(display: &glium::Display, model: &vox_format::types::Model) -> Result<BlockMesh, VoxelMeshCreationError> {
         let mut chunk = ChunkBlockData::new();
         model.voxels.iter().for_each(|vox| {
             let b = vox.color_index.into();
@@ -46,18 +66,18 @@ impl VoxelMesh {
 
         let mut ret = BlockMesh::new(display);
         ret.update(display, &chunk, &light, &BlockType::get_vox_types(), Instant::now());
-        ret
+        Ok(ret)
     }
 
-    pub fn from_vox_data(display: &glium::Display, data: &[u8]) -> Result<Self, ()> {
-        let vox_data = vox_format::from_slice(data).unwrap();
+    pub fn from_vox_data(display: &glium::Display, data: &[u8]) -> Result<Self, VoxelMeshCreationError> {
+        let vox_data = vox_format::from_slice(data)?;
 
         if let Some(model) = vox_data.models.first() {
-            let mesh = Self::mesh_from_model(display, model);
-            let texture = Self::texture_from_palette(display, &vox_data.palette).unwrap();
+            let mesh = Self::mesh_from_model(display, model)?;
+            let texture = Self::texture_from_palette(display, &vox_data.palette)?;
             let trans_pos = [model.size.x as f32 * -0.5, model.size.y as f32 * -0.5, model.size.z as f32 * -0.5];
             return Ok(Self { mesh, texture, trans_pos });
         }
-        Err(())
+        Err(VoxelMeshCreationError::MissingModel())
     }
 }

@@ -2,6 +2,7 @@
 // All rights reserved. AGPL-3.0+ license.
 use crate::{Texture, TextureArray};
 
+#[derive(Debug)]
 pub struct TextureList {
     pub blocks: TextureArray,
     pub gui: Texture,

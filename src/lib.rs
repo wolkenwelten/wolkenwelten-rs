@@ -20,6 +20,7 @@ use wolkenwelten_particles::ParticleEmission;
 use wolkenwelten_scripting::Runtime;
 use wolkenwelten_sound::SfxList;
 
+/// Stores everything necessary to run a WolkenWelten instance
 pub struct AppState {
     pub game_state: GameState,
     pub render_state: ClientState,
@@ -28,6 +29,8 @@ pub struct AppState {
     pub sfx: SfxList,
 }
 
+/// Try and grab the cursor, first by locking, then by confiningg it
+/// This also makes the cursor invisible
 pub fn grab_cursor(window: &Window) {
     window.set_cursor_visible(false);
     let e = window.set_cursor_grab(CursorGrabMode::Locked);
@@ -40,11 +43,13 @@ pub fn grab_cursor(window: &Window) {
     }
 }
 
+/// Let go of the cursor and restore cursor visibility
 pub fn ungrab_cursor(window: &Window) {
     window.set_cursor_visible(true);
     let _ = window.set_cursor_grab(CursorGrabMode::None);
 }
 
+/// Create a new winit EventLoop and associated glium Display
 pub fn init() -> (EventLoop<()>, glium::Display) {
     let title = format!("WolkenWelten - {}", env!("CARGO_PKG_VERSION"));
     let event_loop = EventLoop::new();
@@ -72,6 +77,7 @@ pub fn init() -> (EventLoop<()>, glium::Display) {
     (event_loop, display)
 }
 
+/// Run the actual game, this function only returns when the game quits
 pub fn run_event_loop(state: AppState) {
     let mut render_state = state.render_state;
     let mut game_state = state.game_state;

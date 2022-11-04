@@ -13,9 +13,11 @@ pub mod static_meshes;
 pub mod static_shaders;
 pub mod static_textures;
 pub use self::static_meshes::MeshList;
+use self::static_meshes::MeshListCreationError;
 pub use self::static_shaders::ShaderList;
 pub use self::static_textures::TextureList;
 
+#[derive(Debug)]
 pub struct ClientState {
     instant: Instant,
 
@@ -44,16 +46,39 @@ pub struct ClientState {
     wireframe: bool,
 }
 
+#[derive(Debug)]
+pub enum ClientStateCreationError {
+    MeshListCreationError(MeshListCreationError),
+    ProgramCreationError(glium::ProgramCreationError),
+    BufferCreationError(glium::vertex::BufferCreationError),
+}
+
+impl From<MeshListCreationError> for ClientStateCreationError {
+    fn from(err: MeshListCreationError) -> Self {
+        Self::MeshListCreationError(err)
+    }
+}
+impl From<glium::ProgramCreationError> for ClientStateCreationError {
+    fn from(err: glium::ProgramCreationError) -> Self {
+        Self::ProgramCreationError(err)
+    }
+}
+impl From<glium::vertex::BufferCreationError> for ClientStateCreationError {
+    fn from(err: glium::vertex::BufferCreationError) -> Self {
+        Self::BufferCreationError(err)
+    }
+}
+
 impl ClientState {
-    pub fn new(display: glium::Display) -> Self {
-        let meshes = MeshList::new(&display);
-        let shaders = ShaderList::new(&display).unwrap();
-        let ui_mesh = TextMesh::new(&display).unwrap();
+    pub fn new(display: glium::Display) -> Result<Self, ClientStateCreationError> {
+        let meshes = MeshList::new(&display)?;
+        let shaders = ShaderList::new(&display)?;
+        let ui_mesh = TextMesh::new(&display)?;
         let textures = TextureList::new(&display);
         let block_index_buffer = BlockMesh::gen_index_buffer(&display, 65536 / 4);
         let particles = ParticleMesh::new();
 
-        Self {
+        Ok(Self {
             instant: Instant::now(),
             block_index_buffer,
             world_mesh: HashMap::new(),
@@ -75,7 +100,7 @@ impl ClientState {
             ticks: 0,
             last_ticks: 0,
             wireframe: false,
-        }
+        })
     }
 
     pub fn ticks(&self) -> u64 {

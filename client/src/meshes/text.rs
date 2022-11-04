@@ -11,6 +11,7 @@ pub struct Vertex2D {
 }
 implement_vertex!(Vertex2D, pos normalize(false), tex normalize(false), color normalize(true));
 
+#[derive(Debug)]
 pub struct TextMesh {
     buffer: glium::VertexBuffer<Vertex2D>,
     vertex_count: usize,
