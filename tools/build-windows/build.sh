@@ -19,13 +19,12 @@ function cg {
 }
 cg
 
-cargo build --profile opt-release --locked
-strip target/opt-release/wolkenwelten.exe
+cargo build --release --locked
+strip target/release/wolkenwelten.exe
 
 rm -rf ./tmp/
 mkdir -p tmp/
-cp target/opt-release/wolkenwelten.exe tmp/wolkenwelten.exe
-
-rm -rf ./dist/
-mkdir dist/
+cp target/release/wolkenwelten.exe tmp/wolkenwelten.exe && \
+rm -rf ./dist/ && \
+mkdir dist/ && \
 cd "tmp/" && 7z a "../dist/wolkenwelten-$VER-$ARCH.zip" ./wolkenwelten.exe

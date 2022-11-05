@@ -55,10 +55,10 @@ jobs:
         if: matrix.build == 'x86_64-windows' || matrix.build == 'aarch64-windows'
         run: bash tools/build-windows/build.sh
 
-      - uses: actions/upload-artifact@v2.2.4
+      - uses: actions/upload-artifact@v3
         with:
           name: bins-${{ matrix.build }}
-          path: dist
+          path: dist/
 
   publish:
     name: Publish

@@ -20,8 +20,11 @@ wolkenwelten-scripting = { path = "scripting" }
 wolkenwelten-sound = { path = "sound" }
 wolkenwelten-particles = { path = "particles" }
 
-[profile.opt-release]
-inherits = "release"
+[profile.dev]
+opt-level = 2
+lto = false
+
+[profile.release]
 opt-level = 3
 lto = true
 codegen-units = 1

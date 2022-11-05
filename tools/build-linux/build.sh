@@ -19,13 +19,12 @@ function cg {
 }
 cg
 
-cargo build --profile opt-release --locked
-strip target/opt-release/wolkenwelten
+cargo build --release --locked
+strip -sg target/release/wolkenwelten
 
 rm -rf ./tmp/
 mkdir -p tmp/
-cp target/opt-release/wolkenwelten tmp/wolkenwelten
-
-rm -rf ./dist/
-mkdir dist/
+cp target/release/wolkenwelten tmp/wolkenwelten && \
+rm -rf ./dist/ && \
+mkdir dist/ && \
 cd "tmp/" && tar -cJf "../dist/wolkenwelten-$VER-$ARCH.tar.xz" ./wolkenwelten
