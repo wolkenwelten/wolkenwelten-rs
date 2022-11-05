@@ -142,6 +142,10 @@ impl Character {
             return;
         }
 
+        if !world.is_loaded(self.pos) {
+            return; // Just freeze the character until we have loaded the area, this shouldn't happen if at all possible
+        }
+
         let accel = if v.xz().length() > 0.01 {
             CHARACTER_ACCELERATION
         } else {

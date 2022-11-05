@@ -61,6 +61,11 @@ impl Chungus {
         &self.blocks[i as usize]
     }
 
+    pub fn is_loaded(&self, pos: Vec3) -> bool {
+        let cp = pos.floor().as_ivec3() >> CHUNK_BITS;
+        self.get(&cp).is_some()
+    }
+
     pub fn is_solid(&self, pos: Vec3) -> bool {
         let cp = pos.floor().as_ivec3() >> CHUNK_BITS;
         if let Some(chnk) = self.get(&cp) {
