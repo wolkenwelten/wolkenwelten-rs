@@ -20,12 +20,14 @@ function cg {
 cg
 
 cargo build --profile opt-release --locked
-strip target/opt-release/wolkenwelten.exe
+strip target/opt-release/wolkenwelten
 
 rm -rf ./tmp/
 mkdir -p "tmp/WolkenWelten.app/Contents/MacOS"
-cp "tmp/opt-release/wolkenwelten" "tmp/WolkenWelten.app/Contents/MacOS/wolkenwelten"
-cp "assets/macos/Info.plist" "tmp/WolkenWelten.app/Contents/Info.plist"
+mkdir -p "tmp/WolkenWelten.app/Contents/Resources"
+cp "target/opt-release/wolkenwelten" "tmp/WolkenWelten.app/Contents/MacOS/wolkenwelten"
+cp "tools/build-macos/wolkenwelten.icns" "tmp/WolkenWelten.app/Contents/Resources/wolkenwelten.icns"
+cp "tools/build-macos/Info.plist" "tmp/WolkenWelten.app/Contents/Info.plist"
 
 rm -rf ./dist/
 mkdir dist/

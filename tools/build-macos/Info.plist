@@ -10,6 +10,8 @@
 	<string>com.wolkenwelten.wolkenwelten</string>
 	<key>CFBundleName</key>
 	<string>WolkenWelten</string>
+	<key>CFBundleIconFile</key>
+	<string>wolkenwelten.icns</string>
 	<key>CFBundleShortVersionString</key>
 	<string>0.0</string>
 	<key>CFBundleInfoDictionaryVersion</key>
