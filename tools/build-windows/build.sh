@@ -20,7 +20,6 @@ function cg {
 cg
 
 cargo build --release --locked
-strip target/release/wolkenwelten.exe
 
 rm -rf ./tmp/
 mkdir -p tmp/

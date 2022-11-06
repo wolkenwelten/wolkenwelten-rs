@@ -20,7 +20,6 @@ function cg {
 cg
 
 cargo build --release --locked
-strip -sg target/release/wolkenwelten
 
 rm -rf ./tmp/
 mkdir -p "tmp/WolkenWelten.app/Contents/MacOS"
