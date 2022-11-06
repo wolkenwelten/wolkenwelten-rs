@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>CFBundleGetInfoString</key>
-	<string>0.0.1</string>
+	<string>0.0.2</string>
 	<key>CFBundleExecutable</key>
 	<string>wolkenwelten</string>
 	<key>CFBundleIdentifier</key>
@@ -23,6 +23,6 @@
 	<key>IFMinorVersion</key>
 	<integer>0</integer>
 	<key>IFPatchVersion</key>
-	<integer>1</integer>
+	<integer>2</integer>
 </dict>
 </plist>

@@ -1,5 +1,5 @@
 # WolkenWelten
-![Have a screenshot](https://github.com/wolkenwelten/wolkenwelten-screenshots/raw/main/2022_11_04.jpg)
+![Have a screenshot](https://github.com/wolkenwelten/wolkenwelten-screenshots/raw/main/2022_11_06.jpg)
 
 WolkenWelten aspires to be the **open voxel sandbox** you can modify while it's running.
 
@@ -18,7 +18,7 @@ If you want to chat, have a question or would like to contribute then the most d
 [![Discord](https://img.shields.io/discord/750878611795607653?label=Discord&style=flat-square)](https://discord.gg/7rhnYH2)
 ![Commit activity](https://img.shields.io/github/commit-activity/w/wolkenwelten/wolkenwelten?style=flat-square)
 
-# How to build/run it
+# How to build it
 You need a complete rust toolchain installed that supports Rust 2021 (1.56+), for example via `rustup`.
 After that executing the `cargo run --release` command should build and run the game.
 

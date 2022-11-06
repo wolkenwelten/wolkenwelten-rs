@@ -53,7 +53,7 @@ pub struct GameState {
     pub ticks_elapsed: u64,
     pub last_gc: u64,
     pub running: bool,
-    pub player: Character,
+    player: Character,
     pub entities: Vec<Entity>,
     pub world: Chungus,
 }
@@ -95,6 +95,16 @@ impl GameState {
     #[inline]
     pub fn push_entity(&mut self, e: Entity) {
         self.entities.push(e);
+    }
+
+    #[inline]
+    pub fn player(&self) -> &Character {
+        &self.player
+    }
+
+    #[inline]
+    pub fn mut_player(&mut self) -> &mut Character {
+        &mut self.player
     }
 
     pub fn tick(&mut self, render_distance: f32, input_events: Vec<InputEvent>) -> Vec<GameEvent> {

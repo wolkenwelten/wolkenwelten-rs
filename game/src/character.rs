@@ -1,6 +1,6 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
-use super::Chungus;
+use super::{Chungus, Health};
 use glam::{IVec3, Vec3, Vec3Swizzles};
 use std::f32::consts::PI;
 use wolkenwelten_common::GameEvent;
@@ -14,6 +14,7 @@ pub struct Character {
     no_clip: bool,
     cooldown: u64,
     block_selection: u8,
+    health: Health,
 }
 
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
@@ -90,6 +91,16 @@ impl Character {
     #[inline]
     pub fn set_cooldown(&mut self, until: u64) {
         self.cooldown = until;
+    }
+
+    #[inline]
+    pub fn health(&self) -> Health {
+        self.health
+    }
+
+    #[inline]
+    pub fn is_dead(&self) -> bool {
+        self.health.is_dead()
     }
 
     pub fn direction(&self) -> Vec3 {

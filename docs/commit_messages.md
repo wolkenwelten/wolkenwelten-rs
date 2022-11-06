@@ -11,7 +11,7 @@ the following:
 - Break: Breaking changes, requiring action from devs
 - Fix: This is for bugfixes
 - New: Added a new feature
-- Game: When something gameplay related changed
+- Change: When something (gameplay) related changed
 - Linux: Linux specific change/fix
 - Mac: Linux specific change/fix
 - Win: Windows specific change/fix

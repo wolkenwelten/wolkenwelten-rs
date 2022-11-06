@@ -103,8 +103,8 @@ impl InputState {
 }
 
 fn input_tick_no_clip(game: &GameState, fe: &ClientState) -> Vec<InputEvent> {
-    let view = glam::Mat4::from_rotation_y(-game.player.rot[0].to_radians());
-    let view = view * glam::Mat4::from_rotation_x(-game.player.rot[1].to_radians());
+    let view = glam::Mat4::from_rotation_y(-game.player().rot[0].to_radians());
+    let view = view * glam::Mat4::from_rotation_x(-game.player().rot[1].to_radians());
     let v = glam::Vec4::from((fe.input.get_movement_vector(), 1.0_f32));
     let move_vec = (view * v).xyz();
 
@@ -112,7 +112,7 @@ fn input_tick_no_clip(game: &GameState, fe: &ClientState) -> Vec<InputEvent> {
 }
 
 fn input_tick_default(game: &GameState, fe: &ClientState) -> Vec<InputEvent> {
-    let view = glam::Mat4::from_rotation_y(-game.player.rot[0].to_radians());
+    let view = glam::Mat4::from_rotation_y(-game.player().rot[0].to_radians());
     let m = fe.input.get_movement_vector();
     let v = glam::Vec4::from((m, 1.0_f32));
     let move_vec = (view * v).xyz() * fe.input.get_speed();
@@ -123,20 +123,20 @@ fn input_tick_default(game: &GameState, fe: &ClientState) -> Vec<InputEvent> {
 }
 
 pub fn input_tick(game: &GameState, fe: &ClientState) -> Vec<InputEvent> {
-    let mut events = if game.player.no_clip() {
+    let mut events = if game.player().no_clip() {
         input_tick_no_clip(game, fe)
     } else {
         input_tick_default(game, fe)
     };
 
     if fe.input.mouse.left {
-        if let Some(pos) = game.player.raycast(&game.world, RaycastReturn::Within) {
+        if let Some(pos) = game.player().raycast(&game.world, RaycastReturn::Within) {
             events.push(InputEvent::PlayerBlockMine(pos));
         }
     }
 
     if fe.input.mouse.right {
-        if let Some(pos) = game.player.raycast(&game.world, RaycastReturn::Front) {
+        if let Some(pos) = game.player().raycast(&game.world, RaycastReturn::Front) {
             events.push(InputEvent::PlayerBlockPlace(pos));
         }
     }

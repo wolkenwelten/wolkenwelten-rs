@@ -87,8 +87,11 @@ pub fn run_event_loop(state: AppState) {
             event: DeviceEvent::MouseMotion { delta },
             ..
         } => {
-            game_state.player.rot.x += delta.0 as f32 * 0.05;
-            game_state.player.rot.y += delta.1 as f32 * 0.05;
+            {
+                let player = game_state.mut_player();
+                player.rot.x += delta.0 as f32 * 0.05;
+                player.rot.y += delta.1 as f32 * 0.05;
+            }
 
             #[cfg(not(target_os = "macos"))]
             {
@@ -114,12 +117,12 @@ pub fn run_event_loop(state: AppState) {
             event: WindowEvent::MouseWheel { delta, .. },
             ..
         } => match delta {
-            MouseScrollDelta::LineDelta(_, y) => {
-                game_state.player.switch_block_selection(y.round() as i32)
-            }
-            MouseScrollDelta::PixelDelta(PhysicalPosition { x: _x, y }) => {
-                game_state.player.switch_block_selection(y.round() as i32)
-            }
+            MouseScrollDelta::LineDelta(_, y) => game_state
+                .mut_player()
+                .switch_block_selection(y.round() as i32),
+            MouseScrollDelta::PixelDelta(PhysicalPosition { x: _x, y }) => game_state
+                .mut_player()
+                .switch_block_selection(y.round() as i32),
         },
 
         Event::WindowEvent {
@@ -156,12 +159,12 @@ pub fn run_event_loop(state: AppState) {
                 state: ElementState::Pressed,
                 virtual_keycode: Some(VirtualKeyCode::N),
                 ..
-            } => game_state.player.set_no_clip(true),
+            } => game_state.mut_player().set_no_clip(true),
             KeyboardInput {
                 state: ElementState::Pressed,
                 virtual_keycode: Some(VirtualKeyCode::M),
                 ..
-            } => game_state.player.set_no_clip(false),
+            } => game_state.mut_player().set_no_clip(false),
 
             KeyboardInput {
                 state,

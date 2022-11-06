@@ -68,6 +68,19 @@ impl TextMesh {
             .push_vertex(x + w, y + h, u + uw, v + vh, rgba)
     }
 
+    pub fn push_heart(
+        &mut self,
+        x: i16,
+        y: i16,
+        size: i16,
+        rgba: [u8; 4],
+        fill_state: i16,
+    ) -> &mut Self {
+        let u = 128 - 20 + fill_state * 4;
+        let v = 128 - 4;
+        self.push_box((x, y, size, size), (u, v, 4, 4), rgba)
+    }
+
     pub fn push_glyph(&mut self, x: i16, y: i16, size: i16, rgba: [u8; 4], c: char) -> &mut Self {
         let glyph_width: i16 = (8 * size) as i16;
 

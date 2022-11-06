@@ -101,14 +101,15 @@ fn prepare_chunks(
     game: &GameState,
 ) -> Result<(), glium::vertex::BufferCreationError> {
     let now = Instant::now();
-    let px = (game.player.pos.x as i32) >> CHUNK_BITS;
-    let py = (game.player.pos.y as i32) >> CHUNK_BITS;
-    let pz = (game.player.pos.z as i32) >> CHUNK_BITS;
+    let player = game.player();
+    let px = (player.pos.x as i32) >> CHUNK_BITS;
+    let py = (player.pos.y as i32) >> CHUNK_BITS;
+    let pz = (player.pos.z as i32) >> CHUNK_BITS;
     for cx in -VIEW_STEPS..=VIEW_STEPS {
         for cy in -VIEW_STEPS..=VIEW_STEPS {
             for cz in -VIEW_STEPS..=VIEW_STEPS {
                 let pos = IVec3::new(cx + px, cy + py, cz + pz);
-                let d = (pos.as_vec3() * CHUNK_SIZE as f32) - game.player.pos;
+                let d = (pos.as_vec3() * CHUNK_SIZE as f32) - player.pos;
                 let d = d.dot(d);
                 if d < FADEOUT_DISTANCE + FADEOUT_START_DISTANCE {
                     prepare_chunk(fe, game, pos, now)?;
@@ -119,68 +120,16 @@ fn prepare_chunks(
     Ok(())
 }
 
-fn prepare_ui(fe: &mut ClientState, game: &GameState) {
-    let fps_text = format!("FPS: {}", fe.fps());
-    fe.ui_mesh
-        .push_string(8, 8, 2, [0xFF, 0xFF, 0xFF, 0xFF], fps_text.as_str());
-
-    let pos_text = format!(
-        "X:{:8.2} Y:{:8.2} Z:{:8.2}   Ticks:{}",
-        game.player.pos[0], game.player.pos[1], game.player.pos[2], game.ticks_elapsed
-    );
-    fe.ui_mesh
-        .push_string(8, 40, 2, [0xFF, 0xFF, 0xFF, 0xFF], pos_text.as_str());
-
-    let block_name = game.world.blocks[game.player.block_selection() as usize].name();
-    let block_sel_text = format!("Block selection: {}", block_name);
-    fe.ui_mesh.push_string(
-        8,
-        fe.window_size().1 as i16 - 20,
-        2,
-        [0xFF, 0xFF, 0xFF, 0xFF],
-        block_sel_text.as_str(),
-    );
-
-    #[cfg(debug_assertions)]
-    {
-        let rot_text = format!(
-            "Y:{:8.2} P:{:8.2} R:{:8.2}",
-            game.player.rot[0], game.player.rot[1], game.player.rot[2]
-        );
-        let col_text = format!(
-            "Entities: {}   Chunks: {}   BlockMeshes: {}  Particles: {}",
-            game.get_entity_count(),
-            game.world.chunks.len(),
-            fe.world_mesh.len(),
-            fe.particles.len(),
-        );
-        fe.ui_mesh
-            .push_string(8, 60, 2, [0xFF, 0xFF, 0xFF, 0xFF], rot_text.as_str())
-            .push_string(8, 100, 2, [0xFF, 0xFF, 0xFF, 0xFF], col_text.as_str());
-    }
-    let (window_width, window_height) = fe.window_size();
-
-    let pos = (
-        window_width as i16 / 2 - 32,
-        window_height as i16 / 2 - 32,
-        32,
-        32,
-    );
-    let tex = (200, 252, 4, 4);
-    fe.ui_mesh.push_box(pos, tex, [0xFF, 0xFF, 0xFF, 0x7F]);
-    fe.ui_mesh.prepare(&fe.display);
-}
-
 pub fn prepare_frame(
     fe: &mut ClientState,
     game: &GameState,
 ) -> Result<(), glium::vertex::BufferCreationError> {
-    prepare_ui(fe, game);
+    super::ui::prepare(fe, game);
     fe.calc_fps();
-    fe.gc(&game.player);
-    fe.set_fov(calc_fov(fe.fov(), &game.player));
+    fe.gc(game.player());
+    fe.set_fov(calc_fov(fe.fov(), game.player()));
     prepare_chunks(fe, game)?;
-    fe.particles.update(game.player.pos, RENDER_DISTANCE);
+    fe.particles.update(game.player().pos, RENDER_DISTANCE);
     Ok(())
 }
 
@@ -191,7 +140,7 @@ fn render_chungus(
     mvp: &Mat4,
 ) -> Result<(), DrawError> {
     let frustum = Frustum::extract(mvp);
-    let render_queue = QueueEntry::build(game.player.pos, &frustum);
+    let render_queue = QueueEntry::build(game.player().pos, &frustum);
     let now = Instant::now();
     let mat_mvp = mvp.to_cols_array_2d();
 
@@ -299,11 +248,11 @@ fn render_game(
         0.1,
         RENDER_DISTANCE + CHUNK_SIZE as f32 * 2.0,
     );
-    let view = Mat4::from_rotation_x(game.player.rot[1].to_radians());
-    let view = view * Mat4::from_rotation_y(game.player.rot[0].to_radians());
+    let view = Mat4::from_rotation_x(game.player().rot[1].to_radians());
+    let view = view * Mat4::from_rotation_y(game.player().rot[0].to_radians());
     render_sky(frame, fe, game, view, projection)?;
 
-    let view = view * Mat4::from_translation(-game.player.pos);
+    let view = view * Mat4::from_translation(-game.player().pos);
     let mvp = projection * view;
     fe.particles
         .draw(frame, &fe.display, &fe.shaders.particle, &mvp)?;
