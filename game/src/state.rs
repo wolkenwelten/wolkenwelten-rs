@@ -107,6 +107,12 @@ impl GameState {
         &mut self.player
     }
 
+    pub fn player_rebirth(&mut self) {
+        let mut player = Character::new();
+        player.set_pos(Vec3::new(15.0, 0.0, -15.0));
+        self.player = player;
+    }
+
     pub fn tick(&mut self, render_distance: f32, input_events: Vec<InputEvent>) -> Vec<GameEvent> {
         let mut events: Vec<GameEvent> = Vec::new();
         let now = self.get_millis();

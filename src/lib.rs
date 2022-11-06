@@ -258,6 +258,11 @@ pub fn run_event_loop(state: AppState) {
             game_events.iter().for_each(|e| match e {
                 GameEvent::CharacterJump(_) => state.sfx.play(&state.sfx.jump, 0.2),
                 GameEvent::CharacterShoot(_) => state.sfx.play(&state.sfx.hook_fire, 0.4),
+                GameEvent::CharacterDamage(_, _) => state.sfx.play(&state.sfx.ungh, 0.3),
+                GameEvent::CharacterDeath(_) => {
+                    state.sfx.play(&state.sfx.ungh, 0.4);
+                    game_state.player_rebirth();
+                }
                 GameEvent::BlockMine(pos, b) => {
                     let color = game_state.world.get_block_type(*b).colors();
                     emissions.push(ParticleEmission::BlockBreak(*pos, color));

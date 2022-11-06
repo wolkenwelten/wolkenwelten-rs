@@ -195,8 +195,20 @@ impl Character {
             self.vel.z = self.vel.z.max(0.0);
         }
 
-        if (old - self.vel).length() > 0.01 {
+        let force = (old - self.vel).length();
+        if force > 0.01 {
             events.push(GameEvent::CharacterStomp(self.pos));
+        }
+        if force > 0.05 {
+            let amount = (force * 14.0) as i16;
+            if amount > 0 {
+                self.health.damage(amount * amount);
+                if self.health().is_dead() {
+                    events.push(GameEvent::CharacterDeath(self.pos));
+                } else {
+                    events.push(GameEvent::CharacterDamage(self.pos, amount));
+                }
+            }
         }
 
         let len = self.vel.length();
