@@ -6,34 +6,28 @@ on:
     types: [opened, reopened]
 
 jobs:
-  cargo-fmt:
-    name: Check code formatting
+  checks:
+    name: Check formatting / clippy / testsuit
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      CARGO_TERM_COLOR: always
     steps:
     - name: Checkout
       uses: actions/checkout@v3
+
+    - name: Install additional dependencies
+      run: sudo apt-get -y install libasound2-dev libfontconfig1-dev libfreetype6-dev
+
+    - name: Cache
+      uses: Swatinem/rust-cache@v2
+
     - name: Run cargo fmt
       run: cargo fmt --all --check
 
-  cargo-clippy:
-    name: Check code with clippy
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      - name: Install dependencies
-        run: sudo apt-get -y install libasound2-dev
-      - name: Run clippy
-        run: cargo clippy --no-deps
+    - name: Run clippy
+      run: cargo clippy --no-deps
 
-  cargo-test:
-    name: Run testsuite
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v3
-    - name: Install dependencies
-      run: sudo apt-get -y install libasound2-dev
     - name: Run testsuite
       run: cargo test
 

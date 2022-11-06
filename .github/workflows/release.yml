@@ -4,17 +4,14 @@ on:
   push:
     tags:
     - 'v[0-9]+.[0-9]+.[0-9]+'
-    ## - release
-
-env:
-  BIN_NAME: wolkenwelten
-  PROJECT_NAME: wolkenwelten
-  REPO_NAME: wolkenwelten/wolkenwelten
 
 jobs:
   dist:
-    name: Dist
+    name: Build ${{ matrix.os }} release
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    env:
+      CARGO_TERM_COLOR: always
     strategy:
       fail-fast: false # don't fail other jobs if one fails
       matrix:
@@ -43,6 +40,8 @@ jobs:
         if: matrix.build == 'x86_64-linux' || matrix.build == 'aarch64-linux'
         run: sudo apt-get -y install libasound2-dev libfontconfig1-dev libfreetype6-dev
 
+      - uses: Swatinem/rust-cache@v2
+
       - name: Build release (Linux)
         if: matrix.build == 'x86_64-linux' || matrix.build == 'aarch64-linux'
         run: bash tools/build-linux/build.sh
@@ -61,9 +60,12 @@ jobs:
           path: dist/
 
   publish:
-    name: Publish
+    name: Publish releases
     needs: [dist]
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      CARGO_TERM_COLOR: always
     steps:
       - name: Checkout sources
         uses: actions/checkout@v2
@@ -93,7 +95,7 @@ jobs:
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v2
         with:
-          repo_token: ${{ secrets.PAT }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: dist/*
           file_glob: true
           tag: ${{ steps.tagname.outputs.val }}
