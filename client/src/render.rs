@@ -18,7 +18,6 @@ pub const RENDER_DISTANCE: f32 = 192.0;
 pub const FADE_DISTANCE: f32 = 32.0;
 const FADEOUT_DISTANCE: f32 = FADE_DISTANCE * FADE_DISTANCE;
 const FADEOUT_START_DISTANCE: f32 = (RENDER_DISTANCE - 32.0) * (RENDER_DISTANCE - 32.0);
-pub const VIEW_STEPS: i32 = (RENDER_DISTANCE as i32 / CHUNK_SIZE as i32) + 1;
 
 fn calc_fov(fov: f32, player: &Character) -> f32 {
     let new = 90.0 + ((player.vel.length() - 0.025) * 40.0).clamp(0.0, 90.0);
@@ -105,9 +104,10 @@ fn prepare_chunks(
     let px = (player.pos.x as i32) >> CHUNK_BITS;
     let py = (player.pos.y as i32) >> CHUNK_BITS;
     let pz = (player.pos.z as i32) >> CHUNK_BITS;
-    for cx in -VIEW_STEPS..=VIEW_STEPS {
-        for cy in -VIEW_STEPS..=VIEW_STEPS {
-            for cz in -VIEW_STEPS..=VIEW_STEPS {
+    let view_steps = (RENDER_DISTANCE as i32 / CHUNK_SIZE as i32) + 1;
+    for cx in -view_steps..=view_steps {
+        for cy in -view_steps..=view_steps {
+            for cz in -view_steps..=view_steps {
                 let pos = IVec3::new(cx + px, cy + py, cz + pz);
                 let d = (pos.as_vec3() * CHUNK_SIZE as f32) - player.pos;
                 let d = d.dot(d);

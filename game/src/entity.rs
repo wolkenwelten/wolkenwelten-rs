@@ -2,7 +2,7 @@
 // All rights reserved. AGPL-3.0+ license.
 use super::{Character, Chungus};
 use glam::Vec3;
-use wolkenwelten_common::GameEvent;
+use wolkenwelten_common::{GameEvent, Message};
 
 const ENTITY_SIZE: f32 = 0.6;
 const ENTITY_BOUNCE_RATE: f32 = 0.6;
@@ -54,7 +54,7 @@ impl Entity {
 
     pub fn tick(
         entities: &mut Vec<Self>,
-        events: &mut Vec<GameEvent>,
+        events: &mut Vec<Message>,
         player: &Character,
         world: &Chungus,
     ) {
@@ -93,7 +93,7 @@ impl Entity {
             let dd = dist.x * dist.x + dist.y * dist.y + dist.z * dist.z;
 
             if bounce {
-                events.push(GameEvent::EntityCollision(entities[index].pos));
+                events.push(GameEvent::EntityCollision(entities[index].pos).into());
             }
             if bounce || (dd > (128.0 * 128.0)) {
                 entities.swap_remove(index); // Remove when far enough away

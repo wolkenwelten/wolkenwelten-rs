@@ -559,6 +559,26 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "90e5c1c8368803113bf0c9584fc495a58b86dc8a29edbf8fe877d21d9507e797"
 
 [[package]]
+name = "enum-map"
+version = "2.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f5a56d54c8dd9b3ad34752ed197a4eb2a6601bc010808eb097a04a58ae4c43e1"
+dependencies = [
+ "enum-map-derive",
+]
+
+[[package]]
+name = "enum-map-derive"
+version = "0.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a9045e2676cd5af83c3b167d917b0a5c90a4d8e266e2683d6631b235c457fc27"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "expat-sys"
 version = "2.1.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -789,6 +809,10 @@ name = "glam"
 version = "0.22.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "12f597d56c1bd55a811a1be189459e8fad2bbc272616375602443bdfb37fa774"
+dependencies = [
+ "bytemuck",
+ "serde",
+]
 
 [[package]]
 name = "glium"
@@ -1584,6 +1608,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3603b7d71ca82644f79b5a06d1220e9a58ede60bd32255f698cb1af8838b8db3"
 dependencies = [
  "bytemuck",
+ "serde",
 ]
 
 [[package]]
@@ -2475,11 +2500,15 @@ dependencies = [
 name = "wolkenwelten"
 version = "0.0.2"
 dependencies = [
+ "glam",
  "glium",
+ "serde",
+ "serde_json",
  "winit",
  "wolkenwelten-client",
  "wolkenwelten-common",
  "wolkenwelten-game",
+ "wolkenwelten-input-winit",
  "wolkenwelten-meshgen",
  "wolkenwelten-particles",
  "wolkenwelten-scripting",
@@ -2497,7 +2526,6 @@ dependencies = [
  "rand_chacha",
  "tobj",
  "vox-format",
- "winit",
  "wolkenwelten-common",
  "wolkenwelten-game",
  "wolkenwelten-meshgen",
@@ -2512,6 +2540,8 @@ dependencies = [
  "rand",
  "rand_chacha",
  "rgb",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]
@@ -2523,6 +2553,17 @@ dependencies = [
  "rand_chacha",
  "rgb",
  "wolkenwelten-common",
+]
+
+[[package]]
+name = "wolkenwelten-input-winit"
+version = "0.0.1"
+dependencies = [
+ "enum-map",
+ "glam",
+ "winit",
+ "wolkenwelten-common",
+ "wolkenwelten-game",
 ]
 
 [[package]]
@@ -2558,6 +2599,7 @@ name = "wolkenwelten-sound"
 version = "0.0.1"
 dependencies = [
  "rodio",
+ "wolkenwelten-common",
 ]
 
 [[package]]

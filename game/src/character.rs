@@ -3,7 +3,7 @@
 use super::{Chungus, Health};
 use glam::{IVec3, Vec3, Vec3Swizzles};
 use std::f32::consts::PI;
-use wolkenwelten_common::GameEvent;
+use wolkenwelten_common::{GameEvent, Message};
 
 #[derive(Clone, Debug, Default)]
 pub struct Character {
@@ -147,7 +147,7 @@ impl Character {
         }
     }
 
-    pub fn tick(&mut self, v: Vec3, events: &mut Vec<GameEvent>, world: &Chungus) {
+    pub fn tick(&mut self, v: Vec3, events: &mut Vec<Message>, world: &Chungus) {
         if self.no_clip {
             self.pos += self.vel;
             return;
@@ -197,16 +197,16 @@ impl Character {
 
         let force = (old - self.vel).length();
         if force > 0.01 {
-            events.push(GameEvent::CharacterStomp(self.pos));
+            events.push(GameEvent::CharacterStomp(self.pos).into());
         }
         if force > 0.05 {
             let amount = (force * 14.0) as i16;
             if amount > 0 {
                 self.health.damage(amount * amount);
                 if self.health().is_dead() {
-                    events.push(GameEvent::CharacterDeath(self.pos));
+                    events.push(GameEvent::CharacterDeath(self.pos).into());
                 } else {
-                    events.push(GameEvent::CharacterDamage(self.pos, amount));
+                    events.push(GameEvent::CharacterDamage(self.pos, amount).into());
                 }
             }
         }

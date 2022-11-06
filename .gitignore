@@ -8,3 +8,4 @@
 /rostregen.iml
 *.core
 perf.data
+/replay.json

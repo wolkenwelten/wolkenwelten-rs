@@ -10,8 +10,11 @@ An open voxel sandbox
 """
 
 [dependencies]
+glam = { version = "0.22", features = ["bytemuck", "serde"] }
 glium = "0.32"
 winit = "0.27"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
 wolkenwelten-client = { path = "client" }
 wolkenwelten-common = { path = "common" }
 wolkenwelten-game = { path = "game" }
@@ -19,6 +22,7 @@ wolkenwelten-meshgen = { path = "meshgen" }
 wolkenwelten-scripting = { path = "scripting" }
 wolkenwelten-sound = { path = "sound" }
 wolkenwelten-particles = { path = "particles" }
+wolkenwelten-input-winit = { path = "input_winit" }
 
 [profile.dev]
 opt-level = 2

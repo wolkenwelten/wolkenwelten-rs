@@ -4,19 +4,15 @@ extern crate wolkenwelten_client;
 extern crate wolkenwelten_game;
 extern crate wolkenwelten_scripting;
 
-use winit::event::{
-    DeviceEvent, ElementState, Event, KeyboardInput, MouseScrollDelta, VirtualKeyCode, WindowEvent,
-};
+use winit::event::{DeviceEvent, Event, WindowEvent};
 use winit::event_loop::{ControlFlow, EventLoop};
 use winit::window::{CursorGrabMode, Fullscreen, Window, WindowBuilder};
 
 use winit::dpi::PhysicalPosition;
-use wolkenwelten_client::{
-    input_tick, prepare_frame, render_frame, ClientState, Key, RENDER_DISTANCE, VIEW_STEPS,
-};
-use wolkenwelten_common::GameEvent;
+use wolkenwelten_client::{prepare_frame, render_frame, ClientState, RENDER_DISTANCE};
+use wolkenwelten_common::{GameEvent, Message, ParticleEvent, SyncEvent};
 use wolkenwelten_game::GameState;
-use wolkenwelten_particles::ParticleEmission;
+use wolkenwelten_input_winit::InputState;
 use wolkenwelten_scripting::Runtime;
 use wolkenwelten_sound::SfxList;
 
@@ -24,6 +20,7 @@ use wolkenwelten_sound::SfxList;
 pub struct AppState {
     pub game_state: GameState,
     pub render_state: ClientState,
+    pub input: InputState,
     pub event_loop: EventLoop<()>,
     pub runtime: Runtime,
     pub sfx: SfxList,
@@ -76,217 +73,105 @@ pub fn init() -> (EventLoop<()>, glium::Display) {
 
 /// Run the actual game, this function only returns when the game quits
 pub fn run_event_loop(state: AppState) {
-    let mut render_state = state.render_state;
-    let mut game_state = state.game_state;
+    let mut render = state.render_state;
+    let mut game = state.game_state;
+    let mut input = state.input;
     let event_loop = state.event_loop;
     let mut runtime = state.runtime;
+    let sfx = state.sfx;
+    let mut msgs: Vec<Message> = vec![];
+    game.set_render_distance(RENDER_DISTANCE * RENDER_DISTANCE);
 
-    event_loop.run(move |event, _, control_flow| match event {
-        Event::LoopDestroyed => (),
-        Event::DeviceEvent {
-            event: DeviceEvent::MouseMotion { delta },
-            ..
-        } => {
-            {
-                let player = game_state.mut_player();
-                player.rot.x += delta.0 as f32 * 0.05;
-                player.rot.y += delta.1 as f32 * 0.05;
-            }
+    event_loop.run(move |event, _, control_flow| {
+        match event {
+            Event::LoopDestroyed => {}
 
             #[cfg(not(target_os = "macos"))]
-            {
-                let (x, y) = render_state.window_size();
+            Event::DeviceEvent {
+                event: DeviceEvent::MouseMotion { .. },
+                ..
+            } => {
+                let (x, y) = render.window_size();
                 let center = PhysicalPosition::new(x / 2, y / 2);
-
-                let ctx = render_state.display.gl_window();
-                let window = ctx.window();
-                let _ = window.set_cursor_position(center);
+                let _ = render
+                    .display
+                    .gl_window()
+                    .window()
+                    .set_cursor_position(center);
             }
-        }
 
-        Event::WindowEvent {
-            event: WindowEvent::MouseInput { button, state, .. },
-            ..
-        } => {
-            render_state
-                .input
-                .set_mouse_button(button, state == ElementState::Pressed);
-        }
-
-        Event::WindowEvent {
-            event: WindowEvent::MouseWheel { delta, .. },
-            ..
-        } => match delta {
-            MouseScrollDelta::LineDelta(_, y) => game_state
-                .mut_player()
-                .switch_block_selection(y.round() as i32),
-            MouseScrollDelta::PixelDelta(PhysicalPosition { x: _x, y }) => game_state
-                .mut_player()
-                .switch_block_selection(y.round() as i32),
-        },
-
-        Event::WindowEvent {
-            event: WindowEvent::Focused(b),
-            ..
-        } => {
-            if b {
-                grab_cursor(render_state.display.gl_window().window());
-            } else {
-                ungrab_cursor(render_state.display.gl_window().window());
+            Event::WindowEvent {
+                event: WindowEvent::Focused(b),
+                ..
+            } => {
+                if b {
+                    grab_cursor(render.display.gl_window().window());
+                } else {
+                    ungrab_cursor(render.display.gl_window().window());
+                }
             }
-        }
 
-        Event::DeviceEvent {
-            event: DeviceEvent::Key(input),
-            ..
-        }
-        | Event::WindowEvent {
-            event: WindowEvent::KeyboardInput { input, .. },
-            ..
-        } => match input {
-            KeyboardInput {
-                virtual_keycode: Some(VirtualKeyCode::Escape),
+            Event::WindowEvent {
+                event: WindowEvent::CloseRequested,
                 ..
             } => *control_flow = ControlFlow::Exit,
 
-            KeyboardInput {
-                state: ElementState::Pressed,
-                virtual_keycode: Some(VirtualKeyCode::T),
+            Event::WindowEvent {
+                event: WindowEvent::Resized(physical_size),
                 ..
-            } => runtime.eval("print('You pressed the T key!');"),
+            } => {
+                render.display.gl_window().resize(physical_size);
+                render.set_window_size((physical_size.width, physical_size.height));
+            }
 
-            KeyboardInput {
-                state: ElementState::Pressed,
-                virtual_keycode: Some(VirtualKeyCode::N),
-                ..
-            } => game_state.mut_player().set_no_clip(true),
-            KeyboardInput {
-                state: ElementState::Pressed,
-                virtual_keycode: Some(VirtualKeyCode::M),
-                ..
-            } => game_state.mut_player().set_no_clip(false),
+            Event::RedrawRequested(_) => {
+                runtime.tick(game.get_millis());
+                let mut frame = render.display.draw();
+                prepare_frame(&mut render, &game).expect("Error during frame preparation");
+                render_frame(&mut frame, &render, &game).expect("Error during rendering");
+                frame.finish().expect("Error during frame finish");
+            }
 
-            KeyboardInput {
-                state,
-                virtual_keycode: Some(VirtualKeyCode::E),
-                ..
-            } => render_state
-                .input
-                .key_up_down(Key::Shoot, state == ElementState::Pressed),
+            Event::MainEventsCleared => {
+                msgs.push(SyncEvent::DrawFrame(render.ticks()).into());
+                msgs.extend(input.tick(&game));
 
-            KeyboardInput {
-                state,
-                virtual_keycode: Some(VirtualKeyCode::W),
-                ..
-            } => render_state
-                .input
-                .key_up_down(Key::Up, state == ElementState::Pressed),
+                msgs.extend(game.tick(&msgs));
 
-            KeyboardInput {
-                state,
-                virtual_keycode: Some(VirtualKeyCode::S),
-                ..
-            } => render_state
-                .input
-                .key_up_down(Key::Down, state == ElementState::Pressed),
+                let mut emissions: Vec<Message> = vec![];
+                msgs.iter().for_each(|e| {
+                    if let Message::GameEvent(m) = e {
+                        match m {
+                            GameEvent::CharacterDeath(_) => {
+                                game.player_rebirth();
+                            }
+                            GameEvent::GameQuit => *control_flow = ControlFlow::Exit,
+                            GameEvent::BlockMine(pos, b) => {
+                                let color = game.world.get_block_type(*b).colors();
+                                emissions.push(ParticleEvent::BlockBreak(*pos, color).into());
+                            }
+                            GameEvent::BlockPlace(pos, b) => {
+                                let color = game.world.get_block_type(*b).colors();
+                                emissions.push(ParticleEvent::BlockPlace(*pos, color).into());
+                            }
+                            GameEvent::EntityCollision(pos) => {
+                                game.world.add_explosion(pos, 5.0);
+                                emissions.push(ParticleEvent::Explosion(*pos, 4.0).into());
+                            }
+                            _ => (),
+                        }
+                    }
+                });
+                msgs.extend(emissions);
 
-            KeyboardInput {
-                state,
-                virtual_keycode: Some(VirtualKeyCode::A),
-                ..
-            } => render_state
-                .input
-                .key_up_down(Key::Left, state == ElementState::Pressed),
+                sfx.msg_sink(&msgs);
+                render.particles.msg_sink(&msgs);
+                msgs.clear();
 
-            KeyboardInput {
-                state,
-                virtual_keycode: Some(VirtualKeyCode::D),
-                ..
-            } => render_state
-                .input
-                .key_up_down(Key::Right, state == ElementState::Pressed),
-
-            KeyboardInput {
-                state,
-                virtual_keycode: Some(VirtualKeyCode::Space),
-                ..
-            } => render_state
-                .input
-                .key_up_down(Key::Jump, state == ElementState::Pressed),
-
-            KeyboardInput {
-                state,
-                virtual_keycode: Some(VirtualKeyCode::C),
-                ..
-            } => render_state
-                .input
-                .key_up_down(Key::Crouch, state == ElementState::Pressed),
-
-            KeyboardInput {
-                state,
-                virtual_keycode: Some(VirtualKeyCode::LShift),
-                ..
-            } => render_state
-                .input
-                .key_up_down(Key::Sprint, state == ElementState::Pressed),
-
-            _ => (),
-        },
-        Event::WindowEvent {
-            event: WindowEvent::Resized(physical_size),
-            ..
-        } => {
-            render_state.display.gl_window().resize(physical_size);
-            render_state.set_window_size((physical_size.width, physical_size.height));
-        }
-        Event::RedrawRequested(_) => {
-            runtime.tick(game_state.get_millis());
-            let mut frame = render_state.display.draw();
-            prepare_frame(&mut render_state, &game_state).expect("Error during frame preparation");
-            render_frame(&mut frame, &render_state, &game_state).expect("Error during rendering");
-            frame.finish().expect("Error during frame finish");
-            //windowed_context.swap_buffers().unwrap();
-        }
-        Event::MainEventsCleared => {
-            let input_events = input_tick(&game_state, &render_state);
-            render_state.input.mouse_flush();
-
-            let render_distance = RENDER_DISTANCE * RENDER_DISTANCE;
-            let game_events = game_state.tick(render_distance, input_events);
-
-            let mut emissions: Vec<ParticleEmission> = vec![];
-            game_events.iter().for_each(|e| match e {
-                GameEvent::CharacterJump(_) => state.sfx.play(&state.sfx.jump, 0.2),
-                GameEvent::CharacterShoot(_) => state.sfx.play(&state.sfx.hook_fire, 0.4),
-                GameEvent::CharacterDamage(_, _) => state.sfx.play(&state.sfx.ungh, 0.3),
-                GameEvent::CharacterDeath(_) => {
-                    state.sfx.play(&state.sfx.ungh, 0.4);
-                    game_state.player_rebirth();
-                }
-                GameEvent::BlockMine(pos, b) => {
-                    let color = game_state.world.get_block_type(*b).colors();
-                    emissions.push(ParticleEmission::BlockBreak(*pos, color));
-                    state.sfx.play(&state.sfx.tock, 0.3);
-                }
-                GameEvent::BlockPlace(pos, b) => {
-                    let color = game_state.world.get_block_type(*b).colors();
-                    emissions.push(ParticleEmission::BlockPlace(*pos, color));
-                    state.sfx.play(&state.sfx.pock, 0.3);
-                }
-                GameEvent::CharacterStomp(_pos) => state.sfx.play(&state.sfx.stomp, 0.3),
-                GameEvent::EntityCollision(pos) => {
-                    game_state.world.add_explosion(pos, 5.0);
-                    state.sfx.play(&state.sfx.bomb, 0.3);
-                    emissions.push(ParticleEmission::Explosion(*pos, 4.0));
-                }
-            });
-
-            render_state
-                .particles
-                .reduce_emissions(&emissions, game_state.ticks_elapsed);
-            game_state.prepare_world(VIEW_STEPS, render_distance);
-            render_state.display.gl_window().window().request_redraw();
-        }
-        _ => {}
+                render.request_redraw();
+            }
+            _ => {}
+        };
+        input.handle_winit_event(event);
     });
 }

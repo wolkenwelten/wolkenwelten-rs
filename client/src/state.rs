@@ -1,6 +1,5 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
-use crate::input::InputState;
 use crate::meshes::{BlockMesh, TextMesh};
 use crate::RENDER_DISTANCE;
 use glam::{f32::Vec3, i32::IVec3};
@@ -35,8 +34,6 @@ pub struct ClientState {
 
     pub ui_mesh: TextMesh,
     pub particles: ParticleMesh,
-
-    pub input: InputState,
 
     ticks: u64,
     cur_fov: f32,
@@ -100,7 +97,6 @@ impl ClientState {
             display,
             meshes,
             shaders,
-            input: InputState::new(),
             textures,
             ui_mesh,
             particles,
@@ -116,6 +112,10 @@ impl ClientState {
     #[inline]
     pub fn ticks(&self) -> u64 {
         self.ticks
+    }
+
+    pub fn request_redraw(&mut self) {
+        self.display.gl_window().window().request_redraw();
     }
 
     #[inline]

@@ -6,7 +6,8 @@ use std::cmp::Ordering;
 use std::collections::BinaryHeap;
 use std::time::Instant;
 use wolkenwelten_common::{
-    ChunkBlockData, ChunkLightData, GameEvent, InputEvent, CHUNK_BITS, CHUNK_MASK, CHUNK_SIZE,
+    ChunkBlockData, ChunkLightData, GameEvent, InputEvent, Message, SyncEvent, CHUNK_BITS,
+    CHUNK_MASK, CHUNK_SIZE,
 };
 
 const MS_PER_TICK: u64 = 4;
@@ -53,9 +54,11 @@ pub struct GameState {
     pub ticks_elapsed: u64,
     pub last_gc: u64,
     pub running: bool,
-    player: Character,
     pub entities: Vec<Entity>,
     pub world: Chungus,
+
+    player: Character,
+    render_distance: f32,
 }
 
 impl Default for GameState {
@@ -72,6 +75,7 @@ impl Default for GameState {
             entities,
             ticks_elapsed: 0,
             last_gc: 0,
+            render_distance: 128.0 * 128.0,
             world: Chungus::default(),
         }
     }
@@ -113,65 +117,94 @@ impl GameState {
         self.player = player;
     }
 
-    pub fn tick(&mut self, render_distance: f32, input_events: Vec<InputEvent>) -> Vec<GameEvent> {
-        let mut events: Vec<GameEvent> = Vec::new();
+    #[inline]
+    pub fn render_distance(&self) -> f32 {
+        self.render_distance
+    }
+
+    #[inline]
+    pub fn set_render_distance(&mut self, render_distance: f32) {
+        self.render_distance = render_distance;
+    }
+
+    pub fn view_steps(&self) -> i32 {
+        (self.render_distance().sqrt() as i32 / CHUNK_SIZE as i32) + 1
+    }
+
+    #[inline]
+    pub fn ticks(&self) -> u64 {
+        self.ticks_elapsed
+    }
+
+    pub fn tick(&mut self, msg: &Vec<Message>) -> Vec<Message> {
+        let mut events: Vec<Message> = Vec::new();
         let now = self.get_millis();
         let ticks_goal = now / MS_PER_TICK;
         let to_run = ticks_goal - self.ticks_elapsed;
         let mut player_movement = Vec3::ZERO;
 
-        self.player.wrap_rot();
-
-        input_events.iter().for_each(|e| match e {
-            InputEvent::PlayerMove(v) => {
-                if v.y > 0.0 && self.player.may_jump(&self.world) {
-                    self.player.jump();
-                    events.push(GameEvent::CharacterJump(self.player.pos))
+        msg.iter().for_each(|e| match e {
+            Message::InputEvent(msg) => match msg {
+                InputEvent::PlayerMove(v) => {
+                    if v.y > 0.0 && self.player.may_jump(&self.world) {
+                        self.player.jump();
+                        events.push(GameEvent::CharacterJump(self.player.pos).into())
+                    }
+                    player_movement = *v;
                 }
-                player_movement = *v;
-            }
-            InputEvent::PlayerFly(v) => self.player.vel = *v * 0.15,
-            InputEvent::PlayerShoot() => {
-                if self.player.may_act(now) {
-                    self.player.set_cooldown(now + 600);
-                    let mut e = Entity::new();
-                    e.set_pos(self.player.pos());
-                    e.set_vel(self.player.direction() * 0.4);
-                    self.push_entity(e);
-                    events.push(GameEvent::CharacterShoot(self.player.pos))
+                InputEvent::PlayerSwitchSelection(d) => {
+                    self.mut_player().switch_block_selection(*d)
                 }
-            }
-            InputEvent::PlayerBlockMine(pos) => {
-                if self.player.may_act(now) {
-                    if let Some(b) = self.world.get_block(*pos) {
-                        self.player.set_cooldown(now + 300);
-                        self.world.set_block(*pos, 0);
-                        events.push(GameEvent::BlockMine(*pos, b))
+                InputEvent::PlayerNoClip(b) => self.mut_player().set_no_clip(*b),
+                InputEvent::PlayerTurn(v) => {
+                    self.player.rot += *v;
+                    self.player.wrap_rot();
+                }
+                InputEvent::PlayerFly(v) => self.player.vel = *v * 0.15,
+                InputEvent::PlayerShoot => {
+                    if self.player.may_act(now) {
+                        self.player.set_cooldown(now + 600);
+                        let mut e = Entity::new();
+                        e.set_pos(self.player.pos());
+                        e.set_vel(self.player.direction() * 0.4);
+                        self.push_entity(e);
+                        events.push(GameEvent::CharacterShoot(self.player.pos).into())
                     }
                 }
-            }
-            InputEvent::PlayerBlockPlace(pos) => {
-                if self.player.may_act(now) {
-                    if self.world.get_block(*pos).unwrap_or(0) == 0 {
-                        self.player.set_cooldown(now + 300);
-                        let b = self.player.block_selection();
-                        self.world.set_block(*pos, b);
-                        events.push(GameEvent::BlockPlace(*pos, b))
+                InputEvent::PlayerBlockMine(pos) => {
+                    if self.player.may_act(now) {
+                        if let Some(b) = self.world.get_block(*pos) {
+                            self.player.set_cooldown(now + 300);
+                            self.world.set_block(*pos, 0);
+                            events.push(GameEvent::BlockMine(*pos, b).into())
+                        }
                     }
                 }
-            }
+                InputEvent::PlayerBlockPlace(pos) => {
+                    if self.player.may_act(now) {
+                        if self.world.get_block(*pos).unwrap_or(0) == 0 {
+                            self.player.set_cooldown(now + 300);
+                            let b = self.player.block_selection();
+                            self.world.set_block(*pos, b);
+                            events.push(GameEvent::BlockPlace(*pos, b).into())
+                        }
+                    }
+                }
+            },
+            _ => (),
         });
 
         for _ in 0..to_run {
+            events.push(SyncEvent::GameTick(self.ticks_elapsed).into());
             self.ticks_elapsed += 1;
             Entity::tick(&mut self.entities, &mut events, &self.player, &self.world);
             self.player.tick(player_movement, &mut events, &self.world);
         }
         if self.ticks_elapsed > self.last_gc {
-            self.world.gc(&self.player, render_distance);
+            self.world.gc(&self.player, self.render_distance);
             self.last_gc = self.ticks_elapsed + 50;
         }
-
+        self.prepare_world();
         events
     }
 
@@ -226,8 +259,9 @@ impl GameState {
         }
     }
 
-    pub fn prepare_world(&mut self, view_steps: i32, render_distance: f32) {
+    pub fn prepare_world(&mut self) {
         let mut heap: BinaryHeap<QueueEntry> = BinaryHeap::new();
+        let view_steps = self.view_steps();
 
         let px = (self.player.pos.x as i32) >> CHUNK_BITS;
         let py = (self.player.pos.y as i32) >> CHUNK_BITS;
@@ -241,7 +275,7 @@ impl GameState {
                     let pos = IVec3::new(cx + px, cy + py, cz + pz);
                     let d = (pos.as_vec3() * CHUNK_SIZE as f32) - self.player.pos;
                     let d = d.dot(d);
-                    if d < render_distance && self.should_update(pos) {
+                    if d < self.render_distance && self.should_update(pos) {
                         heap.push(QueueEntry::new(pos, (d * 256.0) as i64));
                     }
                 }

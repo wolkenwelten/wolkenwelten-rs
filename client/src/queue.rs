@@ -1,7 +1,7 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
 use crate::Frustum;
-use crate::{BlockMesh, FADE_DISTANCE, RENDER_DISTANCE, VIEW_STEPS};
+use crate::{BlockMesh, FADE_DISTANCE, RENDER_DISTANCE};
 use glam::{IVec3, Vec3};
 use std::cmp::Ordering;
 use std::collections::BinaryHeap;
@@ -32,10 +32,11 @@ impl QueueEntry {
         let px = (player_pos.x.floor() as i32) >> CHUNK_BITS;
         let py = (player_pos.y.floor() as i32) >> CHUNK_BITS;
         let pz = (player_pos.z.floor() as i32) >> CHUNK_BITS;
+        let view_steps = (RENDER_DISTANCE as i32 / CHUNK_SIZE as i32) + 1;
 
-        for cx in -VIEW_STEPS..=VIEW_STEPS {
-            for cy in -VIEW_STEPS..=VIEW_STEPS {
-                for cz in -VIEW_STEPS..=VIEW_STEPS {
+        for cx in -view_steps..=view_steps {
+            for cy in -view_steps..=view_steps {
+                for cz in -view_steps..=view_steps {
                     let x = px + cx;
                     let y = py + cy;
                     let z = pz + cz;

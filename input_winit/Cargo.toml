@@ -1,0 +1,13 @@
+[package]
+name = "wolkenwelten-input-winit"
+version = "0.0.1"
+edition = "2021"
+license = "AGPL-3.0-or-later"
+homepage = "https://wolkenwelten.net"
+
+[dependencies]
+enum-map = "2.4"
+winit = "0.27"
+glam = "0.22"
+wolkenwelten-common = { path = "../common" }
+wolkenwelten-game = { path = "../game" }
