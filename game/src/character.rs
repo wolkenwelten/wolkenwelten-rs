@@ -212,7 +212,7 @@ impl Character {
         }
 
         let len = self.vel.length();
-        if len > 0.2 {
+        if len > 0.5 {
             self.vel *= 1.0 - (len - 0.2).clamp(0.0001, 1.0);
         }
 
