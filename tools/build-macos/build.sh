@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 VER=`git describe --tags --exact-match 2> /dev/null || git symbolic-ref -q --short HEAD || git rev-parse --short HEAD`
 ARCH="x86_64-macos"
+ARCH=`uname -m`
+KERNEL="macos"
+TARGET="$ARCH-$KERNEL"
 
 function cg {
   function git_root {
@@ -29,4 +32,4 @@ cp "tools/build-macos/wolkenwelten.icns" "tmp/WolkenWelten.app/Contents/Resource
 cp "tools/build-macos/Info.plist" "tmp/WolkenWelten.app/Contents/Info.plist" && \
 rm -rf ./dist/ && \
 mkdir dist/ && \
-cd "tmp/" && tar -cJf "../dist/wolkenwelten-$VER-$ARCH.tar.xz" ./WolkenWelten.app
+cd "tmp/" && tar -cJf "../dist/wolkenwelten-$VER-$TARGET.tar.xz" ./WolkenWelten.app

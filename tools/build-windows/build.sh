@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 VER=`git describe --tags --exact-match 2> /dev/null || git symbolic-ref -q --short HEAD || git rev-parse --short HEAD`
-ARCH="x86_64-windows"
+ARCH=`uname -m`
+KERNEL="windows"
+TARGET="$ARCH-$KERNEL"
 
 function cg {
   function git_root {
@@ -26,4 +28,4 @@ mkdir -p tmp/
 cp target/release/wolkenwelten.exe tmp/wolkenwelten.exe && \
 rm -rf ./dist/ && \
 mkdir dist/ && \
-cd "tmp/" && 7z a "../dist/wolkenwelten-$VER-$ARCH.zip" ./wolkenwelten.exe
+cd "tmp/" && 7z a "../dist/wolkenwelten-$VER-$TARGET.zip" ./wolkenwelten.exe
