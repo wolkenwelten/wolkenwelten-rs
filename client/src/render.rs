@@ -69,27 +69,29 @@ pub fn prepare_chunk(
     pos: IVec3,
     now: Instant,
 ) -> Result<(), glium::vertex::BufferCreationError> {
-    if let Some(chunk) = game.world().get_chunk(&pos) {
-        if let Some(mesh) = fe.world_mesh.get_mut(&pos) {
-            if chunk.get_light().get_last_updated() >= mesh.get_last_updated() {
+    if let Ok(block_types) = game.world().blocks().read() {
+        if let Some(chunk) = game.world().get_chunk(&pos) {
+            if let Some(mesh) = fe.world_mesh.get_mut(&pos) {
+                if chunk.get_light().get_last_updated() >= mesh.get_last_updated() {
+                    mesh.update(
+                        &fe.display,
+                        chunk.get_block(),
+                        chunk.get_light(),
+                        &block_types,
+                        now,
+                    )?;
+                }
+            } else {
+                let mut mesh = BlockMesh::new(&fe.display)?;
                 mesh.update(
                     &fe.display,
                     chunk.get_block(),
                     chunk.get_light(),
-                    game.world().blocks(),
+                    &block_types,
                     now,
                 )?;
+                fe.world_mesh.insert(pos, mesh);
             }
-        } else {
-            let mut mesh = BlockMesh::new(&fe.display)?;
-            mesh.update(
-                &fe.display,
-                chunk.get_block(),
-                chunk.get_light(),
-                game.world().blocks(),
-                now,
-            )?;
-            fe.world_mesh.insert(pos, mesh);
         }
     }
     Ok(())
@@ -129,7 +131,6 @@ pub fn prepare_frame(
     fe.gc(game.player());
     fe.set_fov(calc_fov(fe.fov(), game.player()));
     prepare_chunks(fe, game)?;
-    fe.particles.update(game.player().pos, RENDER_DISTANCE);
     Ok(())
 }
 

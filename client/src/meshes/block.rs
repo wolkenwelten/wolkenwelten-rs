@@ -89,7 +89,7 @@ impl BlockMesh {
         for i in 1..6 {
             self.side_start[i] = self.side_start[i - 1] + self.side_square_count[i - 1];
         }
-        self.buffer = glium::VertexBuffer::dynamic(display, &vertices)?;
+        self.buffer = glium::VertexBuffer::persistent(display, &vertices)?;
         Ok(())
     }
 }

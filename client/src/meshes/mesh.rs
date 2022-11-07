@@ -38,7 +38,7 @@ impl Mesh {
         display: &glium::Display,
         vertices: &Vec<MeshVertex>,
     ) -> Result<Self, MeshCreationError> {
-        let buffer = glium::VertexBuffer::dynamic(display, vertices.as_slice())?;
+        let buffer = glium::VertexBuffer::persistent(display, vertices.as_slice())?;
         Ok(Self { buffer })
     }
 

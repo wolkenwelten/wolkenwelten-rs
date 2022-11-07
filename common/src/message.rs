@@ -26,7 +26,6 @@ pub enum GameEvent {
     BlockMine(IVec3, u8),
     BlockPlace(IVec3, u8),
     EntityCollision(Vec3),
-    GameQuit,
 }
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
@@ -34,6 +33,7 @@ pub enum SyncEvent {
     DrawFrame(u64),
     GameTick(u64),
     GameQuit(u64),
+    ParticleTick(Vec3, f32),
     GameInit,
 }
 

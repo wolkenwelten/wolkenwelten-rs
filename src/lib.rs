@@ -8,6 +8,7 @@ use winit::event::{DeviceEvent, Event, WindowEvent};
 use winit::event_loop::{ControlFlow, EventLoop};
 use winit::window::{CursorGrabMode, Fullscreen, Window, WindowBuilder};
 
+use std::sync::mpsc;
 use winit::dpi::PhysicalPosition;
 use wolkenwelten_client::{prepare_frame, render_frame, ClientState, RENDER_DISTANCE};
 use wolkenwelten_common::{GameEvent, Message, ParticleEvent, SyncEvent};
@@ -83,10 +84,18 @@ pub fn run_event_loop(state: AppState) {
     let mut msgs: Vec<Message> = vec![];
     game.set_render_distance(RENDER_DISTANCE * RENDER_DISTANCE);
 
-    let (sink_tx, sink_rx) = crossbeam_channel::unbounded();
-
+    let mut channels = vec![];
     #[cfg(feature = "sound")]
-    SfxList::fork_sink(sink_rx);
+    {
+        let (sink_tx, sink_rx) = mpsc::channel();
+        channels.push(sink_tx);
+        SfxList::fork_sink(sink_rx);
+    }
+    {
+        let (sink_tx, sink_rx) = mpsc::channel();
+        channels.push(sink_tx);
+        render.particles.fork_sink(sink_rx);
+    }
 
     event_loop.run(move |event, _, control_flow| {
         match event {
@@ -140,43 +149,43 @@ pub fn run_event_loop(state: AppState) {
 
             Event::MainEventsCleared => {
                 msgs.push(SyncEvent::DrawFrame(render.ticks()).into());
+                msgs.push(SyncEvent::ParticleTick(game.player().pos, RENDER_DISTANCE).into());
                 msgs.extend(input.tick(&game));
-
                 msgs.extend(game.tick(&msgs));
 
                 let mut emissions: Vec<Message> = vec![];
-                msgs.iter().for_each(|e| {
-                    if let Message::GameEvent(m) = e {
-                        match m {
-                            GameEvent::CharacterDeath(_) => {
-                                game.player_rebirth();
-                            }
-                            GameEvent::GameQuit => *control_flow = ControlFlow::Exit,
-                            GameEvent::BlockMine(pos, b) => {
-                                let color = game.world().get_block_type(*b).colors();
+                msgs.iter().for_each(|e| match e {
+                    Message::GameEvent(m) => match m {
+                        GameEvent::CharacterDeath(_) => {
+                            game.player_rebirth();
+                        }
+                        GameEvent::BlockMine(pos, b) => {
+                            if let Ok(blocks) = game.world().blocks().read() {
+                                let color = blocks[(*b) as usize].colors();
                                 emissions.push(ParticleEvent::BlockBreak(*pos, color).into());
                             }
-                            GameEvent::BlockPlace(pos, b) => {
-                                let color = game.world().get_block_type(*b).colors();
+                        }
+                        GameEvent::BlockPlace(pos, b) => {
+                            if let Ok(blocks) = game.world().blocks().read() {
+                                let color = blocks[(*b) as usize].colors();
                                 emissions.push(ParticleEvent::BlockPlace(*pos, color).into());
                             }
-                            GameEvent::EntityCollision(pos) => {
-                                game.world_mut().add_explosion(pos, 5.0);
-                                emissions.push(ParticleEvent::Explosion(*pos, 4.0).into());
-                            }
-                            _ => (),
                         }
-                    }
+                        GameEvent::EntityCollision(pos) => {
+                            game.world_mut().add_explosion(pos, 5.0);
+                        }
+                        _ => (),
+                    },
+                    Message::SyncEvent(SyncEvent::GameQuit(_)) => *control_flow = ControlFlow::Exit,
+                    _ => (),
                 });
                 msgs.extend(emissions);
 
-                msgs.iter().for_each(|m| {
-                    sink_tx.send(*m).expect("Couldn't send message");
+                channels.iter().for_each(|p| {
+                    p.send(msgs.clone()).expect("Couldn't send message");
                 });
 
-                render.particles.msg_sink(&msgs);
                 msgs.clear();
-
                 render.request_redraw();
             }
             _ => {}

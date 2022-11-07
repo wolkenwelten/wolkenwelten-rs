@@ -1,13 +1,13 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
-use crossbeam_channel::Receiver;
 use rodio::{
     buffer::SamplesBuffer, source::Buffered, Decoder, OutputStream, OutputStreamHandle, Sink,
     Source,
 };
 use std::io::Cursor;
+use std::sync::mpsc::Receiver;
 use std::thread;
-use wolkenwelten_common::{GameEvent, Message};
+use wolkenwelten_common::{GameEvent, Message, SyncEvent};
 
 struct Sfx {
     buf: Buffered<SamplesBuffer<i16>>,
@@ -83,21 +83,22 @@ impl SfxList {
                 GameEvent::BlockPlace(_, _) => self.play(&self.pock, 0.3),
                 GameEvent::CharacterStomp(_) => self.play(&self.stomp, 0.3),
                 GameEvent::EntityCollision(_) => self.play(&self.bomb, 0.3),
-                GameEvent::GameQuit => return false, //_ => (),
             },
+            Message::SyncEvent(SyncEvent::GameQuit(_)) => return false,
             _ => (),
         }
         true
     }
 
-    pub fn fork_sink(rx: Receiver<Message>) {
+    pub fn fork_sink(rx: Receiver<Vec<Message>>) {
         thread::spawn(move || {
             let sfx = SfxList::new();
-            let mut running = true;
-            while running {
+            loop {
                 let m = rx.recv().expect("Sfx: error receiving message");
-                if !sfx.dispatch(&m) {
-                    running = false;
+                for msg in m {
+                    if !sfx.dispatch(&msg) {
+                        return;
+                    }
                 }
             }
         });

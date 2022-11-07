@@ -10,7 +10,6 @@ An open voxel sandbox
 """
 
 [dependencies]
-crossbeam-channel = "0.5"
 glam = { version = "0.22", features = ["bytemuck", "serde"] }
 glium = "0.32"
 winit = "0.27"

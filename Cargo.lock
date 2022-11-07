@@ -2519,7 +2519,6 @@ dependencies = [
 name = "wolkenwelten"
 version = "0.0.2"
 dependencies = [
- "crossbeam-channel",
  "glam",
  "glium",
  "serde",
@@ -2598,6 +2597,7 @@ dependencies = [
 name = "wolkenwelten-particles"
 version = "0.0.1"
 dependencies = [
+ "crossbeam-channel",
  "glam",
  "glium",
  "rand",

@@ -55,7 +55,6 @@ pub struct GameState {
     last_gc: u64,
     entities: Vec<Entity>,
     world: Chungus,
-
     player: Character,
     render_distance: f32,
 }
