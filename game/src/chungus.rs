@@ -11,8 +11,8 @@ use wolkenwelten_common::{
 
 #[derive(Debug)]
 pub struct Chungus {
-    pub blocks: Vec<BlockType>,
-    pub chunks: HashMap<IVec3, Chunk>,
+    blocks: Vec<BlockType>,
+    chunks: HashMap<IVec3, Chunk>,
 }
 
 impl Chungus {
@@ -23,6 +23,21 @@ impl Chungus {
             let d = diff.dot(diff);
             d < (max_d)
         });
+    }
+
+    #[inline]
+    pub fn blocks(&self) -> &Vec<BlockType> {
+        &self.blocks
+    }
+
+    #[inline]
+    pub fn chunks(&self) -> &HashMap<IVec3, Chunk> {
+        &self.chunks
+    }
+
+    #[inline]
+    pub fn chunks_mut(&mut self) -> &mut HashMap<IVec3, Chunk> {
+        &mut self.chunks
     }
 
     #[inline]

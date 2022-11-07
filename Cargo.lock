@@ -397,6 +397,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "crossbeam-channel"
+version = "0.5.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c2dd04ddaf88237dc3b8d8f9a3c1004b506b54b3313403944054d23c0870c521"
+dependencies = [
+ "cfg-if",
+ "crossbeam-utils",
+]
+
+[[package]]
+name = "crossbeam-utils"
+version = "0.8.12"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "edbafec5fa1f196ca66527c1b12c2ec4745ca14b50f1ad8f9f6f720b55d11fac"
+dependencies = [
+ "cfg-if",
+]
+
+[[package]]
 name = "crossfont"
 version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2500,6 +2519,7 @@ dependencies = [
 name = "wolkenwelten"
 version = "0.0.2"
 dependencies = [
+ "crossbeam-channel",
  "glam",
  "glium",
  "serde",
@@ -2598,6 +2618,7 @@ dependencies = [
 name = "wolkenwelten-sound"
 version = "0.0.1"
 dependencies = [
+ "crossbeam-channel",
  "rodio",
  "wolkenwelten-common",
 ]

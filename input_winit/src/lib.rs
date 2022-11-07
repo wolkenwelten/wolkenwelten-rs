@@ -259,13 +259,13 @@ impl InputState {
         };
 
         if self.button_states[Key::Primary] {
-            if let Some(pos) = game.player().raycast(&game.world, RaycastReturn::Within) {
+            if let Some(pos) = game.player().raycast(game.world(), RaycastReturn::Within) {
                 msgs.push(InputEvent::PlayerBlockMine(pos).into());
             }
         }
 
         if self.button_states[Key::Secondary] {
-            if let Some(pos) = game.player().raycast(&game.world, RaycastReturn::Front) {
+            if let Some(pos) = game.player().raycast(game.world(), RaycastReturn::Front) {
                 msgs.push(InputEvent::PlayerBlockPlace(pos).into());
             }
         }

@@ -72,14 +72,17 @@ fn prepare_pos(fe: &mut ClientState, game: &GameState) {
     let pos = game.player().pos;
     let pos_text = format!(
         "X:{:8.2} Y:{:8.2} Z:{:8.2}   Ticks:{}",
-        pos[0], pos[1], pos[2], game.ticks_elapsed
+        pos[0],
+        pos[1],
+        pos[2],
+        game.ticks()
     );
     fe.ui_mesh
         .push_string(8, 64, 2, [0xFF, 0xFF, 0xFF, 0xFF], pos_text.as_str());
 }
 
 fn prepare_block_selection(fe: &mut ClientState, game: &GameState) {
-    let block_name = game.world.blocks[game.player().block_selection() as usize].name();
+    let block_name = game.world().blocks()[game.player().block_selection() as usize].name();
     let block_sel_text = format!("Block selection: {}", block_name);
     fe.ui_mesh.push_string(
         8,
@@ -95,7 +98,7 @@ fn prepare_debug_text(fe: &mut ClientState, game: &GameState) {
     let col_text = format!(
         "Entities: {}   Chunks: {}   BlockMeshes: {}  Particles: {}",
         game.get_entity_count(),
-        game.world.chunks.len(),
+        game.world().chunks().len(),
         fe.world_mesh.len(),
         fe.particles.len(),
     );

@@ -24,8 +24,5 @@ pub fn main() {
         event_loop,
         input: InputState::new(),
         runtime: Runtime::new(),
-
-        #[cfg(feature = "sound")]
-        sfx: wolkenwelten_sound::SfxList::new(),
     })
 }

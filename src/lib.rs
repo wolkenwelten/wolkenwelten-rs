@@ -25,9 +25,6 @@ pub struct AppState {
     pub input: InputState,
     pub event_loop: EventLoop<()>,
     pub runtime: Runtime,
-
-    #[cfg(feature = "sound")]
-    pub sfx: SfxList,
 }
 
 /// Try and grab the cursor, first by locking, then by confiningg it
@@ -83,11 +80,13 @@ pub fn run_event_loop(state: AppState) {
     let event_loop = state.event_loop;
     let mut runtime = state.runtime;
 
-    #[cfg(feature = "sound")]
-    let sfx = state.sfx;
-
     let mut msgs: Vec<Message> = vec![];
     game.set_render_distance(RENDER_DISTANCE * RENDER_DISTANCE);
+
+    let (sink_tx, sink_rx) = crossbeam_channel::unbounded();
+
+    #[cfg(feature = "sound")]
+    SfxList::fork_sink(sink_rx);
 
     event_loop.run(move |event, _, control_flow| {
         match event {
@@ -154,15 +153,15 @@ pub fn run_event_loop(state: AppState) {
                             }
                             GameEvent::GameQuit => *control_flow = ControlFlow::Exit,
                             GameEvent::BlockMine(pos, b) => {
-                                let color = game.world.get_block_type(*b).colors();
+                                let color = game.world().get_block_type(*b).colors();
                                 emissions.push(ParticleEvent::BlockBreak(*pos, color).into());
                             }
                             GameEvent::BlockPlace(pos, b) => {
-                                let color = game.world.get_block_type(*b).colors();
+                                let color = game.world().get_block_type(*b).colors();
                                 emissions.push(ParticleEvent::BlockPlace(*pos, color).into());
                             }
                             GameEvent::EntityCollision(pos) => {
-                                game.world.add_explosion(pos, 5.0);
+                                game.world_mut().add_explosion(pos, 5.0);
                                 emissions.push(ParticleEvent::Explosion(*pos, 4.0).into());
                             }
                             _ => (),
@@ -171,8 +170,9 @@ pub fn run_event_loop(state: AppState) {
                 });
                 msgs.extend(emissions);
 
-                #[cfg(feature = "sound")]
-                sfx.msg_sink(&msgs);
+                msgs.iter().for_each(|m| {
+                    sink_tx.send(*m).expect("Couldn't send message");
+                });
 
                 render.particles.msg_sink(&msgs);
                 msgs.clear();

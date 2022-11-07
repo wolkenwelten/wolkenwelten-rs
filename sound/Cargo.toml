@@ -6,5 +6,6 @@ license = "AGPL-3.0-or-later"
 homepage = "https://wolkenwelten.net"
 
 [dependencies]
+crossbeam-channel = "0.5"
 rodio = {version = "0.16", default-features = false, features = ["vorbis"]}
 wolkenwelten-common = { path = "../common" }

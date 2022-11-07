@@ -50,12 +50,11 @@ impl PartialEq for QueueEntry {
 
 #[derive(Debug)]
 pub struct GameState {
-    pub clock: Instant,
-    pub ticks_elapsed: u64,
-    pub last_gc: u64,
-    pub running: bool,
-    pub entities: Vec<Entity>,
-    pub world: Chungus,
+    clock: Instant,
+    ticks_elapsed: u64,
+    last_gc: u64,
+    entities: Vec<Entity>,
+    world: Chungus,
 
     player: Character,
     render_distance: f32,
@@ -63,14 +62,12 @@ pub struct GameState {
 
 impl Default for GameState {
     fn default() -> Self {
-        let running = true;
         let entities = Vec::new();
         let mut player = Character::new();
         player.set_pos(Vec3::new(15.0, 0.0, -15.0));
 
         Self {
             clock: Instant::now(),
-            running,
             player,
             entities,
             ticks_elapsed: 0,
@@ -107,7 +104,22 @@ impl GameState {
     }
 
     #[inline]
-    pub fn mut_player(&mut self) -> &mut Character {
+    pub fn world(&self) -> &Chungus {
+        &self.world
+    }
+
+    #[inline]
+    pub fn world_mut(&mut self) -> &mut Chungus {
+        &mut self.world
+    }
+
+    #[inline]
+    pub fn entities(&self) -> &Vec<Entity> {
+        &self.entities
+    }
+
+    #[inline]
+    pub fn player_mut(&mut self) -> &mut Character {
         &mut self.player
     }
 
@@ -153,9 +165,9 @@ impl GameState {
                     player_movement = *v;
                 }
                 InputEvent::PlayerSwitchSelection(d) => {
-                    self.mut_player().switch_block_selection(*d)
+                    self.player_mut().switch_block_selection(*d)
                 }
-                InputEvent::PlayerNoClip(b) => self.mut_player().set_no_clip(*b),
+                InputEvent::PlayerNoClip(b) => self.player_mut().set_no_clip(*b),
                 InputEvent::PlayerTurn(v) => {
                     self.player.rot += *v;
                     self.player.wrap_rot();
@@ -211,7 +223,7 @@ impl GameState {
     pub fn worldgen_chunk(&mut self, pos: IVec3) -> bool {
         match self.world.get_chunk_mut(&pos) {
             None => {
-                self.world.chunks.insert(pos, Chunk::new(pos));
+                self.world.chunks_mut().insert(pos, Chunk::new(pos));
                 true
             }
             Some(chunk) => {

@@ -69,14 +69,14 @@ pub fn prepare_chunk(
     pos: IVec3,
     now: Instant,
 ) -> Result<(), glium::vertex::BufferCreationError> {
-    if let Some(chunk) = game.world.get_chunk(&pos) {
+    if let Some(chunk) = game.world().get_chunk(&pos) {
         if let Some(mesh) = fe.world_mesh.get_mut(&pos) {
             if chunk.get_light().get_last_updated() >= mesh.get_last_updated() {
                 mesh.update(
                     &fe.display,
                     chunk.get_block(),
                     chunk.get_light(),
-                    &game.world.blocks,
+                    game.world().blocks(),
                     now,
                 )?;
             }
@@ -86,7 +86,7 @@ pub fn prepare_chunk(
                 &fe.display,
                 chunk.get_block(),
                 chunk.get_light(),
-                &game.world.blocks,
+                game.world().blocks(),
                 now,
             )?;
             fe.world_mesh.insert(pos, mesh);
@@ -260,7 +260,7 @@ fn render_game(
     fe.particles
         .draw(frame, &fe.display, &fe.shaders.particle, &mvp)?;
 
-    for entity in game.entities.iter() {
+    for entity in game.entities().iter() {
         draw_entity(frame, fe, entity, &view, &projection)?;
     }
     render_chungus(frame, fe, game, &mvp)?;
