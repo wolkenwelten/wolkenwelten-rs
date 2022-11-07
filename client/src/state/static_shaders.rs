@@ -69,7 +69,7 @@ impl ShaderList {
                 tessellation_evaluation_shader: None,
                 transform_feedback_varyings: None,
                 outputs_srgb: false,
-                uses_point_size: true,
+                uses_point_size: !cfg!(any(target_arch = "aarch64", target_arch = "armv7")), // Work around the GLES bug
             },
         )
     }
