@@ -3,14 +3,15 @@
 extern crate wolkenwelten_client;
 extern crate wolkenwelten_game;
 extern crate wolkenwelten_scripting;
-extern crate wolkenwelten_sound;
 
 use wolkenwelten::{init, run_event_loop, AppState};
 use wolkenwelten_client::ClientState;
 use wolkenwelten_game::GameState;
 use wolkenwelten_input_winit::InputState;
 use wolkenwelten_scripting::Runtime;
-use wolkenwelten_sound::SfxList;
+
+#[cfg(feature = "sound")]
+extern crate wolkenwelten_sound;
 
 pub fn main() {
     let (event_loop, display) = init();
@@ -23,6 +24,8 @@ pub fn main() {
         event_loop,
         input: InputState::new(),
         runtime: Runtime::new(),
-        sfx: SfxList::new(),
+
+        #[cfg(feature = "sound")]
+        sfx: wolkenwelten_sound::SfxList::new(),
     })
 }

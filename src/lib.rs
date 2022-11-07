@@ -14,6 +14,8 @@ use wolkenwelten_common::{GameEvent, Message, ParticleEvent, SyncEvent};
 use wolkenwelten_game::GameState;
 use wolkenwelten_input_winit::InputState;
 use wolkenwelten_scripting::Runtime;
+
+#[cfg(feature = "sound")]
 use wolkenwelten_sound::SfxList;
 
 /// Stores everything necessary to run a WolkenWelten instance
@@ -23,6 +25,8 @@ pub struct AppState {
     pub input: InputState,
     pub event_loop: EventLoop<()>,
     pub runtime: Runtime,
+
+    #[cfg(feature = "sound")]
     pub sfx: SfxList,
 }
 
@@ -78,7 +82,10 @@ pub fn run_event_loop(state: AppState) {
     let mut input = state.input;
     let event_loop = state.event_loop;
     let mut runtime = state.runtime;
+
+    #[cfg(feature = "sound")]
     let sfx = state.sfx;
+
     let mut msgs: Vec<Message> = vec![];
     game.set_render_distance(RENDER_DISTANCE * RENDER_DISTANCE);
 
@@ -164,7 +171,9 @@ pub fn run_event_loop(state: AppState) {
                 });
                 msgs.extend(emissions);
 
+                #[cfg(feature = "sound")]
                 sfx.msg_sink(&msgs);
+
                 render.particles.msg_sink(&msgs);
                 msgs.clear();
 

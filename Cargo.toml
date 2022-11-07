@@ -20,7 +20,7 @@ wolkenwelten-common = { path = "common" }
 wolkenwelten-game = { path = "game" }
 wolkenwelten-meshgen = { path = "meshgen" }
 wolkenwelten-scripting = { path = "scripting" }
-wolkenwelten-sound = { path = "sound" }
+wolkenwelten-sound = { path = "sound", optional = true }
 wolkenwelten-particles = { path = "particles" }
 wolkenwelten-input-winit = { path = "input_winit" }
 
@@ -36,5 +36,5 @@ strip = true
 panic = "abort"
 
 [features]
-default = ["client"]
-client = []
+default = ["sound"]
+sound = ["dep:wolkenwelten-sound"]
