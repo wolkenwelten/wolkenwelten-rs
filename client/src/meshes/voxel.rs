@@ -16,6 +16,18 @@ pub enum VoxelMeshCreationError {
     BufferCreationError(glium::vertex::BufferCreationError),
 }
 
+#[derive(Debug)]
+pub enum VoxelDrawError {
+    DrawError(DrawError),
+    UnslicedIndexBuffer,
+}
+
+impl From<DrawError> for VoxelDrawError {
+    fn from(err: DrawError) -> Self {
+        Self::DrawError(err)
+    }
+}
+
 impl From<vox_format::reader::Error> for VoxelMeshCreationError {
     fn from(err: vox_format::reader::Error) -> Self {
         Self::ReadError(err)
@@ -47,31 +59,37 @@ impl VoxelMesh {
         program: &glium::Program,
         mat_mvp: &glam::Mat4,
         color_alpha: f32,
-    ) -> Result<(), DrawError> {
+    ) -> Result<(), VoxelDrawError> {
         let trans_pos: [f32; 3] = self.trans_pos();
         let mat_mvp = mat_mvp.to_cols_array_2d();
 
-        frame.draw(
-            self.mesh.buffer(),
-            indeces,
-            program,
-            &uniform! {
-                mat_mvp: mat_mvp,
-                trans_pos: trans_pos,
-                color_alpha: color_alpha,
-                cur_tex: &self.texture,
-            },
-            &glium::DrawParameters {
-                backface_culling: glium::draw_parameters::BackfaceCullingMode::CullClockwise,
-                blend: glium::draw_parameters::Blend::alpha_blending(),
-                depth: glium::draw_parameters::Depth {
-                    test: glium::draw_parameters::DepthTest::IfLess,
-                    write: true,
+        let index_count = (self.mesh.side_start[5] + self.mesh.side_square_count[5]) * 6;
+        if let Some(indeces) = indeces.slice(..index_count) {
+            frame.draw(
+                self.mesh.buffer(),
+                indeces,
+                program,
+                &uniform! {
+                    mat_mvp: mat_mvp,
+                    trans_pos: trans_pos,
+                    color_alpha: color_alpha,
+                    cur_tex: &self.texture,
+                },
+                &glium::DrawParameters {
+                    backface_culling: glium::draw_parameters::BackfaceCullingMode::CullClockwise,
+                    blend: glium::draw_parameters::Blend::alpha_blending(),
+                    depth: glium::draw_parameters::Depth {
+                        test: glium::draw_parameters::DepthTest::IfLess,
+                        write: true,
+                        ..Default::default()
+                    },
                     ..Default::default()
                 },
-                ..Default::default()
-            },
-        )
+            )?;
+            Ok(())
+        } else {
+            Err(VoxelDrawError::UnslicedIndexBuffer)
+        }
     }
 
     pub fn buffer(&self) -> &glium::VertexBuffer<BlockVertex> {

@@ -1,6 +1,6 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
-use super::meshes::BlockMesh;
+use super::meshes::{BlockMesh, VoxelDrawError};
 use super::Frustum;
 use crate::{ClientState, QueueEntry};
 use glam::{
@@ -30,7 +30,7 @@ fn draw_entity(
     entity: &Entity,
     view: &Mat4,
     projection: &Mat4,
-) -> Result<(), DrawError> {
+) -> Result<(), VoxelDrawError> {
     let rot = entity.rot();
     let pos = entity.pos();
 
@@ -49,7 +49,7 @@ fn render_held_item(
     frame: &mut glium::Frame,
     fe: &ClientState,
     projection: &Mat4,
-) -> Result<(), DrawError> {
+) -> Result<(), VoxelDrawError> {
     let t = (fe.ticks() as f32 / 512.0).sin();
     let model = Mat4::from_scale(Vec3::new(1.0 / 16.0, 1.0 / 16.0, 1.0 / 16.0));
     let model = Mat4::from_rotation_x((-90.0 + t * 6.0).to_radians()) * model;
@@ -178,13 +178,16 @@ fn render_chungus(
             };
 
             if mask == 0b111111 {
-                frame.draw(
-                    mesh.buffer(),
-                    fe.block_indeces(),
-                    &fe.shaders.block,
-                    &uniforms,
-                    &draw_parameters,
-                )?;
+                let index_count = (mesh.side_start[5] + mesh.side_square_count[5]) * 6;
+                if let Some(indeces) = fe.block_indeces().slice(..index_count) {
+                    frame.draw(
+                        mesh.buffer(),
+                        indeces,
+                        &fe.shaders.block,
+                        &uniforms,
+                        &draw_parameters,
+                    )?;
+                }
             } else {
                 for i in (0..6).filter(|i| (mask & (1 << i)) != 0) {
                     let start_offset = mesh.side_start[i] * 6;
@@ -240,7 +243,7 @@ fn render_game(
     frame: &mut glium::Frame,
     fe: &ClientState,
     game: &GameState,
-) -> Result<(), DrawError> {
+) -> Result<(), VoxelDrawError> {
     let (window_width, window_height) = fe.window_size();
     let projection = Mat4::perspective_rh_gl(
         fe.fov().to_radians(),
@@ -270,7 +273,7 @@ pub fn render_frame(
     frame: &mut glium::Frame,
     fe: &ClientState,
     game: &GameState,
-) -> Result<(), DrawError> {
+) -> Result<(), VoxelDrawError> {
     frame.clear(
         None,
         Some((0.32, 0.63, 0.96, 1.0)),
@@ -305,5 +308,6 @@ pub fn render_frame(
             blend: glium::draw_parameters::Blend::alpha_blending(),
             ..Default::default()
         },
-    )
+    )?;
+    Ok(())
 }
