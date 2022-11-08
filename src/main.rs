@@ -4,8 +4,10 @@ extern crate wolkenwelten_client;
 extern crate wolkenwelten_game;
 extern crate wolkenwelten_scripting;
 
-use wolkenwelten::{init, run_event_loop, AppState};
+use std::boxed::Box;
+use wolkenwelten::{init, run_event_loop, AppState, MessageSink};
 use wolkenwelten_client::ClientState;
+use wolkenwelten_common::Message;
 use wolkenwelten_game::GameState;
 use wolkenwelten_input_winit::InputState;
 use wolkenwelten_scripting::Runtime;
@@ -16,16 +18,35 @@ extern crate wolkenwelten_sound;
 pub fn main() {
     let (event_loop, display) = init();
     let render_state = ClientState::new(display).expect("Can't create ClientState");
+    let game_state = GameState::new();
+
+    let mut message_sinks: Vec<MessageSink> = vec![];
+    {
+        let particles = render_state.particles.clone();
+        let block_types = game_state.world.blocks.clone();
+        let λ = move |msgs: &Vec<Message>| {
+            let mut particles = particles.borrow_mut();
+            let block_types = block_types.borrow();
+            particles.msg_sink(msgs, &block_types);
+        };
+        message_sinks.push(Box::new(λ));
+    }
+    #[cfg(feature = "sound")]
+    {
+        let sfx = wolkenwelten_sound::SfxList::new();
+        let λ = move |msgs: &Vec<Message>| {
+            sfx.msg_sink(msgs);
+        };
+        message_sinks.push(Box::new(λ));
+    }
 
     // And after having set up everything we can start up the event loop
     run_event_loop(AppState {
-        game_state: GameState::new(),
+        game_state,
         render_state,
         event_loop,
         input: InputState::new(),
         runtime: Runtime::new(),
-
-        #[cfg(feature = "sound")]
-        sfx: wolkenwelten_sound::SfxList::new(),
+        message_sinks,
     })
 }

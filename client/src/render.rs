@@ -72,21 +72,23 @@ pub fn prepare_chunk(
     if let Some(chunk) = game.world.get_chunk(&pos) {
         if let Some(mesh) = fe.world_mesh.get_mut(&pos) {
             if chunk.get_light().get_last_updated() >= mesh.get_last_updated() {
+                let block_types = game.world.blocks.borrow();
                 mesh.update(
                     &fe.display,
                     chunk.get_block(),
                     chunk.get_light(),
-                    &game.world.blocks,
+                    &block_types,
                     now,
                 )?;
             }
         } else {
             let mut mesh = BlockMesh::new(&fe.display)?;
+            let block_types = game.world.blocks.borrow();
             mesh.update(
                 &fe.display,
                 chunk.get_block(),
                 chunk.get_light(),
-                &game.world.blocks,
+                &block_types,
                 now,
             )?;
             fe.world_mesh.insert(pos, mesh);
@@ -129,7 +131,6 @@ pub fn prepare_frame(
     fe.gc(game.player());
     fe.set_fov(calc_fov(fe.fov(), game.player()));
     prepare_chunks(fe, game)?;
-    fe.particles.update(game.player().pos, RENDER_DISTANCE);
     Ok(())
 }
 
@@ -257,8 +258,10 @@ fn render_game(
 
     let view = view * Mat4::from_translation(-game.player().pos);
     let mvp = projection * view;
-    fe.particles
-        .draw(frame, &fe.display, &fe.shaders.particle, &mvp)?;
+    {
+        let particles = fe.particles.borrow();
+        particles.draw(frame, &fe.display, &fe.shaders.particle, &mvp)?;
+    }
 
     for entity in game.entities.iter() {
         draw_entity(frame, fe, entity, &view, &projection)?;

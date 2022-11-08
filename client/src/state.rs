@@ -16,6 +16,8 @@ use self::static_meshes::MeshListCreationError;
 pub use self::static_shaders::ShaderList;
 pub use self::static_textures::TextureList;
 use self::static_textures::TextureListLoadError;
+use std::cell::RefCell;
+use std::rc::Rc;
 
 #[derive(Debug)]
 pub struct ClientState {
@@ -33,7 +35,7 @@ pub struct ClientState {
     pub textures: TextureList,
 
     pub ui_mesh: TextMesh,
-    pub particles: ParticleMesh,
+    pub particles: Rc<RefCell<ParticleMesh>>,
 
     ticks: u64,
     cur_fov: f32,
@@ -84,7 +86,7 @@ impl ClientState {
         let ui_mesh = TextMesh::new(&display)?;
         let textures = TextureList::new(&display)?;
         let block_index_buffer = BlockMesh::gen_index_buffer(&display, 65536 / 4)?;
-        let particles = ParticleMesh::new();
+        let particles = Rc::new(RefCell::new(ParticleMesh::new()));
 
         Ok(Self {
             instant: Instant::now(),

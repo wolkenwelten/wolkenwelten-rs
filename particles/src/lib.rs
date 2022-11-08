@@ -7,7 +7,7 @@ use rand::prelude::*;
 use rand::Rng;
 use rand_chacha::ChaCha8Rng;
 use rgb::RGBA8;
-use wolkenwelten_common::{Message, ParticleEvent};
+use wolkenwelten_common::{BlockType, GameEvent, Message, SyncEvent};
 
 #[derive(Copy, Clone, Debug)]
 struct ParticleVertex {
@@ -21,37 +21,47 @@ implement_vertex!(ParticleVertex, pos normalize(false), color normalize(true));
 pub struct ParticleMesh {
     particles: Vec<ParticleVertex>,
     rng: ChaCha8Rng,
+    last_update: u64,
 }
 
 impl Default for ParticleMesh {
     fn default() -> Self {
         Self {
             particles: vec![],
+            last_update: 0,
             rng: ChaCha8Rng::from_entropy(),
         }
     }
 }
 
 impl ParticleMesh {
+    /// Construct a new ParticleMesh
     pub fn new() -> Self {
         Default::default()
     }
 
+    /// Return whether there are any particles currently active
     pub fn is_empty(&self) -> bool {
         self.particles.is_empty()
     }
 
+    /// Return the amount of particles currently active
     pub fn len(&self) -> usize {
         self.particles.len()
     }
 
-    pub fn update(&mut self, player_pos: glam::Vec3, render_distance: f32) {
+    /// Here we do the actual particle updates, as soon as a particle's size goes below 1,
+    /// or it is far away it will be removed from the list.
+    fn update(&mut self, player_pos: glam::Vec3, ticks: u64, render_distance: f32) {
+        let delta = (ticks - self.last_update) as f32 / (1000.0 / 60.0);
+        self.last_update = ticks;
+
         self.particles.retain_mut(|p| {
-            p.vel[1] -= 0.001;
-            p.pos[0] += p.vel[0];
-            p.pos[1] += p.vel[1];
-            p.pos[2] += p.vel[2];
-            p.pos[3] += p.vel[3];
+            p.vel[1] -= 0.001 * delta;
+            p.pos[0] += p.vel[0] * delta;
+            p.pos[1] += p.vel[1] * delta;
+            p.pos[2] += p.vel[2] * delta;
+            p.pos[3] += p.vel[3] * delta;
 
             let dx = (player_pos.x - p.pos[0]).abs();
             let dy = (player_pos.y - p.pos[1]).abs();
@@ -62,6 +72,7 @@ impl ParticleMesh {
         })
     }
 
+    /// Interal function creating particles that resemble an explosion
     fn fx_explosion(&mut self, pos: Vec3, power: f32) {
         let power = power * 0.66;
         for _ in 1..256 {
@@ -133,6 +144,7 @@ impl ParticleMesh {
         }
     }
 
+    /// Interal function creating particles that look like a block breaking apart
     fn fx_block_break(&mut self, pos: IVec3, color: [RGBA8; 2]) {
         for color in color.iter() {
             for _ in 1..64 {
@@ -162,21 +174,39 @@ impl ParticleMesh {
         }
     }
 
+    /// Internal function creating an effect after a block has been placed
     fn fx_block_place(&mut self, pos: IVec3, color: [RGBA8; 2]) {
         self.fx_block_break(pos, color)
     }
 
-    pub fn msg_sink(&mut self, msgs: &Vec<Message>) {
+    /// The particle message sink, should be called after the main game handler since
+    /// here we produce particle effects based on events happening in the game.
+    ///
+    /// Also updates all the old particles whenever we receive a DrawFrame message.
+    pub fn msg_sink(&mut self, msgs: &Vec<Message>, block_types: &Vec<BlockType>) {
         msgs.iter().for_each(|e| match e {
-            Message::ParticleEvent(e) => match e {
-                ParticleEvent::Explosion(pos, power) => self.fx_explosion(*pos, *power),
-                ParticleEvent::BlockBreak(pos, color) => self.fx_block_break(*pos, *color),
-                ParticleEvent::BlockPlace(pos, color) => self.fx_block_place(*pos, *color),
+            Message::SyncEvent(SyncEvent::DrawFrame(player_pos, ticks, render_distance)) => {
+                self.update(*player_pos, *ticks, *render_distance);
+            }
+            Message::GameEvent(e) => match e {
+                GameEvent::BlockMine(pos, b) => {
+                    let color = block_types[*b as usize].colors();
+                    self.fx_block_break(*pos, color);
+                }
+                GameEvent::BlockPlace(pos, b) => {
+                    let color = block_types[*b as usize].colors();
+                    self.fx_block_place(*pos, color)
+                }
+                GameEvent::EntityCollision(pos) => {
+                    self.fx_explosion(*pos, 4.0);
+                }
+                _ => (),
             },
             _ => (),
         });
     }
 
+    /// Draw all the particles currently active
     pub fn draw(
         &self,
         frame: &mut glium::Frame,

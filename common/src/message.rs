@@ -1,7 +1,6 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
 use glam::{IVec3, Vec3};
-use rgb::RGBA8;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
@@ -26,22 +25,14 @@ pub enum GameEvent {
     BlockMine(IVec3, u8),
     BlockPlace(IVec3, u8),
     EntityCollision(Vec3),
-    GameQuit,
 }
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub enum SyncEvent {
-    DrawFrame(u64),
+    DrawFrame(Vec3, u64, f32),
     GameTick(u64),
-    GameQuit(u64),
+    GameQuit,
     GameInit,
-}
-
-#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
-pub enum ParticleEvent {
-    Explosion(Vec3, f32),
-    BlockBreak(IVec3, [RGBA8; 2]),
-    BlockPlace(IVec3, [RGBA8; 2]),
 }
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
@@ -49,7 +40,6 @@ pub enum Message {
     InputEvent(InputEvent),
     GameEvent(GameEvent),
     SyncEvent(SyncEvent),
-    ParticleEvent(ParticleEvent),
 }
 
 impl From<InputEvent> for Message {
@@ -65,10 +55,5 @@ impl From<GameEvent> for Message {
 impl From<SyncEvent> for Message {
     fn from(e: SyncEvent) -> Self {
         Self::SyncEvent(e)
-    }
-}
-impl From<ParticleEvent> for Message {
-    fn from(e: ParticleEvent) -> Self {
-        Self::ParticleEvent(e)
     }
 }

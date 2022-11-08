@@ -4,14 +4,16 @@ use super::block_types;
 use super::{Character, Chunk};
 use glam::f32::Vec3;
 use glam::i32::IVec3;
+use std::cell::RefCell;
 use std::collections::HashMap;
+use std::rc::Rc;
 use wolkenwelten_common::{
     BlockType, ChunkBlockData, ChunkLightData, CHUNK_BITS, CHUNK_MASK, CHUNK_SIZE,
 };
 
 #[derive(Debug)]
 pub struct Chungus {
-    pub blocks: Vec<BlockType>,
+    pub blocks: Rc<RefCell<Vec<BlockType>>>,
     pub chunks: HashMap<IVec3, Chunk>,
 }
 
@@ -54,11 +56,6 @@ impl Chungus {
             Some(chunk) => Some(chunk.get_light()),
             None => None,
         }
-    }
-
-    #[inline]
-    pub fn get_block_type(&self, i: u8) -> &BlockType {
-        &self.blocks[i as usize]
     }
 
     pub fn is_loaded(&self, pos: Vec3) -> bool {
@@ -128,7 +125,7 @@ impl Chungus {
 impl Default for Chungus {
     fn default() -> Self {
         Self {
-            blocks: block_types::load_all(),
+            blocks: Rc::new(RefCell::new(block_types::load_all())),
             chunks: HashMap::with_capacity(512),
         }
     }

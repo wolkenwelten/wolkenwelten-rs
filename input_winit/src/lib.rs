@@ -8,7 +8,7 @@ use winit::event::{
     DeviceEvent, ElementState, Event, KeyboardInput, MouseButton, MouseScrollDelta, VirtualKeyCode,
     WindowEvent,
 };
-use wolkenwelten_common::{GameEvent, InputEvent, Message};
+use wolkenwelten_common::{InputEvent, Message, SyncEvent};
 use wolkenwelten_game::{GameState, RaycastReturn};
 
 #[derive(Clone, Copy, Debug, Default, Enum)]
@@ -147,7 +147,7 @@ impl InputState {
                     state: ElementState::Pressed,
                     virtual_keycode: Some(VirtualKeyCode::Escape),
                     ..
-                } => self.queue.push(GameEvent::GameQuit.into()),
+                } => self.queue.push(SyncEvent::GameQuit.into()),
 
                 KeyboardInput {
                     state,

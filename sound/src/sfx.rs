@@ -81,7 +81,7 @@ impl SfxList {
                 GameEvent::BlockPlace(_, _) => self.play(&self.pock, 0.3),
                 GameEvent::CharacterStomp(_) => self.play(&self.stomp, 0.3),
                 GameEvent::EntityCollision(_) => self.play(&self.bomb, 0.3),
-                _ => (),
+                //_ => (),
             },
             _ => (),
         });

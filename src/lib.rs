@@ -10,13 +10,12 @@ use winit::window::{CursorGrabMode, Fullscreen, Window, WindowBuilder};
 
 use winit::dpi::PhysicalPosition;
 use wolkenwelten_client::{prepare_frame, render_frame, ClientState, RENDER_DISTANCE};
-use wolkenwelten_common::{GameEvent, Message, ParticleEvent, SyncEvent};
+use wolkenwelten_common::{GameEvent, Message, SyncEvent};
 use wolkenwelten_game::GameState;
 use wolkenwelten_input_winit::InputState;
 use wolkenwelten_scripting::Runtime;
 
-#[cfg(feature = "sound")]
-use wolkenwelten_sound::SfxList;
+pub type MessageSink = Box<dyn Fn(&Vec<Message>)>;
 
 /// Stores everything necessary to run a WolkenWelten instance
 pub struct AppState {
@@ -25,9 +24,7 @@ pub struct AppState {
     pub input: InputState,
     pub event_loop: EventLoop<()>,
     pub runtime: Runtime,
-
-    #[cfg(feature = "sound")]
-    pub sfx: SfxList,
+    pub message_sinks: Vec<MessageSink>,
 }
 
 /// Try and grab the cursor, first by locking, then by confiningg it
@@ -83,9 +80,6 @@ pub fn run_event_loop(state: AppState) {
     let event_loop = state.event_loop;
     let mut runtime = state.runtime;
 
-    #[cfg(feature = "sound")]
-    let sfx = state.sfx;
-
     let mut msgs: Vec<Message> = vec![];
     game.set_render_distance(RENDER_DISTANCE * RENDER_DISTANCE);
 
@@ -140,43 +134,27 @@ pub fn run_event_loop(state: AppState) {
             }
 
             Event::MainEventsCleared => {
-                msgs.push(SyncEvent::DrawFrame(render.ticks()).into());
+                msgs.push(
+                    SyncEvent::DrawFrame(game.player().pos, render.ticks(), RENDER_DISTANCE).into(),
+                );
                 msgs.extend(input.tick(&game));
-
                 msgs.extend(game.tick(&msgs));
-
-                let mut emissions: Vec<Message> = vec![];
-                msgs.iter().for_each(|e| {
-                    if let Message::GameEvent(m) = e {
-                        match m {
-                            GameEvent::CharacterDeath(_) => {
-                                game.player_rebirth();
-                            }
-                            GameEvent::GameQuit => *control_flow = ControlFlow::Exit,
-                            GameEvent::BlockMine(pos, b) => {
-                                let color = game.world.get_block_type(*b).colors();
-                                emissions.push(ParticleEvent::BlockBreak(*pos, color).into());
-                            }
-                            GameEvent::BlockPlace(pos, b) => {
-                                let color = game.world.get_block_type(*b).colors();
-                                emissions.push(ParticleEvent::BlockPlace(*pos, color).into());
-                            }
-                            GameEvent::EntityCollision(pos) => {
-                                game.world.add_explosion(pos, 5.0);
-                                emissions.push(ParticleEvent::Explosion(*pos, 4.0).into());
-                            }
-                            _ => (),
+                msgs.iter().for_each(|e| match e {
+                    Message::SyncEvent(SyncEvent::GameQuit) => *control_flow = ControlFlow::Exit,
+                    Message::GameEvent(m) => match m {
+                        GameEvent::CharacterDeath(_) => {
+                            game.player_rebirth();
                         }
-                    }
+                        GameEvent::EntityCollision(pos) => {
+                            game.world.add_explosion(pos, 5.0);
+                        }
+                        _ => (),
+                    },
+                    _ => (),
                 });
-                msgs.extend(emissions);
+                state.message_sinks.iter().for_each(|λ| λ(&msgs));
 
-                #[cfg(feature = "sound")]
-                sfx.msg_sink(&msgs);
-
-                render.particles.msg_sink(&msgs);
                 msgs.clear();
-
                 render.request_redraw();
             }
             _ => {}
