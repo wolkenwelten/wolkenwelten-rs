@@ -12,7 +12,7 @@ mod entity;
 mod held_item;
 mod sky;
 
-pub const RENDER_DISTANCE: f32 = 192.0;
+pub const RENDER_DISTANCE: f32 = if cfg!(debug_assertions) { 192.0 } else { 256.0 };
 pub const FADE_DISTANCE: f32 = 32.0;
 
 fn calc_fov(fov: f32, player: &Character) -> f32 {
@@ -44,7 +44,8 @@ fn render_game(frame: &mut glium::Frame, fe: &ClientState, game: &GameState) -> 
     let view = view * Mat4::from_translation(-game.player().pos);
     let mvp = projection * view;
     {
-        let particles = fe.particles.borrow();
+        let particles = fe.particles();
+        let particles = particles.borrow();
         particles.draw(frame, &fe.display, &fe.shaders.particle, &mvp)?;
     }
 

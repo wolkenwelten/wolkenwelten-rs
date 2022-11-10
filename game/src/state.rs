@@ -9,13 +9,10 @@ use wolkenwelten_common::{
     ChunkBlockData, ChunkLightData, GameEvent, InputEvent, Message, SyncEvent, CHUNK_BITS,
     CHUNK_MASK, CHUNK_SIZE,
 };
+use wolkenwelten_scripting::Runtime;
 
 const MS_PER_TICK: u64 = 4;
-
-#[cfg(debug_assertions)]
-const MAX_CHUNKS_GENERATED_PER_FRAME: usize = 1;
-#[cfg(not(debug_assertions))]
-const MAX_CHUNKS_GENERATED_PER_FRAME: usize = 8;
+const MAX_CHUNKS_GENERATED_PER_FRAME: usize = 16;
 
 #[derive(Debug, Default)]
 struct QueueEntry {
@@ -48,13 +45,13 @@ impl PartialEq for QueueEntry {
     }
 }
 
-#[derive(Debug)]
 pub struct GameState {
     pub clock: Instant,
     pub ticks_elapsed: u64,
     pub last_gc: u64,
     pub running: bool,
     pub entities: Vec<Entity>,
+    pub runtime: Runtime,
     pub world: Chungus,
 
     player: Character,
@@ -66,7 +63,8 @@ impl Default for GameState {
         let running = true;
         let entities = Vec::new();
         let mut player = Character::new();
-        player.set_pos(Vec3::new(-15.0, 0.0, -15.0));
+        player.set_pos(Vec3::new(-15.0, 6.0, -15.0));
+        player.set_rot(Vec3::new(180.0, 0.0, 0.0));
 
         Self {
             clock: Instant::now(),
@@ -76,6 +74,7 @@ impl Default for GameState {
             ticks_elapsed: 0,
             last_gc: 0,
             render_distance: 128.0 * 128.0,
+            runtime: Runtime::new(),
             world: Chungus::default(),
         }
     }
@@ -113,7 +112,7 @@ impl GameState {
 
     pub fn player_rebirth(&mut self) {
         let mut player = Character::new();
-        player.set_pos(Vec3::new(-15.0, 0.0, -15.0));
+        player.set_pos(Vec3::new(-15.0, 6.0, -15.0));
         self.player = player;
     }
 
@@ -199,6 +198,7 @@ impl GameState {
             self.ticks_elapsed += 1;
             Entity::tick(&mut self.entities, &mut events, &self.player, &self.world);
             self.player.tick(player_movement, &mut events, &self.world);
+            self.runtime.tick(self.get_millis());
         }
         if self.ticks_elapsed > self.last_gc {
             self.world.gc(&self.player, self.render_distance);
@@ -211,7 +211,7 @@ impl GameState {
     pub fn worldgen_chunk(&mut self, pos: IVec3) -> bool {
         match self.world.get_chunk_mut(&pos) {
             None => {
-                self.world.chunks.insert(pos, Chunk::new(pos));
+                self.world.chunks.insert(pos, Chunk::new(&self.world, pos));
                 true
             }
             Some(chunk) => {

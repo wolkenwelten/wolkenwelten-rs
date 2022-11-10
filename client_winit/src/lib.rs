@@ -2,7 +2,6 @@
 // All rights reserved. AGPL-3.0+ license.
 extern crate wolkenwelten_client;
 extern crate wolkenwelten_game;
-extern crate wolkenwelten_scripting;
 
 mod input;
 pub use input::InputState;
@@ -15,7 +14,6 @@ use winit::window::{CursorGrabMode, Fullscreen, Window, WindowBuilder};
 use wolkenwelten_client::{prepare_frame, render_frame, ClientState, RENDER_DISTANCE};
 use wolkenwelten_common::{GameEvent, Message, SyncEvent};
 use wolkenwelten_game::GameState;
-use wolkenwelten_scripting::Runtime;
 
 pub type MessageSink = Box<dyn Fn(&Vec<Message>)>;
 
@@ -25,7 +23,6 @@ pub struct AppState {
     pub render_state: ClientState,
     pub input: InputState,
     pub event_loop: EventLoop<()>,
-    pub runtime: Runtime,
     pub message_sinks: Vec<MessageSink>,
 }
 
@@ -80,7 +77,6 @@ pub fn run_event_loop(state: AppState) {
     let mut game = state.game_state;
     let mut input = state.input;
     let event_loop = state.event_loop;
-    let mut runtime = state.runtime;
 
     let mut msgs: Vec<Message> = vec![];
     game.set_render_distance(RENDER_DISTANCE * RENDER_DISTANCE);
@@ -157,7 +153,6 @@ pub fn run_event_loop(state: AppState) {
 
                 msgs.clear();
                 render.request_redraw();
-                runtime.tick(game.get_millis());
             }
             _ => {}
         };
@@ -171,7 +166,7 @@ pub fn start_app(game_state: GameState, sinks: Vec<MessageSink>) {
     let mut message_sinks: Vec<MessageSink> = Vec::new();
     message_sinks.extend(sinks);
     {
-        let particles = render_state.particles.clone();
+        let particles = render_state.particles().clone();
         let block_types = game_state.world.blocks.clone();
         let λ = move |msgs: &Vec<Message>| {
             let mut particles = particles.borrow_mut();
@@ -186,7 +181,6 @@ pub fn start_app(game_state: GameState, sinks: Vec<MessageSink>) {
         render_state,
         event_loop,
         input: InputState::new(),
-        runtime: Runtime::new(),
         message_sinks,
     })
 }

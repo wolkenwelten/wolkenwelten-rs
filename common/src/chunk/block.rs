@@ -1,6 +1,7 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
 use crate::CHUNK_SIZE;
+use glam::IVec3;
 use std::time::Instant;
 
 #[derive(Clone, Debug)]
@@ -28,16 +29,16 @@ impl ChunkBlockData {
     }
 
     #[inline]
-    pub fn get_block(&self, (x, y, z): (i32, i32, i32)) -> u8 {
-        self.data[x as usize][y as usize][z as usize]
+    pub fn get_block(&self, pos: IVec3) -> u8 {
+        self.data[pos.x as usize][pos.y as usize][pos.z as usize]
     }
 
-    pub fn set_block(&mut self, block: u8, (x, y, z): (i32, i32, i32)) {
+    pub fn set_block(&mut self, block: u8, pos: IVec3) {
         self.last_updated = Instant::now();
-        self.data[x as usize][y as usize][z as usize] = block
+        self.data[pos.x as usize][pos.y as usize][pos.z as usize] = block
     }
 
-    pub fn set_sphere(&mut self, block: u8, (x, y, z): (i32, i32, i32), radius: i32) {
+    pub fn set_sphere(&mut self, block: u8, pos: IVec3, radius: i32) {
         self.last_updated = Instant::now();
         let rr = radius * radius;
         for cx in -radius..radius {
@@ -45,21 +46,32 @@ impl ChunkBlockData {
                 for cz in -radius..radius {
                     let dist = (cx * cx) + (cy * cy) + (cz * cz);
                     if dist < rr {
-                        self.data[(x + cx) as usize][(y + cy) as usize][(z + cz) as usize] = block;
+                        self.data[(pos.x + cx) as usize][(pos.y + cy) as usize]
+                            [(pos.z + cz) as usize] = block;
                     }
                 }
             }
         }
     }
 
-    pub fn set_box(&mut self, block: u8, (x, y, z): (i32, i32, i32), (w, h, d): (i32, i32, i32)) {
+    pub fn set_box(&mut self, block: u8, pos: IVec3, size: IVec3) {
         self.last_updated = Instant::now();
+        let [w, h, d] = size.to_array();
         for cx in 0..w {
             for cy in 0..h {
                 for cz in 0..d {
-                    self.data[(x + cx) as usize][(y + cy) as usize][(z + cz) as usize] = block;
+                    self.data[(pos.x + cx) as usize][(pos.y + cy) as usize]
+                        [(pos.z + cz) as usize] = block;
                 }
             }
+        }
+    }
+
+    pub fn set_pillar(&mut self, block: u8, pos: IVec3, goal_y: i32) {
+        let y = pos.y.max(0);
+        let goal_y = goal_y.min(CHUNK_SIZE as i32);
+        for y in y..goal_y {
+            self.data[pos.x as usize][y as usize][pos.z as usize] = block;
         }
     }
 }

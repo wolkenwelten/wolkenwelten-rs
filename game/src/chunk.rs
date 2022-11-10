@@ -1,6 +1,7 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
 use super::worldgen;
+use crate::Chungus;
 use glam::IVec3;
 use wolkenwelten_common::{ChunkBlockData, ChunkLightData};
 
@@ -11,8 +12,8 @@ pub struct Chunk {
 }
 
 impl Chunk {
-    pub fn new(pos: IVec3) -> Self {
-        let block = worldgen::chunk(pos);
+    pub fn new(world: &Chungus, pos: IVec3) -> Self {
+        let block = worldgen::chunk(world, pos);
         let light = ChunkLightData::new(&block);
         Self { block, light }
     }

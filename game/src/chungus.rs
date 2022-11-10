@@ -4,6 +4,8 @@ use super::block_types;
 use super::{Character, Chunk};
 use glam::f32::Vec3;
 use glam::i32::IVec3;
+use noise::{Seedable,Perlin};
+use noise::utils::{NoiseMap, NoiseMapBuilder, PlaneMapBuilder};
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
@@ -11,10 +13,12 @@ use wolkenwelten_common::{
     BlockType, ChunkBlockData, ChunkLightData, CHUNK_BITS, CHUNK_MASK, CHUNK_SIZE,
 };
 
-#[derive(Debug)]
 pub struct Chungus {
     pub blocks: Rc<RefCell<Vec<BlockType>>>,
     pub chunks: HashMap<IVec3, Chunk>,
+    elevation: NoiseMap,
+    displacement: NoiseMap,
+    noise_map: NoiseMap,
 }
 
 impl Chungus {
@@ -35,6 +39,21 @@ impl Chungus {
     #[inline]
     pub fn get_chunk_mut(&mut self, k: &IVec3) -> Option<&mut Chunk> {
         self.chunks.get_mut(k)
+    }
+
+    #[inline]
+    pub fn elevation(&self) -> &NoiseMap {
+        &self.elevation
+    }
+
+    #[inline]
+    pub fn displacement(&self) -> &NoiseMap {
+        &self.displacement
+    }
+
+    #[inline]
+    pub fn noise_map(&self) -> &NoiseMap {
+        &self.noise_map
     }
 
     pub fn get(&self, k: &IVec3) -> Option<&ChunkBlockData> {
@@ -90,16 +109,14 @@ impl Chungus {
     pub fn set_block(&mut self, pos: IVec3, block: u8) {
         let cp = pos >> CHUNK_BITS;
         if let Some(chnk) = self.get_mut(&cp) {
-            let pos = pos & CHUNK_MASK;
-            chnk.set_block(block, (pos.x, pos.y, pos.z));
+            chnk.set_block(block, pos & CHUNK_MASK);
         }
     }
 
     pub fn get_block(&mut self, pos: IVec3) -> Option<u8> {
         let cp = pos >> CHUNK_BITS;
         if let Some(chnk) = self.get(&cp) {
-            let pos = pos & CHUNK_MASK;
-            Some(chnk.get_block((pos.x, pos.y, pos.z)))
+            Some(chnk.get_block(pos & CHUNK_MASK))
         } else {
             None
         }
@@ -124,9 +141,32 @@ impl Chungus {
 
 impl Default for Chungus {
     fn default() -> Self {
+        let simplex: Perlin = Perlin::default();
+        simplex.set_seed(1234);
+        let elevation: NoiseMap = PlaneMapBuilder::<Perlin, 2>::new(simplex)
+            .set_size(2048, 2048)
+            .set_x_bounds(-5.0, 5.0)
+            .set_y_bounds(-5.0, 5.0)
+            .build();
+
+        let simplex: Perlin = Perlin::default();
+        simplex.set_seed(2345);
+        let displacement: NoiseMap = PlaneMapBuilder::<Perlin, 2>::new(simplex)
+            .set_size(128, 128)
+            .build();
+
+        let simplex: Perlin = Perlin::default();
+        simplex.set_seed(3456);
+        let noise_map: NoiseMap = PlaneMapBuilder::<Perlin, 2>::new(simplex)
+            .set_size(128, 128)
+            .build();
+
         Self {
             blocks: Rc::new(RefCell::new(block_types::load_all())),
             chunks: HashMap::with_capacity(512),
+            elevation,
+            displacement,
+            noise_map,
         }
     }
 }

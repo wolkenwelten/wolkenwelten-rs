@@ -91,11 +91,12 @@ impl VoxelMesh {
         let mut chunk = ChunkBlockData::new();
         model.voxels.iter().for_each(|vox| {
             let b = vox.color_index.into();
-            let pos = (
+            let pos = [
                 (vox.point.x + 1).into(),
                 (vox.point.y + 1).into(),
                 (vox.point.z + 1).into(),
-            );
+            ]
+            .into();
             chunk.set_block(b, pos);
         });
         let light = ChunkLightData::new(&chunk);

@@ -93,7 +93,8 @@ fn prepare_block_selection(fe: &mut ClientState, game: &GameState) {
 
 #[cfg(debug_assertions)]
 fn prepare_debug_text(fe: &mut ClientState, game: &GameState) {
-    let particles = fe.particles.borrow();
+    let particles = fe.particles();
+    let particles = particles.borrow();
     let col_text = format!(
         "Entities: {}   Chunks: {}   BlockMeshes: {}  Particles: {}",
         game.get_entity_count(),

@@ -34,7 +34,7 @@ pub struct ClientState {
     pub textures: TextureList,
 
     pub ui_mesh: TextMesh,
-    pub particles: Rc<RefCell<ParticleMesh>>,
+    particles: Rc<RefCell<ParticleMesh>>,
 
     ticks: u64,
     cur_fov: f32,
@@ -87,6 +87,11 @@ impl ClientState {
     #[inline]
     pub fn block_indeces(&self) -> &glium::IndexBuffer<u16> {
         &self.block_index_buffer
+    }
+
+    #[inline]
+    pub fn particles(&self) -> Rc<RefCell<ParticleMesh>> {
+        self.particles.clone()
     }
 
     #[inline]

@@ -1,81 +1,85 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
+use crate::Chungus;
 use glam::IVec3;
 use rand::prelude::*;
 use rand::Rng;
 use rand_xorshift::XorShiftRng;
 use wolkenwelten_common::{ChunkBlockData, CHUNK_SIZE};
 
-fn worldgen_island(rng: &mut XorShiftRng) -> ChunkBlockData {
-    let mut chunk = ChunkBlockData::new();
-    if rng.gen_range(0..4) == 0 {
-        chunk.set_block(3, (8, 15, 8));
-    }
-    chunk.set_sphere(
-        2,
-        (
-            CHUNK_SIZE as i32 / 2,
-            CHUNK_SIZE as i32 / 2 + 2,
-            CHUNK_SIZE as i32 / 2,
-        ),
-        CHUNK_SIZE as i32 / 3,
-    );
-    chunk.set_sphere(
-        1,
-        (
-            CHUNK_SIZE as i32 / 2,
-            CHUNK_SIZE as i32 / 2 + 1,
-            CHUNK_SIZE as i32 / 2,
-        ),
-        CHUNK_SIZE as i32 / 3,
-    );
-    chunk.set_sphere(
-        3,
-        (
-            CHUNK_SIZE as i32 / 2,
-            CHUNK_SIZE as i32 / 2,
-            CHUNK_SIZE as i32 / 2,
-        ),
-        CHUNK_SIZE as i32 / 3,
-    );
-    if rng.gen_range(0..4) == 0 {
-        chunk.set_box(15, (14, 3, 12), (2, 3, 3));
-    }
-    chunk
-}
+mod rock;
+use rock::*;
+mod vegetation;
+use vegetation::*;
 
-fn worldgen_block(rng: &mut XorShiftRng) -> ChunkBlockData {
-    let mut chunk = ChunkBlockData::new();
-    let ox = rng.gen_range(0..=CHUNK_SIZE / 8);
-    let oy = rng.gen_range(0..=CHUNK_SIZE / 8);
-    let oz = rng.gen_range(0..=CHUNK_SIZE / 8);
-    let ow = rng.gen_range(0..=CHUNK_SIZE / 8);
-    let oh = rng.gen_range(0..=CHUNK_SIZE / 8);
-    let od = rng.gen_range(0..=CHUNK_SIZE / 8);
-    let block = rng.gen_range(4..16);
-    let pos = (
-        (CHUNK_SIZE / 2 + ox) as i32,
-        (CHUNK_SIZE / 2 + oy) as i32,
-        (CHUNK_SIZE / 2 + oz) as i32,
-    );
-    let size = (
-        (CHUNK_SIZE / 4 + ow) as i32,
-        (CHUNK_SIZE / 4 + oh) as i32,
-        (CHUNK_SIZE / 4 + od) as i32,
-    );
-    chunk.set_box(block, pos, size);
-    chunk
-}
+pub fn chunk(world: &Chungus, pos: IVec3) -> ChunkBlockData {
+    let ele = world.elevation();
+    let dis = world.displacement();
+    let noi = world.noise_map();
 
-pub fn chunk(pos: IVec3) -> ChunkBlockData {
     let mut rng = XorShiftRng::seed_from_u64(
         (pos.x * pos.x + pos.y * pos.y + pos.z * pos.z)
             .try_into()
             .unwrap(),
     );
-    match rng.gen_range(0..6) {
-        0 | 1 => worldgen_island(&mut rng),
-        2 => worldgen_block(&mut rng),
-        _ => ChunkBlockData::new(),
+    let px = pos.x * CHUNK_SIZE as i32;
+    let py = pos.y * CHUNK_SIZE as i32;
+    let pz = pos.z * CHUNK_SIZE as i32;
+
+    let mut r = ChunkBlockData::default();
+    for x in 0..CHUNK_SIZE as i32 {
+        for z in 0..CHUNK_SIZE as i32 {
+            let nx = ((x + px) + 1028) & 4095;
+            let nx = if nx >= 2048 { 4095 - nx} else { nx };
+            let nz = ((z + pz) + 1028) & 4095;
+            let nz = if nz >= 2048 { 4095 - nz} else { nz };
+            let v = ele.get_value(nx as usize, nz as usize) * 512.0;
+            let y = if v < 0.0 {v * 0.1} else {v * 0.3};
+
+            let nx = ((x + px) + 64) & 255;
+            let nx = if nx >= 128 { 255 - nx} else { nx };
+            let nz = ((z + pz) + 64) & 255;
+            let nz = if nz >= 128 { 255 - nz} else { nz };
+            let d = dis.get_value(nx as usize, nz as usize);
+            let y = y + d * 8.0;
+
+            let nx = ((x + px) + 64) & 255;
+            let nx = if nx >= 128 { 255 - nx} else { nx };
+            let nz = ((z + pz) + 64) & 255;
+            let nz = if nz >= 128 { 255 - nz} else { nz };
+            let d = noi.get_value(nx as usize, nz as usize);
+            let y = y + d * 4.0;
+
+            let stone_y = if y > 8.0 {
+                (y * 2.0) as i32 + rng.gen_range(-1..=1)
+            } else {
+                (y * 2.0) as i32
+            };
+            let grass_y = y as i32 + 6;
+            let snow_y = if y > 96.0 {
+                (y*2.0 + 2.0) as i32
+            } else {
+                0
+            };
+            r.set_pillar(1, [x, stone_y - py, z].into(), grass_y - py);
+            if grass_y > (stone_y + 4) {
+                r.set_pillar(2, [x, grass_y-py-1, z].into(), grass_y - py);
+            } else {
+                r.set_pillar(13, [x, stone_y - py, z].into(), snow_y - py);
+            }
+            r.set_pillar(3, [x, (-(1<<30)) - py, z].into(), stone_y - py);
+            if grass_y > (stone_y + 8) {
+                if rng.gen_range(1..50) == 1 {
+                    r.wg_shrub((x, grass_y - py, z).into());
+                }
+                if rng.gen_range(1..500) == 1 {
+                    r.wg_tree((x, grass_y - py, z).into());
+                }
+                if rng.gen_range(1..1000) == 1 {
+                    r.wg_rock((x, grass_y - py - 2, z).into());
+                }
+            }
+        }
     }
+    r
 }
