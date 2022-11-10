@@ -1,5 +1,5 @@
 [package]
-name = "wolkenwelten-input-winit"
+name = "wolkenwelten-client-winit"
 version = "0.0.1"
 edition = "2021"
 license = "AGPL-3.0-or-later"
@@ -9,5 +9,8 @@ homepage = "https://wolkenwelten.net"
 enum-map = "2.4"
 winit = "0.27"
 glam = "0.22"
+glium = "0.32"
+wolkenwelten-client = { path = "../client" }
 wolkenwelten-common = { path = "../common" }
 wolkenwelten-game = { path = "../game" }
+wolkenwelten-scripting = { path = "../scripting" }

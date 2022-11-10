@@ -4,15 +4,17 @@ extern crate wolkenwelten_client;
 extern crate wolkenwelten_game;
 extern crate wolkenwelten_scripting;
 
+mod input;
+pub use input::InputState;
+
+use winit::dpi::PhysicalPosition;
 use winit::event::{DeviceEvent, Event, WindowEvent};
 use winit::event_loop::{ControlFlow, EventLoop};
 use winit::window::{CursorGrabMode, Fullscreen, Window, WindowBuilder};
 
-use winit::dpi::PhysicalPosition;
 use wolkenwelten_client::{prepare_frame, render_frame, ClientState, RENDER_DISTANCE};
 use wolkenwelten_common::{GameEvent, Message, SyncEvent};
 use wolkenwelten_game::GameState;
-use wolkenwelten_input_winit::InputState;
 use wolkenwelten_scripting::Runtime;
 
 pub type MessageSink = Box<dyn Fn(&Vec<Message>)>;
@@ -29,7 +31,7 @@ pub struct AppState {
 
 /// Try and grab the cursor, first by locking, then by confiningg it
 /// This also makes the cursor invisible
-pub fn grab_cursor(window: &Window) {
+fn grab_cursor(window: &Window) {
     window.set_cursor_visible(false);
     let e = window.set_cursor_grab(CursorGrabMode::Locked);
     if e.is_ok() {
@@ -42,7 +44,7 @@ pub fn grab_cursor(window: &Window) {
 }
 
 /// Let go of the cursor and restore cursor visibility
-pub fn ungrab_cursor(window: &Window) {
+fn ungrab_cursor(window: &Window) {
     window.set_cursor_visible(true);
     let _ = window.set_cursor_grab(CursorGrabMode::None);
 }
@@ -126,7 +128,9 @@ pub fn run_event_loop(state: AppState) {
             }
 
             Event::RedrawRequested(_) => {
-                runtime.tick(game.get_millis());
+                msgs.push(
+                    SyncEvent::DrawFrame(game.player().pos, render.ticks(), RENDER_DISTANCE).into(),
+                );
                 let mut frame = render.display.draw();
                 prepare_frame(&mut render, &game).expect("Error during frame preparation");
                 render_frame(&mut frame, &render, &game).expect("Error during rendering");
@@ -134,9 +138,6 @@ pub fn run_event_loop(state: AppState) {
             }
 
             Event::MainEventsCleared => {
-                msgs.push(
-                    SyncEvent::DrawFrame(game.player().pos, render.ticks(), RENDER_DISTANCE).into(),
-                );
                 msgs.extend(input.tick(&game));
                 msgs.extend(game.tick(&msgs));
                 msgs.iter().for_each(|e| match e {
@@ -156,9 +157,36 @@ pub fn run_event_loop(state: AppState) {
 
                 msgs.clear();
                 render.request_redraw();
+                runtime.tick(game.get_millis());
             }
             _ => {}
         };
         input.handle_winit_event(event);
     });
+}
+
+pub fn start_app(game_state: GameState, sinks: Vec<MessageSink>) {
+    let (event_loop, display) = init();
+    let render_state = ClientState::new(display).expect("Can't create ClientState");
+    let mut message_sinks: Vec<MessageSink> = Vec::new();
+    message_sinks.extend(sinks);
+    {
+        let particles = render_state.particles.clone();
+        let block_types = game_state.world.blocks.clone();
+        let λ = move |msgs: &Vec<Message>| {
+            let mut particles = particles.borrow_mut();
+            let block_types = block_types.borrow();
+            particles.msg_sink(msgs, &block_types);
+        };
+        message_sinks.push(Box::new(λ));
+    }
+
+    run_event_loop(AppState {
+        game_state,
+        render_state,
+        event_loop,
+        input: InputState::new(),
+        runtime: Runtime::new(),
+        message_sinks,
+    })
 }

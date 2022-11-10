@@ -2500,18 +2500,9 @@ dependencies = [
 name = "wolkenwelten"
 version = "0.0.2"
 dependencies = [
- "glam",
- "glium",
- "serde",
- "serde_json",
- "winit",
- "wolkenwelten-client",
+ "wolkenwelten-client-winit",
  "wolkenwelten-common",
  "wolkenwelten-game",
- "wolkenwelten-input-winit",
- "wolkenwelten-meshgen",
- "wolkenwelten-particles",
- "wolkenwelten-scripting",
  "wolkenwelten-sound",
 ]
 
@@ -2530,6 +2521,20 @@ dependencies = [
  "wolkenwelten-game",
  "wolkenwelten-meshgen",
  "wolkenwelten-particles",
+]
+
+[[package]]
+name = "wolkenwelten-client-winit"
+version = "0.0.1"
+dependencies = [
+ "enum-map",
+ "glam",
+ "glium",
+ "winit",
+ "wolkenwelten-client",
+ "wolkenwelten-common",
+ "wolkenwelten-game",
+ "wolkenwelten-scripting",
 ]
 
 [[package]]
@@ -2553,17 +2558,6 @@ dependencies = [
  "rand_chacha",
  "rgb",
  "wolkenwelten-common",
-]
-
-[[package]]
-name = "wolkenwelten-input-winit"
-version = "0.0.1"
-dependencies = [
- "enum-map",
- "glam",
- "winit",
- "wolkenwelten-common",
- "wolkenwelten-game",
 ]
 
 [[package]]
