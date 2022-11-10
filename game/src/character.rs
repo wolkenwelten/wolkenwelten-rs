@@ -86,7 +86,7 @@ impl Character {
     }
     #[inline]
     pub fn jump(&mut self) {
-        self.vel.y = 0.055;
+        self.vel.y = 0.038;
     }
     #[inline]
     pub fn set_cooldown(&mut self, until: u64) {
@@ -165,7 +165,7 @@ impl Character {
         let accel = if self.may_jump(world) {
             accel
         } else {
-            accel * 0.2 // Slow down player movement changes during jumps
+            accel * 0.4 // Slow down player movement changes during jumps
         };
 
         self.vel.x = self.vel.x * (1.0 - accel) + (v.x * 0.02) * accel;
