@@ -30,23 +30,23 @@ pub fn chunk(world: &Chungus, pos: IVec3) -> ChunkBlockData {
     for x in 0..CHUNK_SIZE as i32 {
         for z in 0..CHUNK_SIZE as i32 {
             let nx = ((x + px) + 1028) & 4095;
-            let nx = if nx >= 2048 { 4095 - nx} else { nx };
+            let nx = if nx >= 2048 { 4095 - nx } else { nx };
             let nz = ((z + pz) + 1028) & 4095;
-            let nz = if nz >= 2048 { 4095 - nz} else { nz };
+            let nz = if nz >= 2048 { 4095 - nz } else { nz };
             let v = ele.get_value(nx as usize, nz as usize) * 512.0;
-            let y = if v < 0.0 {v * 0.1} else {v * 0.3};
+            let y = if v < 0.0 { v * 0.1 } else { v * 0.3 };
 
             let nx = ((x + px) + 64) & 255;
-            let nx = if nx >= 128 { 255 - nx} else { nx };
+            let nx = if nx >= 128 { 255 - nx } else { nx };
             let nz = ((z + pz) + 64) & 255;
-            let nz = if nz >= 128 { 255 - nz} else { nz };
+            let nz = if nz >= 128 { 255 - nz } else { nz };
             let d = dis.get_value(nx as usize, nz as usize);
             let y = y + d * 8.0;
 
             let nx = ((x + px) + 64) & 255;
-            let nx = if nx >= 128 { 255 - nx} else { nx };
+            let nx = if nx >= 128 { 255 - nx } else { nx };
             let nz = ((z + pz) + 64) & 255;
-            let nz = if nz >= 128 { 255 - nz} else { nz };
+            let nz = if nz >= 128 { 255 - nz } else { nz };
             let d = noi.get_value(nx as usize, nz as usize);
             let y = y + d * 4.0;
 
@@ -56,18 +56,14 @@ pub fn chunk(world: &Chungus, pos: IVec3) -> ChunkBlockData {
                 (y * 2.0) as i32
             };
             let grass_y = y as i32 + 6;
-            let snow_y = if y > 96.0 {
-                (y*2.0 + 2.0) as i32
-            } else {
-                0
-            };
+            let snow_y = if y > 96.0 { (y * 2.0 + 2.0) as i32 } else { 0 };
             r.set_pillar(1, [x, stone_y - py, z].into(), grass_y - py);
             if grass_y > (stone_y + 4) {
-                r.set_pillar(2, [x, grass_y-py-1, z].into(), grass_y - py);
+                r.set_pillar(2, [x, grass_y - py - 1, z].into(), grass_y - py);
             } else {
                 r.set_pillar(13, [x, stone_y - py, z].into(), snow_y - py);
             }
-            r.set_pillar(3, [x, (-(1<<30)) - py, z].into(), stone_y - py);
+            r.set_pillar(3, [x, (-(1 << 30)) - py, z].into(), stone_y - py);
             if grass_y > (stone_y + 8) {
                 if rng.gen_range(1..50) == 1 {
                     r.wg_shrub((x, grass_y - py, z).into());

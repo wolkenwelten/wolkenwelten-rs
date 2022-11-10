@@ -3,6 +3,7 @@
 use glam::{IVec3, Mat4, Vec3};
 use glium::implement_vertex;
 use glium::Surface;
+use palette::{convert::FromColor, Hsv, Pixel, Srgb};
 use rand::prelude::*;
 use rand::Rng;
 use rand_xorshift::XorShiftRng;
@@ -70,6 +71,20 @@ impl ParticleMesh {
 
             (p.pos[3] > 1.0) && (d < (render_distance * 2.0))
         })
+    }
+
+    fn hsv_shift(&mut self, color: Srgb, saturation_shift: f32, lightness_shift: f32) -> Srgb {
+        let sr = saturation_shift;
+        let ls = lightness_shift;
+        let color: Hsv = Hsv::from_color(color);
+        let color = color.into_components();
+        let color = (
+            color.0,
+            color.1 * self.rng.gen_range(1.0 - sr..1.0 + sr),
+            color.2 * self.rng.gen_range(1.0 - ls..1.0 + ls),
+        );
+        let color = Hsv::from_components(color);
+        Srgb::from_color(color)
     }
 
     /// Interal function creating particles that resemble an explosion
@@ -147,6 +162,11 @@ impl ParticleMesh {
     /// Interal function creating particles that look like a block breaking apart
     fn fx_block_break(&mut self, pos: IVec3, color: [RGBA8; 2]) {
         for color in color.iter() {
+            let color: Srgb = Srgb::from_components((
+                color.r as f32 / 256.0,
+                color.g as f32 / 256.0,
+                color.b as f32 / 256.0,
+            ));
             for _ in 1..64 {
                 let pos = [
                     pos.x as f32 + self.rng.gen_range(0.0..1.0),
@@ -158,17 +178,12 @@ impl ParticleMesh {
                     self.rng.gen_range(-0.02..0.02),
                     self.rng.gen_range(0.00..0.04),
                     self.rng.gen_range(-0.02..0.02),
-                    -23.0,
+                    -13.0,
                 ];
-                let color = [
-                    ((color.r as f32 / 255.0 * self.rng.gen_range(0.6..1.1)).clamp(0.0, 1.0)
-                        * 255.0) as u8,
-                    ((color.g as f32 / 255.0 * self.rng.gen_range(0.6..1.1)).clamp(0.0, 1.0)
-                        * 255.0) as u8,
-                    ((color.b as f32 / 255.0 * self.rng.gen_range(0.6..1.1)).clamp(0.0, 1.0)
-                        * 255.0) as u8,
-                    0xFF,
-                ];
+
+                let color = self.hsv_shift(color, 0.1, 0.1);
+                let color: [u8; 3] = color.into_format().into_raw();
+                let color = [color[0], color[1], color[2], 0xFF];
                 self.particles.push(ParticleVertex { pos, vel, color });
             }
         }

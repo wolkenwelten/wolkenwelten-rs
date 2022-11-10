@@ -7,16 +7,16 @@ pub fn load_all() -> Vec<BlockType> {
     vec![
         BlockType::new("Air"),
         BlockType::new("Dirt").with_texture(1).with_colors(
-            RGBA8::new(0x4F, 0x23, 0x0A, 0xFF),
-            RGBA8::new(0x45, 0x1B, 0x05, 0xFF),
+            RGBA8::new(0x11, 0x0A, 0x00, 0xFF),
+            RGBA8::new(0x20, 0x12, 0x00, 0xFF),
         ),
         BlockType::new("Grass")
             .with_texture(16)
             .with_texture_top(0)
             .with_texture_bottom(1)
             .with_colors(
-                RGBA8::new(0x27, 0x42, 0x00, 0xFF),
-                RGBA8::new(0x45, 0x1B, 0x05, 0xFF),
+                RGBA8::new(0x08, 0x12, 0x00, 0xFF),
+                RGBA8::new(0x11, 0x0A, 0x00, 0xFF),
             ),
         BlockType::new("Stone").with_texture(2).with_colors(
             RGBA8::new(0x5E, 0x5E, 0x5E, 0xFF),

@@ -6,6 +6,7 @@ license = "AGPL-3.0-or-later"
 homepage = "https://wolkenwelten.net"
 
 [dependencies]
+palette = "0.6"
 rgb = "0.8"
 glium = "0.32"
 glam = "0.22"
