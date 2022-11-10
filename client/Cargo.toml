@@ -12,7 +12,6 @@ glium = "0.32"
 glam = "0.22"
 tobj = "3.2"
 rand = "0.8"
-rand_chacha = "0.3"
 image = { version = "0.24", default-features = false, features = ["png"]}
 wolkenwelten-common = { path = "../common" }
 wolkenwelten-game = { path = "../game" }

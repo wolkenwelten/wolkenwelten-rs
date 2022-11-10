@@ -5,7 +5,7 @@ use glium::implement_vertex;
 use glium::Surface;
 use rand::prelude::*;
 use rand::Rng;
-use rand_chacha::ChaCha8Rng;
+use rand_xorshift::XorShiftRng;
 use rgb::RGBA8;
 use wolkenwelten_common::{BlockType, GameEvent, Message, SyncEvent};
 
@@ -20,7 +20,7 @@ implement_vertex!(ParticleVertex, pos normalize(false), color normalize(true));
 #[derive(Clone, Debug)]
 pub struct ParticleMesh {
     particles: Vec<ParticleVertex>,
-    rng: ChaCha8Rng,
+    rng: XorShiftRng,
     last_update: u64,
 }
 
@@ -29,7 +29,7 @@ impl Default for ParticleMesh {
         Self {
             particles: vec![],
             last_update: 0,
-            rng: ChaCha8Rng::from_entropy(),
+            rng: XorShiftRng::from_entropy(),
         }
     }
 }

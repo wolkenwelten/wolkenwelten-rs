@@ -1558,6 +1558,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "rand_xorshift"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d25bf25ec5ae4a3f1b92f929810509a2f53d7dca2f50b794ff57e3face536c8f"
+dependencies = [
+ "rand_core",
+]
+
+[[package]]
 name = "raw-window-handle"
 version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2515,7 +2524,6 @@ dependencies = [
  "glium",
  "image",
  "rand",
- "rand_chacha",
  "tobj",
  "vox-format",
  "wolkenwelten-common",
@@ -2543,8 +2551,6 @@ name = "wolkenwelten-common"
 version = "0.0.1"
 dependencies = [
  "glam",
- "rand",
- "rand_chacha",
  "rgb",
  "serde",
  "serde_json",
@@ -2556,7 +2562,7 @@ version = "0.0.1"
 dependencies = [
  "glam",
  "rand",
- "rand_chacha",
+ "rand_xorshift",
  "rgb",
  "wolkenwelten-common",
 ]
@@ -2576,7 +2582,7 @@ dependencies = [
  "glam",
  "glium",
  "rand",
- "rand_chacha",
+ "rand_xorshift",
  "rgb",
  "wolkenwelten-common",
 ]

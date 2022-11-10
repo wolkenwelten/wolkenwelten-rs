@@ -3,10 +3,10 @@
 use glam::IVec3;
 use rand::prelude::*;
 use rand::Rng;
-use rand_chacha::ChaCha8Rng;
+use rand_xorshift::XorShiftRng;
 use wolkenwelten_common::{ChunkBlockData, CHUNK_SIZE};
 
-fn worldgen_island(rng: &mut ChaCha8Rng) -> ChunkBlockData {
+fn worldgen_island(rng: &mut XorShiftRng) -> ChunkBlockData {
     let mut chunk = ChunkBlockData::new();
     if rng.gen_range(0..4) == 0 {
         chunk.set_block(3, (8, 15, 8));
@@ -44,7 +44,7 @@ fn worldgen_island(rng: &mut ChaCha8Rng) -> ChunkBlockData {
     chunk
 }
 
-fn worldgen_block(rng: &mut ChaCha8Rng) -> ChunkBlockData {
+fn worldgen_block(rng: &mut XorShiftRng) -> ChunkBlockData {
     let mut chunk = ChunkBlockData::new();
     let ox = rng.gen_range(0..=CHUNK_SIZE / 8);
     let oy = rng.gen_range(0..=CHUNK_SIZE / 8);
@@ -68,7 +68,7 @@ fn worldgen_block(rng: &mut ChaCha8Rng) -> ChunkBlockData {
 }
 
 pub fn chunk(pos: IVec3) -> ChunkBlockData {
-    let mut rng = ChaCha8Rng::seed_from_u64(
+    let mut rng = XorShiftRng::seed_from_u64(
         (pos.x * pos.x + pos.y * pos.y + pos.z * pos.z)
             .try_into()
             .unwrap(),

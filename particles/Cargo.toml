@@ -6,10 +6,10 @@ license = "AGPL-3.0-or-later"
 homepage = "https://wolkenwelten.net"
 
 [dependencies]
-rgb = "0.8.34"
+rgb = "0.8"
 glium = "0.32"
 glam = "0.22"
 rand = "0.8"
-rand_chacha = "0.3"
+rand_xorshift = "0.3"
 wolkenwelten-common = { path = "../common" }
 

@@ -9,6 +9,6 @@ homepage = "https://wolkenwelten.net"
 rgb = "0.8.34"
 glam = "0.22"
 rand = "0.8"
-rand_chacha = "0.3"
+rand_xorshift = "0.3.0"
 wolkenwelten-common = { path = "../common" }
 

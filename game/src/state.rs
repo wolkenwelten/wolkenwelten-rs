@@ -66,7 +66,7 @@ impl Default for GameState {
         let running = true;
         let entities = Vec::new();
         let mut player = Character::new();
-        player.set_pos(Vec3::new(15.0, 0.0, -15.0));
+        player.set_pos(Vec3::new(-15.0, 0.0, -15.0));
 
         Self {
             clock: Instant::now(),
@@ -113,7 +113,7 @@ impl GameState {
 
     pub fn player_rebirth(&mut self) {
         let mut player = Character::new();
-        player.set_pos(Vec3::new(15.0, 0.0, -15.0));
+        player.set_pos(Vec3::new(-15.0, 0.0, -15.0));
         self.player = player;
     }
 
