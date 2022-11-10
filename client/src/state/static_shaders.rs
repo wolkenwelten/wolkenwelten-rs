@@ -1,5 +1,6 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
+use anyhow::Result;
 
 #[derive(Debug)]
 pub struct ShaderList {
@@ -42,24 +43,20 @@ precision mediump sampler2DArray;
 };
 
 impl ShaderList {
-    fn new_program(
-        display: &glium::Display,
-        vert: &str,
-        frag: &str,
-    ) -> Result<glium::Program, glium::ProgramCreationError> {
+    fn new_program(display: &glium::Display, vert: &str, frag: &str) -> Result<glium::Program> {
         let vert = format!("{}\n{}", VERT_PREFIX, vert);
         let frag = format!("{}\n{}", FRAG_PREFIX, frag);
-        glium::Program::from_source(display, &vert, &frag, None)
+        Ok(glium::Program::from_source(display, &vert, &frag, None)?)
     }
 
     fn new_point_program(
         display: &glium::Display,
         vert: &str,
         frag: &str,
-    ) -> Result<glium::Program, glium::ProgramCreationError> {
+    ) -> Result<glium::Program> {
         let vert = format!("{}\n{}", VERT_PREFIX, vert);
         let frag = format!("{}\n{}", FRAG_PREFIX, frag);
-        glium::Program::new(
+        Ok(glium::Program::new(
             display,
             glium::program::ProgramCreationInput::SourceCode {
                 vertex_shader: &vert,
@@ -71,10 +68,10 @@ impl ShaderList {
                 outputs_srgb: false,
                 uses_point_size: !cfg!(any(target_arch = "aarch64", target_arch = "armv7")), // Work around the GLES bug
             },
-        )
+        )?)
     }
 
-    pub fn new(display: &glium::Display) -> Result<Self, glium::ProgramCreationError> {
+    pub fn new(display: &glium::Display) -> Result<Self> {
         let mesh = Self::new_program(
             display,
             include_str!("../shaders/mesh.vert"),

@@ -1,6 +1,7 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
-use crate::{meshes::mesh::MeshCreationError, Mesh, VoxelMesh, VoxelMeshCreationError};
+use crate::{Mesh, VoxelMesh};
+use anyhow::Result;
 
 #[derive(Debug)]
 pub struct MeshList {
@@ -8,25 +9,8 @@ pub struct MeshList {
     pub dome: Mesh,
 }
 
-#[derive(Debug)]
-pub enum MeshListCreationError {
-    VoxelMeshCreationError(VoxelMeshCreationError),
-    MeshCreationError(MeshCreationError),
-}
-
-impl From<VoxelMeshCreationError> for MeshListCreationError {
-    fn from(err: VoxelMeshCreationError) -> Self {
-        Self::VoxelMeshCreationError(err)
-    }
-}
-impl From<MeshCreationError> for MeshListCreationError {
-    fn from(err: MeshCreationError) -> Self {
-        Self::MeshCreationError(err)
-    }
-}
-
 impl MeshList {
-    pub fn new(display: &glium::Display) -> Result<Self, MeshListCreationError> {
+    pub fn new(display: &glium::Display) -> Result<Self> {
         Ok(Self {
             grenade: VoxelMesh::from_vox_data(
                 display,

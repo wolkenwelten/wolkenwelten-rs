@@ -1,48 +1,13 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
 use crate::BlockMesh;
-use glium::texture::{SrgbTexture2dArray, TextureCreationError};
-use glium::{uniform, DrawError, Surface};
+use anyhow::{anyhow, Result};
+use glium::texture::SrgbTexture2dArray;
+use glium::{uniform, Surface};
 use std::time::Instant;
 use wolkenwelten_common::{BlockType, ChunkBlockData, ChunkLightData};
 use wolkenwelten_meshgen;
 use wolkenwelten_meshgen::BlockVertex;
-
-#[derive(Debug)]
-pub enum VoxelMeshCreationError {
-    MissingModel(),
-    ReadError(vox_format::reader::Error),
-    TextureCreationError(TextureCreationError),
-    BufferCreationError(glium::vertex::BufferCreationError),
-}
-
-#[derive(Debug)]
-pub enum VoxelDrawError {
-    DrawError(DrawError),
-    UnslicedIndexBuffer,
-}
-
-impl From<DrawError> for VoxelDrawError {
-    fn from(err: DrawError) -> Self {
-        Self::DrawError(err)
-    }
-}
-
-impl From<vox_format::reader::Error> for VoxelMeshCreationError {
-    fn from(err: vox_format::reader::Error) -> Self {
-        Self::ReadError(err)
-    }
-}
-impl From<TextureCreationError> for VoxelMeshCreationError {
-    fn from(err: TextureCreationError) -> Self {
-        Self::TextureCreationError(err)
-    }
-}
-impl From<glium::vertex::BufferCreationError> for VoxelMeshCreationError {
-    fn from(err: glium::vertex::BufferCreationError) -> Self {
-        Self::BufferCreationError(err)
-    }
-}
 
 #[derive(Debug)]
 pub struct VoxelMesh {
@@ -59,7 +24,7 @@ impl VoxelMesh {
         program: &glium::Program,
         mat_mvp: &glam::Mat4,
         color_alpha: f32,
-    ) -> Result<(), VoxelDrawError> {
+    ) -> Result<()> {
         let trans_pos: [f32; 3] = self.trans_pos();
         let mat_mvp = mat_mvp.to_cols_array_2d();
 
@@ -88,7 +53,7 @@ impl VoxelMesh {
             )?;
             Ok(())
         } else {
-            Err(VoxelDrawError::UnslicedIndexBuffer)
+            Err(anyhow!("Couldn't slice index buffer"))
         }
     }
 
@@ -107,7 +72,7 @@ impl VoxelMesh {
     fn texture_from_palette(
         display: &glium::Display,
         palette: &vox_format::types::Palette,
-    ) -> Result<SrgbTexture2dArray, VoxelMeshCreationError> {
+    ) -> Result<SrgbTexture2dArray> {
         let tiles = palette
             .iter()
             .map(|(_i, c)| {
@@ -122,7 +87,7 @@ impl VoxelMesh {
     fn mesh_from_model(
         display: &glium::Display,
         model: &vox_format::types::Model,
-    ) -> Result<BlockMesh, VoxelMeshCreationError> {
+    ) -> Result<BlockMesh> {
         let mut chunk = ChunkBlockData::new();
         model.voxels.iter().for_each(|vox| {
             let b = vox.color_index.into();
@@ -146,10 +111,7 @@ impl VoxelMesh {
         Ok(ret)
     }
 
-    pub fn from_vox_data(
-        display: &glium::Display,
-        data: &[u8],
-    ) -> Result<Self, VoxelMeshCreationError> {
+    pub fn from_vox_data(display: &glium::Display, data: &[u8]) -> Result<Self> {
         let vox_data = vox_format::from_slice(data)?;
 
         if let Some(model) = vox_data.models.first() {
@@ -166,6 +128,6 @@ impl VoxelMesh {
                 trans_pos,
             });
         }
-        Err(VoxelMeshCreationError::MissingModel())
+        Err(anyhow!("Couldn't create mesh from .vox"))
     }
 }

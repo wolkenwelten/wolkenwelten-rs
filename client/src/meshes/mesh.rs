@@ -1,24 +1,8 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
+use anyhow::Result;
 use glium;
 use glium::implement_vertex;
-
-#[derive(Debug)]
-pub enum MeshCreationError {
-    LoadError(tobj::LoadError),
-    BufferCreationError(glium::vertex::BufferCreationError),
-}
-
-impl From<tobj::LoadError> for MeshCreationError {
-    fn from(err: tobj::LoadError) -> Self {
-        Self::LoadError(err)
-    }
-}
-impl From<glium::vertex::BufferCreationError> for MeshCreationError {
-    fn from(err: glium::vertex::BufferCreationError) -> Self {
-        Self::BufferCreationError(err)
-    }
-}
 
 #[derive(Copy, Clone, Debug)]
 pub struct MeshVertex {
@@ -34,10 +18,7 @@ pub struct Mesh {
 }
 
 impl Mesh {
-    fn from_vec(
-        display: &glium::Display,
-        vertices: &Vec<MeshVertex>,
-    ) -> Result<Self, MeshCreationError> {
+    fn from_vec(display: &glium::Display, vertices: &Vec<MeshVertex>) -> Result<Self> {
         let buffer = glium::VertexBuffer::dynamic(display, vertices.as_slice())?;
         Ok(Self { buffer })
     }
@@ -46,7 +27,7 @@ impl Mesh {
         &self.buffer
     }
 
-    pub fn from_obj_string(display: &glium::Display, s: &str) -> Result<Self, MeshCreationError> {
+    pub fn from_obj_string(display: &glium::Display, s: &str) -> Result<Self> {
         let o = tobj::load_obj_buf(
             &mut s.as_bytes(),
             &tobj::LoadOptions {

@@ -2510,6 +2510,7 @@ dependencies = [
 name = "wolkenwelten-client"
 version = "0.0.1"
 dependencies = [
+ "anyhow",
  "glam",
  "glium",
  "image",

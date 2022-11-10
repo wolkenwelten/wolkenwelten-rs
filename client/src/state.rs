@@ -2,6 +2,7 @@
 // All rights reserved. AGPL-3.0+ license.
 use crate::meshes::{BlockMesh, TextMesh};
 use crate::RENDER_DISTANCE;
+use anyhow::Result;
 use glam::{f32::Vec3, i32::IVec3};
 use std::{collections::HashMap, time::Instant};
 use wolkenwelten_common::CHUNK_SIZE;
@@ -12,10 +13,8 @@ pub mod static_meshes;
 pub mod static_shaders;
 pub mod static_textures;
 pub use self::static_meshes::MeshList;
-use self::static_meshes::MeshListCreationError;
 pub use self::static_shaders::ShaderList;
 pub use self::static_textures::TextureList;
-use self::static_textures::TextureListLoadError;
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -44,43 +43,8 @@ pub struct ClientState {
     last_ticks: u128,
 }
 
-#[derive(Debug)]
-pub enum ClientStateCreationError {
-    MeshListCreationError(MeshListCreationError),
-    TextureListLoadError(TextureListLoadError),
-    ProgramCreationError(glium::ProgramCreationError),
-    VertexBufferCreationError(glium::vertex::BufferCreationError),
-    IndexBufferCreationError(glium::index::BufferCreationError),
-}
-
-impl From<MeshListCreationError> for ClientStateCreationError {
-    fn from(err: MeshListCreationError) -> Self {
-        Self::MeshListCreationError(err)
-    }
-}
-impl From<glium::ProgramCreationError> for ClientStateCreationError {
-    fn from(err: glium::ProgramCreationError) -> Self {
-        Self::ProgramCreationError(err)
-    }
-}
-impl From<glium::vertex::BufferCreationError> for ClientStateCreationError {
-    fn from(err: glium::vertex::BufferCreationError) -> Self {
-        Self::VertexBufferCreationError(err)
-    }
-}
-impl From<TextureListLoadError> for ClientStateCreationError {
-    fn from(err: TextureListLoadError) -> Self {
-        Self::TextureListLoadError(err)
-    }
-}
-impl From<glium::index::BufferCreationError> for ClientStateCreationError {
-    fn from(err: glium::index::BufferCreationError) -> Self {
-        Self::IndexBufferCreationError(err)
-    }
-}
-
 impl ClientState {
-    pub fn new(display: glium::Display) -> Result<Self, ClientStateCreationError> {
+    pub fn new(display: glium::Display) -> Result<Self> {
         let meshes = MeshList::new(&display)?;
         let shaders = ShaderList::new(&display)?;
         let ui_mesh = TextMesh::new(&display)?;

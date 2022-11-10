@@ -1,5 +1,6 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
+use anyhow::Result;
 use std::time::Instant;
 use wolkenwelten_common::{BlockType, ChunkBlockData, ChunkLightData};
 use wolkenwelten_meshgen;
@@ -61,7 +62,7 @@ impl BlockMesh {
         ((self.side_start[5] + self.side_square_count[5]) * 6) as u32
     }
 
-    pub fn new(display: &glium::Display) -> Result<BlockMesh, glium::vertex::BufferCreationError> {
+    pub fn new(display: &glium::Display) -> Result<BlockMesh> {
         let buffer: glium::VertexBuffer<BlockVertex> = glium::VertexBuffer::empty(display, 0)?;
         Ok(Self {
             buffer,
@@ -79,7 +80,7 @@ impl BlockMesh {
         light: &ChunkLightData,
         block_types: &Vec<BlockType>,
         now: Instant,
-    ) -> Result<(), glium::vertex::BufferCreationError> {
+    ) -> Result<()> {
         self.last_updated = now;
 
         let (vertices, side_start_count) =

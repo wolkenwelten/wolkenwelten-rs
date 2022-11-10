@@ -1,5 +1,6 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
+use anyhow::Result;
 
 #[derive(Debug)]
 pub struct Texture {
@@ -11,27 +12,8 @@ pub struct TextureArray {
     texture: glium::texture::SrgbTexture2dArray,
 }
 
-#[derive(Debug)]
-pub enum TextureLoadError {
-    ImageError(image::ImageError),
-    TextureCreationError(glium::texture::TextureCreationError),
-}
-impl From<image::ImageError> for TextureLoadError {
-    fn from(err: image::ImageError) -> Self {
-        Self::ImageError(err)
-    }
-}
-impl From<glium::texture::TextureCreationError> for TextureLoadError {
-    fn from(err: glium::texture::TextureCreationError) -> Self {
-        Self::TextureCreationError(err)
-    }
-}
-
 impl Texture {
-    pub fn from_bytes(
-        display: &glium::Display,
-        bytes: &'static [u8],
-    ) -> Result<Self, TextureLoadError> {
+    pub fn from_bytes(display: &glium::Display, bytes: &'static [u8]) -> Result<Self> {
         let img = image::load_from_memory(bytes)?;
         let img = img.flipv().to_rgba8();
 
@@ -49,10 +31,7 @@ impl Texture {
 }
 
 impl TextureArray {
-    pub fn from_bytes(
-        display: &glium::Display,
-        bytes: &'static [u8],
-    ) -> Result<Self, TextureLoadError> {
+    pub fn from_bytes(display: &glium::Display, bytes: &'static [u8]) -> Result<Self> {
         let img = image::load_from_memory(bytes)?;
         let img = img.to_rgba8();
         let tile_size: u32 = img.width();

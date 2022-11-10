@@ -4,11 +4,11 @@ extern crate glam;
 extern crate wolkenwelten_game;
 
 pub use self::frustum::Frustum;
-pub use self::meshes::{BlockMesh, Mesh, VoxelMesh, VoxelMeshCreationError};
+pub use self::meshes::{BlockMesh, Mesh, VoxelMesh};
 pub use self::queue::QueueEntry;
 pub use self::render::{prepare_frame, render_frame, FADE_DISTANCE, RENDER_DISTANCE};
 pub use self::state::ClientState;
-pub use self::texture::{Texture, TextureArray, TextureLoadError};
+pub use self::texture::{Texture, TextureArray};
 
 mod frustum;
 mod meshes;

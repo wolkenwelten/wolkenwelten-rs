@@ -1,6 +1,7 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
-use crate::{Texture, TextureArray, TextureLoadError};
+use crate::{Texture, TextureArray};
+use anyhow::Result;
 
 #[derive(Debug)]
 pub struct TextureList {
@@ -10,18 +11,8 @@ pub struct TextureList {
     pub sky: Texture,
 }
 
-#[derive(Debug)]
-pub enum TextureListLoadError {
-    TextureLoadError(TextureLoadError),
-}
-impl From<TextureLoadError> for TextureListLoadError {
-    fn from(err: TextureLoadError) -> Self {
-        Self::TextureLoadError(err)
-    }
-}
-
 impl TextureList {
-    pub fn new(display: &glium::Display) -> Result<TextureList, TextureListLoadError> {
+    pub fn new(display: &glium::Display) -> Result<TextureList> {
         let blocks = TextureArray::from_bytes(
             display,
             include_bytes!("../../../assets/textures/blocks.png"),
