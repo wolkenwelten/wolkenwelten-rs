@@ -81,7 +81,7 @@ pub fn draw(
         .texture()
         .sampled()
         .magnify_filter(glium::uniforms::MagnifySamplerFilter::Nearest)
-        .minify_filter(glium::uniforms::MinifySamplerFilter::Nearest)
+        .minify_filter(glium::uniforms::MinifySamplerFilter::Linear)
         .wrap_function(glium::uniforms::SamplerWrapFunction::Repeat);
 
     for entry in render_queue.iter() {
