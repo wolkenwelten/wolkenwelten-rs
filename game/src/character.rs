@@ -147,6 +147,12 @@ impl Character {
         }
     }
 
+    fn is_solid_pillar(&self, pos: Vec3, world: &Chungus) -> bool {
+        world.is_solid(pos)
+            || world.is_solid(pos + Vec3::new(0.0, -0.4, 0.0))
+            || world.is_solid(pos + Vec3::new(0.0, 0.8, 0.0))
+    }
+
     pub fn tick(&mut self, v: Vec3, events: &mut Vec<Message>, world: &Chungus) {
         if self.no_clip {
             self.pos += self.vel;
@@ -174,10 +180,10 @@ impl Character {
         self.vel.y -= 0.0005;
         let old = self.vel;
 
-        if world.is_solid(self.pos + COL_POINT_LEFT) {
+        if self.is_solid_pillar(self.pos + COL_POINT_LEFT, world) {
             self.vel.x = self.vel.x.max(0.0);
         }
-        if world.is_solid(self.pos + COL_POINT_RIGHT) {
+        if self.is_solid_pillar(self.pos + COL_POINT_RIGHT, world) {
             self.vel.x = self.vel.x.min(0.0);
         }
 
@@ -188,10 +194,10 @@ impl Character {
             self.vel.y = self.vel.y.min(0.0);
         }
 
-        if world.is_solid(self.pos + COL_POINT_FRONT) {
+        if self.is_solid_pillar(self.pos + COL_POINT_FRONT, world) {
             self.vel.z = self.vel.z.min(0.0);
         }
-        if world.is_solid(self.pos + COL_POINT_BACK) {
+        if self.is_solid_pillar(self.pos + COL_POINT_BACK, world) {
             self.vel.z = self.vel.z.max(0.0);
         }
 

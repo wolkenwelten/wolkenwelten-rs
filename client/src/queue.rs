@@ -49,7 +49,13 @@ impl QueueEntry {
                         continue;
                     } else {
                         let trans = Vec3::new(trans_x, trans_y, trans_z);
-                        let dist = trans + Vec3::new(CHUNK_SIZE as f32 / 2.0, CHUNK_SIZE as f32 / 2.0, CHUNK_SIZE as f32 / 2.0) - player_pos;
+                        let dist = trans
+                            + Vec3::new(
+                                CHUNK_SIZE as f32 / 2.0,
+                                CHUNK_SIZE as f32 / 2.0,
+                                CHUNK_SIZE as f32 / 2.0,
+                            )
+                            - player_pos;
                         let dist = dist.length();
                         if dist < RENDER_DISTANCE {
                             let alpha = if dist < (RENDER_DISTANCE - FADE_DISTANCE) {
