@@ -90,7 +90,17 @@ pub fn render_frame(frame: &mut glium::Frame, fe: &ClientState, game: &GameState
         },
         &glium::DrawParameters {
             backface_culling: glium::draw_parameters::BackfaceCullingMode::CullClockwise,
-            blend: glium::draw_parameters::Blend::alpha_blending(),
+            blend: glium::draw_parameters::Blend {
+                color: glium::draw_parameters::BlendingFunction::Addition {
+                    source: glium::draw_parameters::LinearBlendingFactor::SourceAlpha,
+                    destination: glium::draw_parameters::LinearBlendingFactor::OneMinusSourceAlpha,
+                },
+                alpha: glium::draw_parameters::BlendingFunction::Addition {
+                    source: glium::draw_parameters::LinearBlendingFactor::One,
+                    destination: glium::draw_parameters::LinearBlendingFactor::OneMinusSourceAlpha,
+                },
+                constant_value: (0.0, 0.0, 0.0, 0.0),
+            },
             ..Default::default()
         },
     )?;

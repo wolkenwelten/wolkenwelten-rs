@@ -99,7 +99,19 @@ pub fn draw(
             };
             let draw_parameters = glium::DrawParameters {
                 backface_culling: glium::draw_parameters::BackfaceCullingMode::CullClockwise,
-                blend: glium::draw_parameters::Blend::alpha_blending(),
+                blend: glium::draw_parameters::Blend {
+                    color: glium::draw_parameters::BlendingFunction::Addition {
+                        source: glium::draw_parameters::LinearBlendingFactor::SourceAlpha,
+                        destination:
+                            glium::draw_parameters::LinearBlendingFactor::OneMinusSourceAlpha,
+                    },
+                    alpha: glium::draw_parameters::BlendingFunction::Addition {
+                        source: glium::draw_parameters::LinearBlendingFactor::One,
+                        destination:
+                            glium::draw_parameters::LinearBlendingFactor::OneMinusSourceAlpha,
+                    },
+                    constant_value: (0.0, 0.0, 0.0, 0.0),
+                },
                 depth: glium::draw_parameters::Depth {
                     test: glium::draw_parameters::DepthTest::IfLess,
                     write: true,
