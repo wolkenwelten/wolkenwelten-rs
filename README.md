@@ -14,6 +14,7 @@ If you want to chat, have a question or would like to contribute then the most d
 
 [![AGPL-3.0](https://img.shields.io/github/license/wolkenwelten/wolkenwelten?style=flat-square)](https://www.gnu.org/licenses/agpl-3.0.en.html)
 [![CI Main](https://img.shields.io/github/workflow/status/wolkenwelten/wolkenwelten/WolkenWelten%20CI/main?label=CI%20Main&style=flat-square)](https://github.com/wolkenwelten/wolkenwelten/actions/workflows/ci.yml)
+[![CI Develop](https://img.shields.io/github/workflow/status/wolkenwelten/wolkenwelten/WolkenWelten%20CI/develop?label=CI%20Develop&style=flat-square)](https://github.com/wolkenwelten/wolkenwelten/actions/workflows/ci.yml)
 [![Matrix](https://img.shields.io/matrix/wolkenwelten:matrix.org?label=Matrix&style=flat-square)](https://matrix.to/#/#wolkenwelten:matrix.org)
 [![Discord](https://img.shields.io/discord/750878611795607653?label=Discord&style=flat-square)](https://discord.gg/7rhnYH2)
 ![Commit activity](https://img.shields.io/github/commit-activity/w/wolkenwelten/wolkenwelten?style=flat-square)
@@ -21,6 +22,19 @@ If you want to chat, have a question or would like to contribute then the most d
 # How to build it
 You need a complete rust toolchain installed that supports Rust 2021 (1.56+), for example via `rustup`.
 After that executing the `cargo run --release` command should build and run the game.
+
+## Linux
+In addition to a Rust toolchain, you need to install a couple of system header files using your distributions package manager:
+
+### Arch Linux
+```sh
+pacman -S base-devel alsa-lib fontconfig freetype2
+```
+
+### Debian / Ubuntu / Raspberry Pi OS
+```sh
+apt-get install build-essential libasound2-dev libfontconfig1-dev libfreetype6-dev
+```
 
 # Platform support
 
