@@ -93,8 +93,8 @@ impl VoxelMesh {
             let b = vox.color_index.into();
             let pos = [
                 (vox.point.x + 1).into(),
-                (vox.point.y + 1).into(),
                 (vox.point.z + 1).into(),
+                (vox.point.y + 1).into(),
             ]
             .into();
             chunk.set_block(b, pos);
@@ -120,8 +120,8 @@ impl VoxelMesh {
             let texture = Self::texture_from_palette(display, &vox_data.palette)?;
             let trans_pos = [
                 model.size.x as f32 * -0.5,
-                model.size.y as f32 * -0.5,
                 model.size.z as f32 * -0.5,
+                model.size.y as f32 * -0.5,
             ];
             return Ok(Self {
                 mesh,

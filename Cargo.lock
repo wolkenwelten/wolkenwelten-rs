@@ -2725,13 +2725,15 @@ dependencies = [
 
 [[package]]
 name = "wolkenwelten-game"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
+ "anyhow",
  "glam",
  "noise",
  "rand 0.8.5",
  "rand_xorshift 0.3.0",
  "rgb",
+ "vox-format",
  "wolkenwelten-common",
  "wolkenwelten-scripting",
 ]

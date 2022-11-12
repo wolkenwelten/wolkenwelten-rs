@@ -5,7 +5,6 @@ use wolkenwelten_common::{ChunkBlockData, CHUNK_SIZE};
 
 pub trait WorldgenVegetation {
     fn wg_shrub(&mut self, pos: IVec3);
-    fn wg_tree(&mut self, pos: IVec3);
 }
 
 impl WorldgenVegetation for ChunkBlockData {
@@ -41,29 +40,5 @@ impl WorldgenVegetation for ChunkBlockData {
         self.set_block(6, IVec3::new(pos.x, pos.y + 2, pos.z - 1));
         self.set_block(6, IVec3::new(pos.x, pos.y + 3, pos.z + 1));
         self.set_block(6, IVec3::new(pos.x, pos.y + 3, pos.z - 1));
-    }
-
-    fn wg_tree(&mut self, pos: IVec3) {
-        if pos.x < 5 {
-            return;
-        }
-        if pos.z < 5 {
-            return;
-        }
-        if pos.x > CHUNK_SIZE as i32 - 5 {
-            return;
-        }
-        if pos.z > CHUNK_SIZE as i32 - 5 {
-            return;
-        }
-        if pos.y < 0 {
-            return;
-        }
-        if pos.y > CHUNK_SIZE as i32 - 12 {
-            return;
-        }
-        let size = IVec3::new(1, 8, 1);
-        self.set_box(5, pos, size);
-        self.set_sphere(6, IVec3::new(pos.x, pos.y + 8, pos.z), 4);
     }
 }

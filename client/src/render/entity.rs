@@ -16,7 +16,7 @@ pub fn draw(
     let pos = entity.pos();
 
     let model = Mat4::from_scale(Vec3::new(1.0 / 16.0, 1.0 / 16.0, 1.0 / 16.0));
-    let model = Mat4::from_rotation_x((rot.x - 90.0).to_radians()) * model;
+    let model = Mat4::from_rotation_x(rot.x.to_radians()) * model;
     let model = Mat4::from_rotation_y(rot.y.to_radians()) * model;
     let model = Mat4::from_translation(pos) * model;
     let vp = projection.mul_mat4(view);

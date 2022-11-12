@@ -8,7 +8,7 @@ use wolkenwelten_common::Message;
 use wolkenwelten_game::GameState;
 
 pub fn main() {
-    let game_state = GameState::new();
+    let game_state = GameState::new().expect("Couldn't initialize game backend");
     let message_sinks: Vec<MessageSink> = vec![
         #[cfg(feature = "sound")]
         {

@@ -2,6 +2,8 @@
 // All rights reserved. AGPL-3.0+ license.
 use super::block_types;
 use super::{Character, Chunk};
+use crate::worldgen::WorldgenAssetList;
+use anyhow::Result;
 use glam::f32::Vec3;
 use glam::i32::IVec3;
 use noise::utils::{NoiseMap, NoiseMapBuilder, PlaneMapBuilder};
@@ -19,6 +21,7 @@ pub struct Chungus {
     elevation: NoiseMap,
     displacement: NoiseMap,
     noise_map: NoiseMap,
+    assets: WorldgenAssetList,
 }
 
 impl Chungus {
@@ -54,6 +57,11 @@ impl Chungus {
     #[inline]
     pub fn noise_map(&self) -> &NoiseMap {
         &self.noise_map
+    }
+
+    #[inline]
+    pub fn assets(&self) -> &WorldgenAssetList {
+        &self.assets
     }
 
     pub fn get(&self, k: &IVec3) -> Option<&ChunkBlockData> {
@@ -139,8 +147,8 @@ impl Chungus {
     }
 }
 
-impl Default for Chungus {
-    fn default() -> Self {
+impl Chungus {
+    pub fn new() -> Result<Self> {
         let simplex: Perlin = Perlin::default();
         simplex.set_seed(1234);
         let elevation: NoiseMap = PlaneMapBuilder::<Perlin, 2>::new(simplex)
@@ -161,12 +169,15 @@ impl Default for Chungus {
             .set_size(128, 128)
             .build();
 
-        Self {
+        let assets = WorldgenAssetList::new()?;
+
+        Ok(Self {
             blocks: Rc::new(RefCell::new(block_types::load_all())),
             chunks: HashMap::with_capacity(512),
             elevation,
             displacement,
             noise_map,
-        }
+            assets,
+        })
     }
 }

@@ -1,6 +1,7 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
 use super::{Character, Chungus, Chunk, Entity};
+use anyhow::Result;
 use glam::{IVec3, Vec3};
 use std::cmp::Ordering;
 use std::collections::BinaryHeap;
@@ -58,15 +59,13 @@ pub struct GameState {
     render_distance: f32,
 }
 
-impl Default for GameState {
-    fn default() -> Self {
+impl GameState {
+    pub fn new() -> Result<Self> {
         let running = true;
         let entities = Vec::new();
-        let mut player = Character::new();
-        player.set_pos(Vec3::new(-15.0, 6.0, -15.0));
-        player.set_rot(Vec3::new(180.0, 0.0, 0.0));
-
-        Self {
+        let player = Character::new();
+        let world = Chungus::new()?;
+        let mut ret = Self {
             clock: Instant::now(),
             running,
             player,
@@ -75,14 +74,10 @@ impl Default for GameState {
             last_gc: 0,
             render_distance: 128.0 * 128.0,
             runtime: Runtime::new(),
-            world: Chungus::default(),
-        }
-    }
-}
-
-impl GameState {
-    pub fn new() -> Self {
-        Self::default()
+            world,
+        };
+        ret.player_rebirth();
+        Ok(ret)
     }
 
     #[inline]
@@ -112,7 +107,8 @@ impl GameState {
 
     pub fn player_rebirth(&mut self) {
         let mut player = Character::new();
-        player.set_pos(Vec3::new(-15.0, 6.0, -15.0));
+        player.set_pos(Vec3::new(-32.0, -16.0, 338.0));
+        player.set_rot(Vec3::new(-130.0, 0.0, 0.0));
         self.player = player;
     }
 

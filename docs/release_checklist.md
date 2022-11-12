@@ -1,8 +1,9 @@
 # How to do a proper WolkenWelten release
+- [ ] Update version in all Cargo.toml files
 - [ ] Take a look at the history and edit the commit messages up until the last tag
 - [ ] Generate the changelog and see if it looks alright
-- [ ] Make sure there are no breaking changes for patch releases
 - [ ] Check that the commit ran through CI without problems before tagging
+- [ ] Sign the commit that will get tagged
 - [ ] Create the tag, add the auto generated changelog as an annotation and maybe add a comment
 - [ ] Wait for the release pipeline to finish
 - [ ] Test the Windows release

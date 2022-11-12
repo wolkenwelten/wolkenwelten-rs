@@ -1,11 +1,13 @@
 [package]
 name = "wolkenwelten-game"
-version = "0.0.1"
+version = "0.0.2"
 edition = "2021"
 license = "AGPL-3.0-or-later"
 homepage = "https://wolkenwelten.net"
 
 [dependencies]
+anyhow = "1.0"
+vox-format = "0.1"
 rgb = "0.8.34"
 glam = "0.22"
 noise = "0.8"
