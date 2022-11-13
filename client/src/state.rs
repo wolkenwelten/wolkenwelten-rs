@@ -115,7 +115,8 @@ impl ClientState {
         self.world_mesh.retain(|&pos, _| {
             let diff: Vec3 = (pos.as_vec3() * CHUNK_SIZE as f32) - player.pos;
             let d = diff.dot(diff);
-            d < (RENDER_DISTANCE * RENDER_DISTANCE)
+            d < (RENDER_DISTANCE + (CHUNK_SIZE * 2) as f32)
+                * (RENDER_DISTANCE + (CHUNK_SIZE * 2) as f32)
         });
     }
 

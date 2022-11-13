@@ -37,7 +37,7 @@ impl Chunk {
 
     #[inline]
     pub fn should_update(&self) -> bool {
-        self.block.get_last_updated() >= self.light.get_last_updated()
+        self.block.get_last_updated() > self.light.get_last_updated()
     }
     #[inline]
     pub fn tick(&mut self) {

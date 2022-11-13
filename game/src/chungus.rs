@@ -26,7 +26,7 @@ pub struct Chungus {
 
 impl Chungus {
     pub fn gc(&mut self, player: &Character, render_distance: f32) {
-        let max_d = render_distance * 1.5;
+        let max_d = render_distance * 4.0;
         self.chunks.retain(|&pos, _| {
             let diff: Vec3 = (pos.as_vec3() * CHUNK_SIZE as f32) - player.pos;
             let d = diff.dot(diff);

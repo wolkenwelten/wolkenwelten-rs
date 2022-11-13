@@ -271,7 +271,7 @@ impl GameState {
                     let pos = IVec3::new(cx + px, cy + py, cz + pz);
                     let d = (pos.as_vec3() * CHUNK_SIZE as f32) - self.player.pos;
                     let d = d.dot(d);
-                    if d < self.render_distance && self.should_update(pos) {
+                    if self.should_update(pos) {
                         heap.push(QueueEntry::new(pos, (d * 256.0) as i64));
                     }
                 }

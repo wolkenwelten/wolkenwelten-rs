@@ -8,11 +8,6 @@ use std::time::Instant;
 use wolkenwelten_common::{CHUNK_BITS, CHUNK_SIZE};
 use wolkenwelten_game::GameState;
 
-use super::FADE_DISTANCE;
-
-const FADEOUT_DISTANCE: f32 = FADE_DISTANCE * FADE_DISTANCE;
-const FADEOUT_START_DISTANCE: f32 = (RENDER_DISTANCE - 32.0) * (RENDER_DISTANCE - 32.0);
-
 fn prepare_chunk(fe: &mut ClientState, game: &GameState, pos: IVec3, now: Instant) -> Result<()> {
     if let Some(chunk) = game.world.get_chunk(&pos) {
         if let Some(mesh) = fe.world_mesh.get_mut(&pos) {
@@ -48,14 +43,15 @@ pub fn prepare(fe: &mut ClientState, game: &GameState) -> Result<()> {
     let px = (player.pos.x as i32) >> CHUNK_BITS;
     let py = (player.pos.y as i32) >> CHUNK_BITS;
     let pz = (player.pos.z as i32) >> CHUNK_BITS;
-    let view_steps = (RENDER_DISTANCE as i32 / CHUNK_SIZE as i32) + 1;
+    let view_steps = game.view_steps();
     for cx in -view_steps..=view_steps {
         for cy in -view_steps..=view_steps {
             for cz in -view_steps..=view_steps {
                 let pos = IVec3::new(cx + px, cy + py, cz + pz);
                 let d = (pos.as_vec3() * CHUNK_SIZE as f32) - player.pos;
                 let d = d.dot(d);
-                if d < FADEOUT_DISTANCE + FADEOUT_START_DISTANCE {
+                if d < (RENDER_DISTANCE + CHUNK_SIZE as f32) * (RENDER_DISTANCE + CHUNK_SIZE as f32)
+                {
                     prepare_chunk(fe, game, pos, now)?;
                 }
             }
