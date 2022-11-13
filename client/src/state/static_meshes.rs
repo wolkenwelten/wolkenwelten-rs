@@ -3,6 +3,8 @@
 use crate::{Mesh, VoxelMesh};
 use anyhow::Result;
 
+/// This struct is meant to be a simple way to store
+/// all static meshes included with WW.
 #[derive(Debug)]
 pub struct MeshList {
     pub grenade: VoxelMesh,
@@ -10,6 +12,7 @@ pub struct MeshList {
 }
 
 impl MeshList {
+    /// Load all the the models from the build-in raw .obj/.vox bytes.
     pub fn new(display: &glium::Display) -> Result<Self> {
         Ok(Self {
             grenade: VoxelMesh::from_vox_data(

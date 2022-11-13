@@ -1,50 +1,16 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
-use super::{Character, Chungus, Chunk, Entity};
+use super::{Character, Chungus, Entity};
 use anyhow::Result;
 use glam::{IVec3, Vec3};
-use std::cmp::Ordering;
-use std::collections::BinaryHeap;
 use std::time::Instant;
 use wolkenwelten_common::{
-    ChunkBlockData, ChunkLightData, GameEvent, InputEvent, Message, SyncEvent, CHUNK_BITS,
-    CHUNK_MASK, CHUNK_SIZE,
+    ChunkBlockData, ChunkLightData, ChunkRequestQueue, GameEvent, InputEvent, Message, SyncEvent,
+    CHUNK_BITS, CHUNK_MASK, CHUNK_SIZE,
 };
 use wolkenwelten_scripting::Runtime;
 
 const MS_PER_TICK: u64 = 4;
-const MAX_CHUNKS_GENERATED_PER_FRAME: usize = 16;
-
-#[derive(Debug, Default)]
-struct QueueEntry {
-    dist: i64,
-    pos: IVec3,
-}
-
-impl QueueEntry {
-    fn new(pos: IVec3, dist: i64) -> Self {
-        Self { dist, pos }
-    }
-}
-
-impl Ord for QueueEntry {
-    fn cmp(&self, other: &Self) -> Ordering {
-        other.dist.cmp(&self.dist)
-    }
-}
-
-impl PartialOrd for QueueEntry {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-impl Eq for QueueEntry {}
-impl PartialEq for QueueEntry {
-    fn eq(&self, other: &Self) -> bool {
-        self.pos == other.pos
-    }
-}
 
 pub struct GameState {
     pub clock: Instant,
@@ -131,7 +97,7 @@ impl GameState {
         self.ticks_elapsed
     }
 
-    pub fn tick(&mut self, msg: &Vec<Message>) -> Vec<Message> {
+    pub fn tick(&mut self, msg: &Vec<Message>, request: &mut ChunkRequestQueue) -> Vec<Message> {
         let mut events: Vec<Message> = Vec::new();
         let now = self.get_millis();
         let ticks_goal = now / MS_PER_TICK;
@@ -200,34 +166,13 @@ impl GameState {
             self.world.gc(&self.player, self.render_distance);
             self.last_gc = self.ticks_elapsed + 50;
         }
-        self.prepare_world();
+        self.prepare_world(request);
         events
-    }
-
-    pub fn worldgen_chunk(&mut self, pos: IVec3) -> bool {
-        match self.world.get_chunk_mut(&pos) {
-            None => {
-                self.world.chunks.insert(pos, Chunk::new(&self.world, pos));
-                true
-            }
-            Some(chunk) => {
-                chunk.tick();
-                false
-            }
-        }
     }
 
     #[inline]
     pub fn has_chunk(&self, pos: IVec3) -> bool {
         self.world.get(&pos).is_some()
-    }
-
-    pub fn should_update(&self, pos: IVec3) -> bool {
-        if let Some(chunk) = self.world.get_chunk(&pos) {
-            chunk.should_update()
-        } else {
-            true
-        }
     }
 
     #[inline]
@@ -255,32 +200,20 @@ impl GameState {
         }
     }
 
-    pub fn prepare_world(&mut self) {
-        let mut heap: BinaryHeap<QueueEntry> = BinaryHeap::new();
-        let view_steps = self.view_steps();
-
+    pub fn prepare_world(&mut self, request: &mut ChunkRequestQueue) {
         let px = (self.player.pos.x as i32) >> CHUNK_BITS;
         let py = (self.player.pos.y as i32) >> CHUNK_BITS;
         let pz = (self.player.pos.z as i32) >> CHUNK_BITS;
 
-        self.worldgen_chunk(IVec3::new(px, py, pz));
-
-        for cx in -view_steps..=view_steps {
-            for cy in -view_steps..=view_steps {
-                for cz in -view_steps..=view_steps {
+        for cx in -1..=1 {
+            for cy in -1..=1 {
+                for cz in -1..=1 {
                     let pos = IVec3::new(cx + px, cy + py, cz + pz);
-                    let d = (pos.as_vec3() * CHUNK_SIZE as f32) - self.player.pos;
-                    let d = d.dot(d);
-                    if self.should_update(pos) {
-                        heap.push(QueueEntry::new(pos, (d * 256.0) as i64));
+                    if self.world.get(&pos).is_none() {
+                        request.block(pos);
                     }
                 }
             }
         }
-        heap.iter()
-            .take(MAX_CHUNKS_GENERATED_PER_FRAME)
-            .for_each(|e| {
-                self.worldgen_chunk(e.pos);
-            });
     }
 }

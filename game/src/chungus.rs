@@ -1,7 +1,8 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
 use super::block_types;
-use super::{Character, Chunk};
+use super::Character;
+use crate::worldgen;
 use crate::worldgen::WorldgenAssetList;
 use anyhow::Result;
 use glam::f32::Vec3;
@@ -11,13 +12,15 @@ use noise::{Perlin, Seedable};
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
+use wolkenwelten_common::ChunkRequestQueue;
 use wolkenwelten_common::{
     BlockType, ChunkBlockData, ChunkLightData, CHUNK_BITS, CHUNK_MASK, CHUNK_SIZE,
 };
 
 pub struct Chungus {
     pub blocks: Rc<RefCell<Vec<BlockType>>>,
-    pub chunks: HashMap<IVec3, Chunk>,
+    pub chunks_block: HashMap<IVec3, ChunkBlockData>,
+    pub chunks_light: HashMap<IVec3, ChunkLightData>,
     elevation: NoiseMap,
     displacement: NoiseMap,
     noise_map: NoiseMap,
@@ -27,21 +30,56 @@ pub struct Chungus {
 impl Chungus {
     pub fn gc(&mut self, player: &Character, render_distance: f32) {
         let max_d = render_distance * 4.0;
-        self.chunks.retain(|&pos, _| {
-            let diff: Vec3 = (pos.as_vec3() * CHUNK_SIZE as f32) - player.pos;
+        self.chunks_block.retain(|&pos, _| {
+            let diff: Vec3 = (pos.as_vec3() * CHUNK_SIZE as f32)
+                + Vec3::new(
+                    CHUNK_SIZE as f32 / 2.0,
+                    CHUNK_SIZE as f32 / 2.0,
+                    CHUNK_SIZE as f32 / 2.0,
+                )
+                - player.pos;
+            let d = diff.dot(diff);
+            d < (max_d)
+        });
+        self.chunks_light.retain(|&pos, _| {
+            let diff: Vec3 = (pos.as_vec3() * CHUNK_SIZE as f32)
+                + Vec3::new(
+                    CHUNK_SIZE as f32 / 2.0,
+                    CHUNK_SIZE as f32 / 2.0,
+                    CHUNK_SIZE as f32 / 2.0,
+                )
+                - player.pos;
             let d = diff.dot(diff);
             d < (max_d)
         });
     }
 
-    #[inline]
-    pub fn get_chunk(&self, k: &IVec3) -> Option<&Chunk> {
-        self.chunks.get(k)
-    }
+    pub fn handle_requests(&mut self, request: &mut ChunkRequestQueue) {
+        let mut block_reqs = vec![];
+        request.get_block().iter().for_each(|pos| {
+            let chunk = self.chunks_block.get(pos);
+            if chunk.is_none() {
+                self.chunks_block.insert(*pos, worldgen::chunk(self, *pos));
+            }
+        });
+        request.get_block_mut().clear();
 
-    #[inline]
-    pub fn get_chunk_mut(&mut self, k: &IVec3) -> Option<&mut Chunk> {
-        self.chunks.get_mut(k)
+        request.get_simple_light_mut().retain(|pos| {
+            if let Some(chunk) = self.chunks_block.get(pos) {
+                if let Some(light) = self.chunks_light.get_mut(pos) {
+                    if light.get_last_updated() <= chunk.get_last_updated() {
+                        light.calculate(chunk);
+                    }
+                } else {
+                    self.chunks_light.insert(*pos, ChunkLightData::new(chunk));
+                }
+                false
+            } else {
+                block_reqs.push(*pos);
+                true
+            }
+        });
+        block_reqs.iter().for_each(|pos| request.block(*pos));
     }
 
     #[inline]
@@ -64,25 +102,34 @@ impl Chungus {
         &self.assets
     }
 
+    #[inline]
     pub fn get(&self, k: &IVec3) -> Option<&ChunkBlockData> {
-        match self.chunks.get(k) {
-            Some(chunk) => Some(chunk.get_block()),
-            None => None,
-        }
+        self.chunks_block.get(k)
     }
 
+    #[inline]
     pub fn get_mut(&mut self, k: &IVec3) -> Option<&mut ChunkBlockData> {
-        match self.chunks.get_mut(k) {
-            Some(chunk) => Some(chunk.get_block_mut()),
-            None => None,
-        }
+        self.chunks_block.get_mut(k)
     }
 
+    #[inline]
     pub fn get_light(&self, k: &IVec3) -> Option<&ChunkLightData> {
-        match self.chunks.get(k) {
-            Some(chunk) => Some(chunk.get_light()),
-            None => None,
+        self.chunks_light.get(k)
+    }
+
+    pub fn chunk_count(&self) -> usize {
+        self.chunks_block.len()
+    }
+
+    pub fn should_update(&self, k: &IVec3) -> bool {
+        if let Some(chunk) = self.get(k) {
+            if let Some(light) = self.chunks_light.get(k) {
+                if light.get_last_updated() > chunk.get_last_updated() {
+                    return false;
+                }
+            }
         }
+        true
     }
 
     pub fn is_loaded(&self, pos: Vec3) -> bool {
@@ -173,7 +220,8 @@ impl Chungus {
 
         Ok(Self {
             blocks: Rc::new(RefCell::new(block_types::load_all())),
-            chunks: HashMap::with_capacity(512),
+            chunks_light: HashMap::with_capacity(1024),
+            chunks_block: HashMap::with_capacity(1024),
             elevation,
             displacement,
             noise_map,

@@ -2,6 +2,7 @@
 // All rights reserved. AGPL-3.0+ license.
 use anyhow::Result;
 
+/// A list of all the built-in shaders.
 #[derive(Debug)]
 pub struct ShaderList {
     pub block: glium::Program,
@@ -10,6 +11,12 @@ pub struct ShaderList {
     pub particle: glium::Program,
 }
 
+/// This is the prefix that has to be prepended to all vertex shaders,
+/// Care must be taken that all shaders are valid in all 3 distinct GLSL
+/// versions (300 es, 330 core, 130).
+///
+/// Because of this one should not start the shader with a #version statement
+/// since this needs to be different depending on the target platform.
 const VERT_PREFIX: &str = if cfg!(target_arch = "arm") || cfg!(target_arch = "aarch64") {
     r"#version 300 es
 precision mediump float;
@@ -25,6 +32,12 @@ precision mediump int;
 #line 0"
 };
 
+/// This is the prefix that has to be prepended to all fragment shaders,
+/// Care must be taken that all shaders are valid in all 3 distinct GLSL
+/// versions (300 es, 330 core, 130).
+///
+/// Because of this one should not start the shader with a #version statement
+/// since this needs to be different depending on the target platform.
 const FRAG_PREFIX: &str = if cfg!(target_arch = "arm") || cfg!(target_arch = "aarch64") {
     r"#version 300 es
 precision mediump float;
@@ -43,12 +56,19 @@ precision mediump sampler2DArray;
 };
 
 impl ShaderList {
+    /// Create a new shader program from 2 vert/frag source slices where the appropriate #version prefix
+    /// will be automatically prepended
     fn new_program(display: &glium::Display, vert: &str, frag: &str) -> Result<glium::Program> {
         let vert = format!("{}\n{}", VERT_PREFIX, vert);
         let frag = format!("{}\n{}", FRAG_PREFIX, frag);
         Ok(glium::Program::from_source(display, &vert, &frag, None)?)
     }
 
+    /// Create a new shader program from 2 vert/frag source slices where the appropriate #version prefix
+    /// will be automatically prepended
+    ///
+    /// This also sets the uses_point_size boolean so that GL_VERTEX_PROGRAM_POINT_SIZE is enabled before
+    /// doing the actual draw calls.
     fn new_point_program(
         display: &glium::Display,
         vert: &str,
@@ -71,6 +91,7 @@ impl ShaderList {
         )?)
     }
 
+    /// Initialize a new shader list and compile/link all the shaders.
     pub fn new(display: &glium::Display) -> Result<Self> {
         let mesh = Self::new_program(
             display,

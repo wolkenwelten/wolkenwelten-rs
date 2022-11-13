@@ -8,12 +8,12 @@ use wolkenwelten_common::CHUNK_SIZE;
 pub fn draw(
     frame: &mut glium::Frame,
     fe: &ClientState,
-    view: Mat4,
-    projection: Mat4,
+    view: &Mat4,
+    projection: &Mat4,
 ) -> Result<(), DrawError> {
     let s = RENDER_DISTANCE + CHUNK_SIZE as f32 * 2.0;
-    let view = view * Mat4::from_scale(Vec3::new(s, s, s));
-    let mat_mvp = (projection * view).to_cols_array_2d();
+    let view = *view * Mat4::from_scale(Vec3::new(s, s, s));
+    let mat_mvp = (*projection * view).to_cols_array_2d();
     let in_color: [f32; 4] = [1.0, 1.0, 1.0, 1.0];
 
     frame.draw(

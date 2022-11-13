@@ -71,7 +71,7 @@ jobs:
           rust: stable
           target: x86_64-unknown-linux-gnu
         - build: x86_64-macos
-          os: macos-latest
+          os: macos-12
           rust: stable
           target: x86_64-apple-darwin
         - build: x86_64-windows

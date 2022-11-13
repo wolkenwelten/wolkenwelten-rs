@@ -7,6 +7,12 @@ use std::cmp::Ordering;
 use std::collections::BinaryHeap;
 use wolkenwelten_common::{CHUNK_BITS, CHUNK_SIZE};
 
+/// An entry in our chunk draw queue. This is mainly used for
+/// sorting all chunks back-to-front so that the alpha blending
+/// works correctly. We also store the overall transparency
+/// of the chunk, as well as which sides are to be drawn here.
+/// That way we can keep the actual render function quite simple,
+/// and just do the draw calls there.
 #[derive(Debug, Default)]
 pub struct QueueEntry {
     pub dist: i64,
@@ -27,6 +33,8 @@ impl QueueEntry {
         }
     }
 
+    /// Build a new draw queue, based on the players position and the pre-extracted
+    /// frustum. We also cull all the chunks that can't be visible from the players PoV here.
     pub fn build(player_pos: Vec3, frustum: &Frustum) -> BinaryHeap<Self> {
         let mut render_queue: BinaryHeap<Self> = BinaryHeap::with_capacity(512);
         let px = (player_pos.x.floor() as i32) >> CHUNK_BITS;

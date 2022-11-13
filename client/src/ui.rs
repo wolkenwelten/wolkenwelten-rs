@@ -1,6 +1,7 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
 use crate::ClientState;
+use wolkenwelten_common::ChunkRequestQueue;
 use wolkenwelten_game::GameState;
 
 fn prepare_healthbar(fe: &mut ClientState, game: &GameState, x: i16, y: i16, heart_beat: bool) {
@@ -91,19 +92,26 @@ fn prepare_block_selection(fe: &mut ClientState, game: &GameState) {
     );
 }
 
-#[cfg(debug_assertions)]
-fn prepare_debug_text(fe: &mut ClientState, game: &GameState) {
+fn prepare_debug_text(fe: &mut ClientState, game: &GameState, request: &ChunkRequestQueue) {
     let particles = fe.particles();
     let particles = particles.borrow();
     let col_text = format!(
-        "Entities: {}   Chunks: {}   BlockMeshes: {}  Particles: {}",
+        "Count: (Entities:{}, Chunks:{}, BlockMeshes:{}, Particles:{})",
         game.get_entity_count(),
-        game.world.chunks.len(),
+        game.world.chunk_count(),
         fe.world_mesh.len(),
         particles.len(),
     );
     fe.ui_mesh
         .push_string(8, 84, 2, [0xFF, 0xFF, 0xFF, 0xFF], col_text.as_str());
+    let text = format!(
+        "Requests: (Block:{}, SimpleLight:{}, Mesh:{})",
+        request.block_len(),
+        request.simple_light_len(),
+        request.mesh_len(),
+    );
+    fe.ui_mesh
+        .push_string(8, 108, 2, [0xFF, 0xFF, 0xFF, 0xFF], text.as_str());
 }
 
 fn prepare_crosshair(fe: &mut ClientState) {
@@ -119,15 +127,14 @@ fn prepare_crosshair(fe: &mut ClientState) {
     fe.ui_mesh.push_box(pos, tex, [0xFF, 0xFF, 0xFF, 0x7F]);
 }
 
-pub fn prepare(fe: &mut ClientState, game: &GameState) {
+pub fn prepare(fe: &mut ClientState, game: &GameState, request: &ChunkRequestQueue) {
     prepare_fps(fe);
     prepare_pos(fe, game);
     prepare_block_selection(fe, game);
     prepare_crosshair(fe);
     prepare_healthbar(fe, game, 16, 16, true);
 
-    #[cfg(debug_assertions)]
-    prepare_debug_text(fe, game);
+    prepare_debug_text(fe, game, request);
 
     fe.ui_mesh.prepare(&fe.display);
 }

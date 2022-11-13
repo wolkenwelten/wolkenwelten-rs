@@ -10,6 +10,7 @@ use rand_xorshift::XorShiftRng;
 use rgb::RGBA8;
 use wolkenwelten_common::{BlockType, GameEvent, Message, SyncEvent};
 
+/// The single particle, will be sent as is to the shader as is.
 #[derive(Copy, Clone, Debug)]
 struct ParticleVertex {
     pos: [f32; 4],
@@ -36,7 +37,9 @@ impl Default for ParticleMesh {
 }
 
 impl ParticleMesh {
-    /// Construct a new ParticleMesh
+    /// Construct a new ParticleMesh, for the most part a single ParticleMesh should
+    /// suffice for the entire client, since we just add particles to that mesh, and update
+    /// it every frame.
     pub fn new() -> Self {
         Default::default()
     }
@@ -73,6 +76,7 @@ impl ParticleMesh {
         })
     }
 
+    /// Return a new color with the saturation/lightness shifted by +-shift
     fn hsv_shift(&mut self, color: Srgb, saturation_shift: f32, lightness_shift: f32) -> Srgb {
         let sr = saturation_shift;
         let ls = lightness_shift;
@@ -87,7 +91,8 @@ impl ParticleMesh {
         Srgb::from_color(color)
     }
 
-    /// Interal function creating particles that resemble an explosion
+    /// Create a new effect that should resemble an explosion, power determines the
+    /// overall size of the fireball.
     fn fx_explosion(&mut self, pos: Vec3, power: f32) {
         let power = power * 0.66;
         for _ in 1..512 {
@@ -159,7 +164,8 @@ impl ParticleMesh {
         }
     }
 
-    /// Interal function creating particles that look like a block breaking apart
+    /// Create a breaking block effect, the color will be hsv shifted so that
+    /// it doesn't look quite as boring/uniform.
     fn fx_block_break(&mut self, pos: IVec3, color: [RGBA8; 2]) {
         for color in color.iter() {
             let color: Srgb = Srgb::from_components((
@@ -189,7 +195,8 @@ impl ParticleMesh {
         }
     }
 
-    /// Internal function creating an effect after a block has been placed
+    /// Create a new block placement effect, for now it just relays everything to the block break
+    /// method.
     fn fx_block_place(&mut self, pos: IVec3, color: [RGBA8; 2]) {
         self.fx_block_break(pos, color)
     }
@@ -221,7 +228,7 @@ impl ParticleMesh {
         });
     }
 
-    /// Draw all the particles currently active
+    /// Draw all the active particles
     pub fn draw(
         &self,
         frame: &mut glium::Frame,

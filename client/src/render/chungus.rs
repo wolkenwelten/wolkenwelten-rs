@@ -1,62 +1,57 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
-use crate::{meshes::BlockMesh, ClientState, Frustum, QueueEntry, RENDER_DISTANCE};
+use crate::{meshes::BlockMesh, ClientState, Frustum, QueueEntry};
 use anyhow::Result;
-use glam::{f32::Mat4, IVec3};
-use glium::{uniform, DrawError, Surface};
+use glam::f32::Mat4;
+use glium::{uniform, Surface};
 use std::time::Instant;
-use wolkenwelten_common::{CHUNK_BITS, CHUNK_SIZE};
+use wolkenwelten_common::ChunkRequestQueue;
 use wolkenwelten_game::GameState;
 
-fn prepare_chunk(fe: &mut ClientState, game: &GameState, pos: IVec3, now: Instant) -> Result<()> {
-    if let Some(chunk) = game.world.get_chunk(&pos) {
-        if let Some(mesh) = fe.world_mesh.get_mut(&pos) {
-            if chunk.get_light().get_last_updated() >= mesh.get_last_updated() {
-                let block_types = game.world.blocks.borrow();
-                mesh.update(
-                    &fe.display,
-                    chunk.get_block(),
-                    chunk.get_light(),
-                    &block_types,
-                    now,
-                )?;
+pub fn handle_requests(
+    fe: &mut ClientState,
+    game: &GameState,
+    request: &mut ChunkRequestQueue,
+) -> Result<()> {
+    let now = Instant::now();
+
+    let mut light_reqs = vec![];
+    let mut block_reqs = vec![];
+    request.get_mesh_mut().iter().for_each(|pos| {
+        if let Some(chunk) = game.world.get(&pos) {
+            if let Some(light) = game.world.get_light(&pos) {
+                if light.get_last_updated() >= chunk.get_last_updated() {
+                    light_reqs.push(*pos);
+                }
+                if let Some(mesh) = fe.world_mesh.get_mut(&pos) {
+                    if light.get_last_updated() >= mesh.get_last_updated() {
+                        let block_types = game.world.blocks.borrow();
+                        let r = mesh.update(&fe.display, chunk, light, &block_types, now);
+                        if r.is_err() {
+                            return;
+                        }
+                    }
+                } else {
+                    let mesh = BlockMesh::new(&fe.display);
+                    if let Ok(mut mesh) = mesh {
+                        let block_types = game.world.blocks.borrow();
+                        let r = mesh.update(&fe.display, chunk, light, &block_types, now);
+                        if r.is_ok() {
+                            fe.world_mesh.insert(*pos, mesh);
+                        }
+                    }
+                }
+            } else {
+                light_reqs.push(*pos);
             }
         } else {
-            let mut mesh = BlockMesh::new(&fe.display)?;
-            let block_types = game.world.blocks.borrow();
-            mesh.update(
-                &fe.display,
-                chunk.get_block(),
-                chunk.get_light(),
-                &block_types,
-                now,
-            )?;
-            fe.world_mesh.insert(pos, mesh);
+            block_reqs.push(*pos);
         }
-    }
-    Ok(())
-}
+    });
+    light_reqs.iter().for_each(|pos| request.simple_light(*pos));
+    block_reqs.iter().for_each(|pos| request.block(*pos));
+    request.get_mesh_mut().clear();
 
-pub fn prepare(fe: &mut ClientState, game: &GameState) -> Result<()> {
-    let now = Instant::now();
-    let player = game.player();
-    let px = (player.pos.x as i32) >> CHUNK_BITS;
-    let py = (player.pos.y as i32) >> CHUNK_BITS;
-    let pz = (player.pos.z as i32) >> CHUNK_BITS;
-    let view_steps = game.view_steps();
-    for cx in -view_steps..=view_steps {
-        for cy in -view_steps..=view_steps {
-            for cz in -view_steps..=view_steps {
-                let pos = IVec3::new(cx + px, cy + py, cz + pz);
-                let d = (pos.as_vec3() * CHUNK_SIZE as f32) - player.pos;
-                let d = d.dot(d);
-                if d < (RENDER_DISTANCE + CHUNK_SIZE as f32) * (RENDER_DISTANCE + CHUNK_SIZE as f32)
-                {
-                    prepare_chunk(fe, game, pos, now)?;
-                }
-            }
-        }
-    }
     Ok(())
 }
 
@@ -65,7 +60,8 @@ pub fn draw(
     fe: &ClientState,
     game: &GameState,
     mvp: &Mat4,
-) -> Result<(), DrawError> {
+    request: &mut ChunkRequestQueue,
+) -> Result<()> {
     let frustum = Frustum::extract(mvp);
     let render_queue = QueueEntry::build(game.player().pos, &frustum);
     let now = Instant::now();
@@ -81,6 +77,7 @@ pub fn draw(
         .wrap_function(glium::uniforms::SamplerWrapFunction::Repeat);
 
     for entry in render_queue.iter() {
+        request.mesh(entry.pos);
         if let Some(mesh) = fe.world_mesh.get(&entry.pos) {
             let td = (now - mesh.get_first_created()).as_millis();
             let fade_in = (td as f32 / 500.0).clamp(0.0, 1.0);

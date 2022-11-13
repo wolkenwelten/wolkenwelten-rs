@@ -12,7 +12,7 @@ use winit::event_loop::{ControlFlow, EventLoop};
 use winit::window::{CursorGrabMode, Fullscreen, Window, WindowBuilder};
 
 use wolkenwelten_client::{prepare_frame, render_frame, ClientState, RENDER_DISTANCE};
-use wolkenwelten_common::{GameEvent, Message, SyncEvent};
+use wolkenwelten_common::{ChunkRequestQueue, GameEvent, Message, SyncEvent};
 use wolkenwelten_game::GameState;
 
 pub type MessageSink = Box<dyn Fn(&Vec<Message>)>;
@@ -55,7 +55,13 @@ pub fn init() -> (EventLoop<()>, glium::Display) {
         .with_decorations(false)
         .with_maximized(true);
 
-    let cb = glium::glutin::ContextBuilder::new().with_vsync(true);
+    let cb = glium::glutin::ContextBuilder::new();
+    // Disable vsync on ARM devices like the RPI4 where it seems to have a detrimental effect on the FPS
+    let cb = if cfg!(target_arch = "arm") || cfg!(target_arch = "aarch64") {
+        cb
+    } else {
+        cb.with_vsync(true)
+    };
 
     let display = glium::Display::new(wb, cb, &event_loop).unwrap();
 
@@ -80,6 +86,8 @@ pub fn run_event_loop(state: AppState) {
 
     let mut msgs: Vec<Message> = vec![];
     game.set_render_distance(RENDER_DISTANCE * RENDER_DISTANCE);
+
+    let mut request = ChunkRequestQueue::new();
 
     event_loop.run(move |event, _, control_flow| {
         match event {
@@ -128,14 +136,16 @@ pub fn run_event_loop(state: AppState) {
                     SyncEvent::DrawFrame(game.player().pos, render.ticks(), RENDER_DISTANCE).into(),
                 );
                 let mut frame = render.display.draw();
-                prepare_frame(&mut render, &game).expect("Error during frame preparation");
-                render_frame(&mut frame, &render, &game).expect("Error during rendering");
+                prepare_frame(&mut render, &game, &mut request)
+                    .expect("Error during frame preparation");
+                render_frame(&mut frame, &render, &game, &mut request)
+                    .expect("Error during rendering");
                 frame.finish().expect("Error during frame finish");
             }
 
             Event::MainEventsCleared => {
                 msgs.extend(input.tick(&game));
-                msgs.extend(game.tick(&msgs));
+                msgs.extend(game.tick(&msgs, &mut request));
                 msgs.iter().for_each(|e| match e {
                     Message::SyncEvent(SyncEvent::GameQuit) => *control_flow = ControlFlow::Exit,
                     Message::GameEvent(m) => match m {
@@ -152,6 +162,7 @@ pub fn run_event_loop(state: AppState) {
                 state.message_sinks.iter().for_each(|λ| λ(&msgs));
 
                 msgs.clear();
+                game.world.handle_requests(&mut request);
                 render.request_redraw();
             }
             _ => {}

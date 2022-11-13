@@ -112,8 +112,13 @@ impl ClientState {
     }
 
     pub fn gc(&mut self, player: &Character) {
+        let center = Vec3::new(
+            CHUNK_SIZE as f32 / 2.0,
+            CHUNK_SIZE as f32 / 2.0,
+            CHUNK_SIZE as f32 / 2.0,
+        );
         self.world_mesh.retain(|&pos, _| {
-            let diff: Vec3 = (pos.as_vec3() * CHUNK_SIZE as f32) - player.pos;
+            let diff: Vec3 = (pos.as_vec3() * CHUNK_SIZE as f32) + center - player.pos;
             let d = diff.dot(diff);
             d < (RENDER_DISTANCE + (CHUNK_SIZE * 2) as f32)
                 * (RENDER_DISTANCE + (CHUNK_SIZE * 2) as f32)

@@ -3,6 +3,7 @@
 use crate::{Texture, TextureArray};
 use anyhow::Result;
 
+/// A colleciton of all the textures included with WW
 #[derive(Debug)]
 pub struct TextureList {
     pub blocks: TextureArray,
@@ -12,6 +13,7 @@ pub struct TextureList {
 }
 
 impl TextureList {
+    /// Initialize a new TextureList with all the textures initialized/loaded
     pub fn new(display: &glium::Display) -> Result<TextureList> {
         let blocks = TextureArray::from_bytes(
             display,
