@@ -90,7 +90,7 @@ impl ParticleMesh {
     /// Interal function creating particles that resemble an explosion
     fn fx_explosion(&mut self, pos: Vec3, power: f32) {
         let power = power * 0.66;
-        for _ in 1..256 {
+        for _ in 1..512 {
             let pos = [
                 pos.x + self.rng.gen_range(-power..power),
                 pos.y + self.rng.gen_range(-power..power),
@@ -113,7 +113,7 @@ impl ParticleMesh {
         }
 
         let power = power * 0.66;
-        for _ in 1..128 {
+        for _ in 1..256 {
             let pos = [
                 pos.x + self.rng.gen_range(-power..power),
                 pos.y + self.rng.gen_range(-power..power),
@@ -136,7 +136,7 @@ impl ParticleMesh {
         }
 
         let power = power * 0.66;
-        for _ in 1..64 {
+        for _ in 1..128 {
             let pos = [
                 pos.x + self.rng.gen_range(-power..power),
                 pos.y + self.rng.gen_range(-power..power),
@@ -213,7 +213,7 @@ impl ParticleMesh {
                     self.fx_block_place(*pos, color)
                 }
                 GameEvent::EntityCollision(pos) => {
-                    self.fx_explosion(*pos, 4.0);
+                    self.fx_explosion(*pos, 9.0);
                 }
                 _ => (),
             },

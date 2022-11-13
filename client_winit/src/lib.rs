@@ -143,7 +143,7 @@ pub fn run_event_loop(state: AppState) {
                             game.player_rebirth();
                         }
                         GameEvent::EntityCollision(pos) => {
-                            game.world.add_explosion(pos, 5.0);
+                            game.world.add_explosion(pos, 7.0);
                         }
                         _ => (),
                     },
