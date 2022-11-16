@@ -3,5 +3,5 @@
 mod generator;
 mod vertex;
 
-pub use generator::generate;
+pub use generator::{generate, generate_simple};
 pub use vertex::BlockVertex;

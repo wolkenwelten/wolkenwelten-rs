@@ -82,6 +82,27 @@ impl Chungus {
         block_reqs.iter().for_each(|pos| request.block(*pos));
     }
 
+    pub fn get_tri_chunk(&self, k: &IVec3, req: &mut Vec<IVec3>) -> Option<[&ChunkBlockData; 27]> {
+        let mut q = vec![];
+        for cx in -1..=1 {
+            for cy in -1..=1 {
+                for cz in -1..=1 {
+                    let k = IVec3::new(cx, cy, cz) + *k;
+                    if let Some(c) = self.get(&k) {
+                        q.push(c);
+                    } else {
+                        req.push(k);
+                    }
+                }
+            }
+        }
+        if let Ok(ret) = q.as_slice().try_into() {
+            Some(ret)
+        } else {
+            None
+        }
+    }
+
     #[inline]
     pub fn elevation(&self) -> &NoiseMap {
         &self.elevation

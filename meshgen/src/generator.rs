@@ -679,9 +679,36 @@ fn gen_right(
     (vertices.len() - start) / 4
 }
 
-fn calc_block_data(block_data: &mut BlockBuffer, chunk: &ChunkBlockData) {
+fn calc_block_data_chunk(block_data: &mut BlockBuffer, chunk: &ChunkBlockData, off: [i32; 3]) {
     for (x, y, z) in ChunkPosIter::new() {
-        block_data[x + 1][y + 1][z + 1] = chunk.data[x][y][z];
+        let cx = x as i32 + off[0];
+        if (cx < 0) || (cx > CHUNK_SIZE as i32 + 1) {
+            continue;
+        }
+        let cy = y as i32 + off[1];
+        if (cy < 0) || (cy > CHUNK_SIZE as i32 + 1) {
+            continue;
+        }
+        let cz = z as i32 + off[2];
+        if (cz < 0) || (cz > CHUNK_SIZE as i32 + 1) {
+            continue;
+        }
+        block_data[cx as usize][cy as usize][cz as usize] = chunk.data[x][y][z];
+    }
+}
+
+fn calc_block_data(block_data: &mut BlockBuffer, chunks: &[&ChunkBlockData; 27]) {
+    for cx in 0..3 {
+        for cy in 0..3 {
+            for cz in 0..3 {
+                let off = [
+                    (cx * CHUNK_SIZE) as i32 - (CHUNK_SIZE as i32 - 1),
+                    (cy * CHUNK_SIZE) as i32 - (CHUNK_SIZE as i32 - 1),
+                    (cz * CHUNK_SIZE) as i32 - (CHUNK_SIZE as i32 - 1),
+                ];
+                calc_block_data_chunk(block_data, chunks[cx * 3 * 3 + cy * 3 + cz], off)
+            }
+        }
     }
 }
 
@@ -710,6 +737,34 @@ fn calc_side_cache(side_cache: &mut SideBuffer, block_data: &BlockBuffer) {
 }
 
 pub fn generate(
+    chunks: &[&ChunkBlockData; 27],
+    light: &ChunkLightData,
+    block_types: &Vec<BlockType>,
+) -> (Vec<BlockVertex>, [usize; 6]) {
+    let mut vertices: Vec<BlockVertex> = Vec::with_capacity(1024);
+
+    let mut block_data: BlockBuffer = [[[0; CHUNK_SIZE + 2]; CHUNK_SIZE + 2]; CHUNK_SIZE + 2];
+    let mut light_data: BlockBuffer = [[[15; CHUNK_SIZE + 2]; CHUNK_SIZE + 2]; CHUNK_SIZE + 2];
+    let mut side_cache: SideBuffer = [[[0; CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE];
+
+    calc_block_data(&mut block_data, chunks);
+    calc_light_data(&mut light_data, light);
+    calc_side_cache(&mut side_cache, &block_data);
+
+    let data = (&block_data, &light_data, &side_cache, block_types);
+    let mut side_square_count = [0; 6];
+
+    side_square_count[0] = gen_front(&mut vertices, data);
+    side_square_count[1] = gen_back(&mut vertices, data);
+    side_square_count[2] = gen_top(&mut vertices, data);
+    side_square_count[3] = gen_bottom(&mut vertices, data);
+    side_square_count[4] = gen_left(&mut vertices, data);
+    side_square_count[5] = gen_right(&mut vertices, data);
+
+    (vertices, side_square_count)
+}
+
+pub fn generate_simple(
     chunk: &ChunkBlockData,
     light: &ChunkLightData,
     block_types: &Vec<BlockType>,
@@ -720,7 +775,8 @@ pub fn generate(
     let mut light_data: BlockBuffer = [[[15; CHUNK_SIZE + 2]; CHUNK_SIZE + 2]; CHUNK_SIZE + 2];
     let mut side_cache: SideBuffer = [[[0; CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE];
 
-    calc_block_data(&mut block_data, chunk);
+    let off = [1; 3];
+    calc_block_data_chunk(&mut block_data, chunk, off);
     calc_light_data(&mut light_data, light);
     calc_side_cache(&mut side_cache, &block_data);
 

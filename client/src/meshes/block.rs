@@ -76,6 +76,27 @@ impl BlockMesh {
     pub fn update(
         &mut self,
         display: &glium::Display,
+        chunks: &[&ChunkBlockData; 27],
+        light: &ChunkLightData,
+        block_types: &Vec<BlockType>,
+        now: Instant,
+    ) -> Result<()> {
+        self.last_updated = now;
+
+        let (vertices, side_start_count) =
+            wolkenwelten_meshgen::generate(chunks, light, block_types);
+        self.side_square_count = side_start_count;
+        self.side_start[0] = 0;
+        for i in 1..6 {
+            self.side_start[i] = self.side_start[i - 1] + self.side_square_count[i - 1];
+        }
+        self.buffer = glium::VertexBuffer::dynamic(display, &vertices)?;
+        Ok(())
+    }
+
+    pub fn update_simple(
+        &mut self,
+        display: &glium::Display,
         chunk: &ChunkBlockData,
         light: &ChunkLightData,
         block_types: &Vec<BlockType>,
@@ -84,7 +105,7 @@ impl BlockMesh {
         self.last_updated = now;
 
         let (vertices, side_start_count) =
-            wolkenwelten_meshgen::generate(chunk, light, block_types);
+            wolkenwelten_meshgen::generate_simple(chunk, light, block_types);
         self.side_square_count = side_start_count;
         self.side_start[0] = 0;
         for i in 1..6 {

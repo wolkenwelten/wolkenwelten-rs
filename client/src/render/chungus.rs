@@ -5,8 +5,17 @@ use anyhow::Result;
 use glam::Mat4;
 use glium::{uniform, Surface};
 use std::time::Instant;
-use wolkenwelten_common::ChunkRequestQueue;
+use wolkenwelten_common::{ChunkBlockData, ChunkRequestQueue};
 use wolkenwelten_game::GameState;
+
+pub fn should_update(mesh: &BlockMesh, chunks: &[&ChunkBlockData; 27]) -> bool {
+    for chunk in chunks.iter() {
+        if chunk.get_last_updated() >= mesh.get_last_updated() {
+            return true;
+        }
+    }
+    false
+}
 
 pub fn handle_requests(
     fe: &mut ClientState,
@@ -20,24 +29,25 @@ pub fn handle_requests(
     request.get_mesh_mut().iter().for_each(|pos| {
         if let Some(chunk) = game.world.get(&pos) {
             if let Some(light) = game.world.get_light(&pos) {
-                if light.get_last_updated() >= chunk.get_last_updated() {
+                if light.get_last_updated() < chunk.get_last_updated() {
                     light_reqs.push(*pos);
+                    return;
                 }
-                if let Some(mesh) = fe.world_mesh.get_mut(&pos) {
-                    if light.get_last_updated() >= mesh.get_last_updated() {
-                        let block_types = game.world.blocks.borrow();
-                        let r = mesh.update(&fe.display, chunk, light, &block_types, now);
-                        if r.is_err() {
-                            return;
+                if let Some(chunks) = game.world.get_tri_chunk(&pos, &mut block_reqs) {
+                    let block_types = game.world.blocks.borrow();
+                    if let Some(mesh) = fe.world_mesh.get_mut(&pos) {
+                        if light.get_last_updated() >= mesh.get_last_updated()
+                            || should_update(mesh, &chunks)
+                        {
+                            let _ = mesh.update(&fe.display, &chunks, light, &block_types, now);
                         }
-                    }
-                } else {
-                    let mesh = BlockMesh::new(&fe.display);
-                    if let Ok(mut mesh) = mesh {
-                        let block_types = game.world.blocks.borrow();
-                        let r = mesh.update(&fe.display, chunk, light, &block_types, now);
-                        if r.is_ok() {
-                            fe.world_mesh.insert(*pos, mesh);
+                    } else {
+                        let mesh = BlockMesh::new(&fe.display);
+                        if let Ok(mut mesh) = mesh {
+                            let r = mesh.update(&fe.display, &chunks, light, &block_types, now);
+                            if r.is_ok() {
+                                fe.world_mesh.insert(*pos, mesh);
+                            }
                         }
                     }
                 }
