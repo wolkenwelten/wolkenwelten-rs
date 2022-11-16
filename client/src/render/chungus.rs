@@ -2,7 +2,7 @@
 // All rights reserved. AGPL-3.0+ license.
 use crate::{meshes::BlockMesh, ClientState, Frustum, QueueEntry};
 use anyhow::Result;
-use glam::f32::Mat4;
+use glam::Mat4;
 use glium::{uniform, Surface};
 use std::time::Instant;
 use wolkenwelten_common::ChunkRequestQueue;

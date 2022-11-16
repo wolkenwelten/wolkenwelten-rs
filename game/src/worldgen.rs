@@ -10,11 +10,6 @@ use wolkenwelten_common::{ChunkBlockData, CHUNK_SIZE};
 mod asset;
 pub use asset::*;
 
-mod rock;
-use rock::*;
-mod vegetation;
-use vegetation::*;
-
 pub fn chunk(world: &Chungus, pos: IVec3) -> ChunkBlockData {
     let ele = world.elevation();
     let dis = world.displacement();
@@ -69,36 +64,35 @@ pub fn chunk(world: &Chungus, pos: IVec3) -> ChunkBlockData {
             }
             r.set_pillar(3, [x, (-(1 << 30)) - py, z].into(), stone_y - py);
             if grass_y > (stone_y + 8) {
-                if rng.gen_range(1..2000) == 1 {
-                    r.wg_shrub((x, grass_y - py, z).into());
+                if rng.gen_range(1..400) == 1 {
+                    let i = rng.gen_range(0..assets.bushes.len());
+                    let pos = IVec3::new(
+                        x - assets.bushes[i].size.x / 2,
+                        grass_y - py,
+                        z - assets.bushes[i].size.z / 2,
+                    );
+                    if assets.bushes[i].fits(pos) {
+                        r.blit(&assets.bushes[i], pos);
+                    }
                 } else if rng.gen_range(1..1000) == 1 {
-                    r.wg_rock((x, grass_y - py - 2, z).into());
-                } else if rng.gen_range(1..300) == 1 {
+                    let i = rng.gen_range(0..assets.rocks.len());
                     let pos = IVec3::new(
-                        x - assets.tree.size.x / 2,
-                        grass_y - py - 3,
-                        z - assets.tree.size.z / 2,
-                    );
-                    if assets.tree.fits(pos) {
-                        r.blit(&assets.tree, pos);
-                    }
-                } else if rng.gen_range(1..300) == 1 {
-                    let pos = IVec3::new(
-                        x - assets.tree_b.size.x / 2,
-                        grass_y - py - 3,
-                        z - assets.tree_b.size.z / 2,
-                    );
-                    if assets.tree.fits(pos) {
-                        r.blit(&assets.tree_b, pos);
-                    }
-                } else if rng.gen_range(1..200) == 1 {
-                    let pos = IVec3::new(
-                        x - assets.tree_c.size.x / 2,
+                        x - assets.rocks[i].size.x / 2,
                         grass_y - py - 2,
-                        z - assets.tree_c.size.z / 2,
+                        z - assets.rocks[i].size.z / 2,
                     );
-                    if assets.tree.fits(pos) {
-                        r.blit(&assets.tree_c, pos);
+                    if assets.rocks[i].fits(pos) {
+                        r.blit(&assets.rocks[i], pos);
+                    }
+                } else if rng.gen_range(1..150) == 1 {
+                    let i = rng.gen_range(0..assets.trees.len());
+                    let pos = IVec3::new(
+                        x - assets.trees[i].size.x / 2,
+                        grass_y - py - 3,
+                        z - assets.trees[i].size.z / 2,
+                    );
+                    if assets.trees[i].fits(pos) {
+                        r.blit(&assets.trees[i], pos);
                     }
                 }
             }

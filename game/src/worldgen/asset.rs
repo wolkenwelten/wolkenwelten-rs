@@ -14,29 +14,60 @@ pub struct WorldgenAsset {
 
 #[derive(Debug)]
 pub struct WorldgenAssetList {
-    pub tree: WorldgenAsset,
-    pub tree_b: WorldgenAsset,
-    pub tree_c: WorldgenAsset,
+    pub trees: [WorldgenAsset; 3],
+    pub bushes: [WorldgenAsset; 3],
+    pub rocks: [WorldgenAsset; 3],
 }
 
 impl WorldgenAssetList {
     pub fn new() -> Result<Self> {
-        let tree =
+        let trees = [
             WorldgenAsset::from_vox_data(include_bytes!("../../../assets/voxel_meshes/tree.vox"))?
-                .with_palette(vec![0, 5, 6]);
-        let tree_b = WorldgenAsset::from_vox_data(include_bytes!(
-            "../../../assets/voxel_meshes/tree_b.vox"
-        ))?
-        .with_palette(vec![0, 5, 6]);
-        let tree_c = WorldgenAsset::from_vox_data(include_bytes!(
-            "../../../assets/voxel_meshes/tree_c.vox"
-        ))?
-        .with_palette(vec![0, 5, 6]);
+                .with_palette(vec![0, 5, 11]),
+            WorldgenAsset::from_vox_data(include_bytes!(
+                "../../../assets/voxel_meshes/tree_b.vox"
+            ))?
+            .with_palette(vec![0, 5, 11]),
+            WorldgenAsset::from_vox_data(include_bytes!(
+                "../../../assets/voxel_meshes/tree_c.vox"
+            ))?
+            .with_palette(vec![0, 5, 11]),
+        ];
+
+        let bushes = [
+            WorldgenAsset::from_vox_data(include_bytes!(
+                "../../../assets/voxel_meshes/bush_a.vox"
+            ))?
+            .with_palette(vec![0, 10, 6]),
+            WorldgenAsset::from_vox_data(include_bytes!(
+                "../../../assets/voxel_meshes/bush_b.vox"
+            ))?
+            .with_palette(vec![0, 6, 10]),
+            WorldgenAsset::from_vox_data(include_bytes!(
+                "../../../assets/voxel_meshes/bush_c.vox"
+            ))?
+            .with_palette(vec![0, 6, 10]),
+        ];
+
+        let rocks = [
+            WorldgenAsset::from_vox_data(include_bytes!(
+                "../../../assets/voxel_meshes/rock_a.vox"
+            ))?
+            .with_palette(vec![0, 3]),
+            WorldgenAsset::from_vox_data(include_bytes!(
+                "../../../assets/voxel_meshes/rock_b.vox"
+            ))?
+            .with_palette(vec![0, 3, 4]),
+            WorldgenAsset::from_vox_data(include_bytes!(
+                "../../../assets/voxel_meshes/rock_c.vox"
+            ))?
+            .with_palette(vec![0, 3, 12]),
+        ];
 
         return Ok(Self {
-            tree,
-            tree_b,
-            tree_c,
+            trees,
+            bushes,
+            rocks,
         });
     }
 }
@@ -77,8 +108,8 @@ impl WorldgenAsset {
             && pos.y > 0
             && pos.z > 0
             && pos.x + self.size.x < CHUNK_SIZE as i32
-            && pos.y + self.size.x < CHUNK_SIZE as i32
-            && pos.z + self.size.x < CHUNK_SIZE as i32
+            && pos.y + self.size.y < CHUNK_SIZE as i32
+            && pos.z + self.size.z < CHUNK_SIZE as i32
     }
 
     pub fn get_block(&self, pos: IVec3) -> u8 {
