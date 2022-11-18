@@ -11,13 +11,17 @@ pub struct ChunkLightData {
 }
 
 impl ChunkLightData {
-    pub fn new(chunk: &ChunkBlockData) -> Self {
-        let mut ret = Self {
+    pub fn new() -> Self {
+        Self {
             last_updated: Instant::now(),
             data: [[[0; CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE],
-        };
-        ret.calculate(chunk);
-        ret
+        }
+    }
+
+    pub fn new_simple(chunk: &ChunkBlockData) -> Self {
+        let mut r = Self::new();
+        r.calculate(chunk);
+        r
     }
 
     #[inline]
@@ -25,11 +29,10 @@ impl ChunkLightData {
         self.last_updated
     }
 
-    fn sunlight(&mut self, chunk: &ChunkBlockData) {
-        let mut light: [[u8; CHUNK_SIZE]; CHUNK_SIZE] = [[15; CHUNK_SIZE]; CHUNK_SIZE];
+    fn sunlight(&mut self, chunk: &ChunkBlockData, light: &mut [[u8; CHUNK_SIZE]; CHUNK_SIZE]) {
         for y in (0..CHUNK_SIZE).rev() {
-            for (x, light) in light.iter_mut().enumerate().take(CHUNK_SIZE) {
-                for (z, light) in light.iter_mut().enumerate().take(CHUNK_SIZE) {
+            for (x, light) in light.iter_mut().enumerate() {
+                for (z, light) in light.iter_mut().enumerate() {
                     let b = chunk.data[x][y][z];
                     if b != 0 {
                         *light = 0;
@@ -112,7 +115,46 @@ impl ChunkLightData {
     }
 
     pub fn calculate(&mut self, chunk: &ChunkBlockData) {
-        self.sunlight(chunk);
+        let mut light = [[0; CHUNK_SIZE]; CHUNK_SIZE];
+        self.sunlight(chunk, &mut light);
+        self.blur();
+        self.ambient_occlusion(chunk);
+        self.last_updated = Instant::now();
+    }
+
+    pub fn calculate_complex(&mut self, chunk: &ChunkBlockData, neighbors: &[&ChunkLightData; 27]) {
+        let mut light = [[0; CHUNK_SIZE]; CHUNK_SIZE];
+        let src = neighbors[1 * 3 * 3 + 2 * 3 + 1];
+        for x in 0..CHUNK_SIZE {
+            for z in 0..CHUNK_SIZE {
+                light[x][z] = src.data[x][0][z];
+            }
+        }
+        self.sunlight(chunk, &mut light);
+        for x in 0..CHUNK_SIZE {
+            for z in 0..CHUNK_SIZE {
+                self.data[x][0][z] = self.data[x][0][z].max(
+                    (neighbors[1 * 3 * 3 + 0 * 3 + 1].data[x][CHUNK_SIZE - 1][z] as i8 - 1).max(0)
+                        as u8,
+                );
+                self.data[x][CHUNK_SIZE - 1][z] = self.data[x][CHUNK_SIZE - 1][z]
+                    .max((neighbors[1 * 3 * 3 + 2 * 3 + 1].data[x][0][z] as i8 - 1).max(0) as u8);
+
+                self.data[x][z][0] = self.data[x][z][0].max(
+                    (neighbors[1 * 3 * 3 + 1 * 3 + 0].data[x][z][CHUNK_SIZE - 1] as i8 - 1).max(0)
+                        as u8,
+                );
+                self.data[x][z][CHUNK_SIZE - 1] = self.data[x][z][CHUNK_SIZE - 1]
+                    .max((neighbors[1 * 3 * 3 + 1 * 3 + 2].data[x][z][0] as i8 - 1).max(0) as u8);
+
+                self.data[0][x][z] = self.data[0][x][z].max(
+                    (neighbors[0 * 3 * 3 + 1 * 3 + 1].data[CHUNK_SIZE - 1][x][z] as i8 - 1).max(0)
+                        as u8,
+                );
+                self.data[CHUNK_SIZE - 1][x][z] = self.data[CHUNK_SIZE - 1][x][z]
+                    .max((neighbors[2 * 3 * 3 + 1 * 3 + 1].data[0][x][z] as i8 - 1).max(0) as u8);
+            }
+        }
         self.blur();
         self.ambient_occlusion(chunk);
         self.last_updated = Instant::now();

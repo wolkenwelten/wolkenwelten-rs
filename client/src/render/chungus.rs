@@ -2,9 +2,9 @@
 // All rights reserved. AGPL-3.0+ license.
 use crate::{meshes::BlockMesh, ClientState, Frustum, QueueEntry};
 use anyhow::Result;
-use glam::Mat4;
+use glam::{IVec3, Mat4};
 use glium::{uniform, Surface};
-use std::time::Instant;
+use std::{collections::HashSet, time::Instant};
 use wolkenwelten_common::{ChunkBlockData, ChunkRequestQueue};
 use wolkenwelten_game::GameState;
 
@@ -24,41 +24,33 @@ pub fn handle_requests(
 ) -> Result<()> {
     let now = Instant::now();
 
-    let mut light_reqs = vec![];
-    let mut block_reqs = vec![];
+    let mut light_reqs: HashSet<IVec3> = HashSet::new();
+    let mut block_reqs: HashSet<IVec3> = HashSet::new();
     request.get_mesh_mut().iter().for_each(|pos| {
-        if let Some(chunk) = game.world.get(&pos) {
-            if let Some(light) = game.world.get_light(&pos) {
-                if light.get_last_updated() < chunk.get_last_updated() {
-                    light_reqs.push(*pos);
-                    return;
-                }
-                if let Some(chunks) = game.world.get_tri_chunk(&pos, &mut block_reqs) {
-                    let block_types = game.world.blocks.borrow();
-                    if let Some(mesh) = fe.world_mesh.get_mut(&pos) {
-                        if light.get_last_updated() >= mesh.get_last_updated()
-                            || should_update(mesh, &chunks)
-                        {
-                            let _ = mesh.update(&fe.display, &chunks, light, &block_types, now);
-                        }
-                    } else {
-                        let mesh = BlockMesh::new(&fe.display);
-                        if let Ok(mut mesh) = mesh {
-                            let r = mesh.update(&fe.display, &chunks, light, &block_types, now);
-                            if r.is_ok() {
-                                fe.world_mesh.insert(*pos, mesh);
-                            }
+        if let Some(lights) = game.world.get_tri_complex_light(&pos, &mut light_reqs) {
+            if let Some(chunks) = game.world.get_tri_chunk(&pos, &mut block_reqs) {
+                let block_types = game.world.blocks.borrow();
+                if let Some(mesh) = fe.world_mesh.get_mut(&pos) {
+                    if lights[1 * 3 * 3 + 1 * 3 + 1].get_last_updated() >= mesh.get_last_updated()
+                        || should_update(mesh, &chunks)
+                    {
+                        let _ = mesh.update(&fe.display, &chunks, &lights, &block_types, now);
+                    }
+                } else {
+                    let mesh = BlockMesh::new(&fe.display);
+                    if let Ok(mut mesh) = mesh {
+                        let r = mesh.update(&fe.display, &chunks, &lights, &block_types, now);
+                        if r.is_ok() {
+                            fe.world_mesh.insert(*pos, mesh);
                         }
                     }
                 }
-            } else {
-                light_reqs.push(*pos);
             }
-        } else {
-            block_reqs.push(*pos);
         }
     });
-    light_reqs.iter().for_each(|pos| request.simple_light(*pos));
+    light_reqs
+        .iter()
+        .for_each(|pos| request.complex_light(*pos));
     block_reqs.iter().for_each(|pos| request.block(*pos));
     request.get_mesh_mut().clear();
 

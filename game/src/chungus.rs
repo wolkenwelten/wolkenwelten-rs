@@ -11,16 +11,18 @@ use noise::utils::{NoiseMap, NoiseMapBuilder, PlaneMapBuilder};
 use noise::{Perlin, Seedable};
 use std::cell::RefCell;
 use std::collections::HashMap;
+use std::collections::HashSet;
 use std::rc::Rc;
-use wolkenwelten_common::ChunkRequestQueue;
 use wolkenwelten_common::{
-    BlockType, ChunkBlockData, ChunkLightData, CHUNK_BITS, CHUNK_MASK, CHUNK_SIZE,
+    BlockType, ChunkBlockData, ChunkLightData, ChunkRequestQueue, CHUNK_BITS, CHUNK_MASK,
+    CHUNK_SIZE,
 };
 
 pub struct Chungus {
     pub blocks: Rc<RefCell<Vec<BlockType>>>,
     pub chunks_block: HashMap<IVec3, ChunkBlockData>,
-    pub chunks_light: HashMap<IVec3, ChunkLightData>,
+    chunks_simple_light: HashMap<IVec3, ChunkLightData>,
+    chunks_complex_light: HashMap<IVec3, ChunkLightData>,
     elevation: NoiseMap,
     displacement: NoiseMap,
     noise_map: NoiseMap,
@@ -41,7 +43,7 @@ impl Chungus {
             let d = diff.dot(diff);
             d < (max_d)
         });
-        self.chunks_light.retain(|&pos, _| {
+        self.chunks_simple_light.retain(|&pos, _| {
             let diff: Vec3 = (pos.as_vec3() * CHUNK_SIZE as f32)
                 + Vec3::new(
                     CHUNK_SIZE as f32 / 2.0,
@@ -55,34 +57,59 @@ impl Chungus {
     }
 
     pub fn handle_requests(&mut self, request: &mut ChunkRequestQueue) {
-        let mut block_reqs = vec![];
-        request.get_block().iter().for_each(|pos| {
-            let chunk = self.chunks_block.get(pos);
-            if chunk.is_none() {
-                self.chunks_block.insert(*pos, worldgen::chunk(self, *pos));
+        let mut simple_light_reqs: HashSet<IVec3> = HashSet::new();
+        let mut block_reqs: HashSet<IVec3> = HashSet::new();
+
+        request.get_complex_light_mut().retain(|pos| {
+            if let Some(neighbors) = self.get_tri_simple_light(&pos, &mut simple_light_reqs) {
+                if let Some(chunk) = self.get(&pos) {
+                    let mut light = ChunkLightData::new();
+                    light.calculate_complex(chunk, &neighbors);
+                    self.chunks_complex_light.insert(*pos, light);
+                    false
+                } else {
+                    true
+                }
+            } else {
+                true
             }
         });
-        request.get_block_mut().clear();
+        simple_light_reqs
+            .iter()
+            .for_each(|pos| request.simple_light(*pos));
 
         request.get_simple_light_mut().retain(|pos| {
             if let Some(chunk) = self.chunks_block.get(pos) {
-                if let Some(light) = self.chunks_light.get_mut(pos) {
+                if let Some(light) = self.chunks_simple_light.get_mut(pos) {
                     if light.get_last_updated() <= chunk.get_last_updated() {
                         light.calculate(chunk);
                     }
                 } else {
-                    self.chunks_light.insert(*pos, ChunkLightData::new(chunk));
+                    let mut light = ChunkLightData::new();
+                    light.calculate(chunk);
+                    self.chunks_simple_light.insert(*pos, light);
                 }
                 false
             } else {
-                block_reqs.push(*pos);
+                block_reqs.insert(*pos);
                 true
             }
         });
         block_reqs.iter().for_each(|pos| request.block(*pos));
+
+        for pos in request.get_block_mut().drain() {
+            let chunk = self.chunks_block.get(&pos);
+            if chunk.is_none() {
+                self.chunks_block.insert(pos, worldgen::chunk(self, pos));
+            }
+        }
     }
 
-    pub fn get_tri_chunk(&self, k: &IVec3, req: &mut Vec<IVec3>) -> Option<[&ChunkBlockData; 27]> {
+    pub fn get_tri_chunk(
+        &self,
+        k: &IVec3,
+        req: &mut HashSet<IVec3>,
+    ) -> Option<[&ChunkBlockData; 27]> {
         let mut q = vec![];
         for cx in -1..=1 {
             for cy in -1..=1 {
@@ -91,8 +118,66 @@ impl Chungus {
                     if let Some(c) = self.get(&k) {
                         q.push(c);
                     } else {
-                        req.push(k);
+                        req.insert(k);
                     }
+                }
+            }
+        }
+        if let Ok(ret) = q.as_slice().try_into() {
+            Some(ret)
+        } else {
+            None
+        }
+    }
+
+    fn get_tri_simple_light(
+        &self,
+        k: &IVec3,
+        req: &mut HashSet<IVec3>,
+    ) -> Option<[&ChunkLightData; 27]> {
+        let mut q = vec![];
+        for cx in -1..=1 {
+            for cy in -1..=1 {
+                for cz in -1..=1 {
+                    let k = IVec3::new(cx, cy, cz) + *k;
+                    if let Some(c) = self.chunks_simple_light.get(&k) {
+                        if let Some(b) = self.chunks_block.get(&k) {
+                            if b.get_last_updated() < c.get_last_updated() {
+                                q.push(c);
+                                continue;
+                            }
+                        }
+                    }
+                    req.insert(k);
+                }
+            }
+        }
+        if let Ok(ret) = q.as_slice().try_into() {
+            Some(ret)
+        } else {
+            None
+        }
+    }
+
+    pub fn get_tri_complex_light(
+        &self,
+        k: &IVec3,
+        req: &mut HashSet<IVec3>,
+    ) -> Option<[&ChunkLightData; 27]> {
+        let mut q = vec![];
+        for cx in -1..=1 {
+            for cy in -1..=1 {
+                for cz in -1..=1 {
+                    let k = IVec3::new(cx, cy, cz) + *k;
+                    if let Some(c) = self.chunks_complex_light.get(&k) {
+                        if let Some(b) = self.chunks_block.get(&k) {
+                            if b.get_last_updated() < c.get_last_updated() {
+                                q.push(c);
+                                continue;
+                            }
+                        }
+                    }
+                    req.insert(k);
                 }
             }
         }
@@ -135,7 +220,7 @@ impl Chungus {
 
     #[inline]
     pub fn get_light(&self, k: &IVec3) -> Option<&ChunkLightData> {
-        self.chunks_light.get(k)
+        self.chunks_complex_light.get(k)
     }
 
     pub fn chunk_count(&self) -> usize {
@@ -144,7 +229,7 @@ impl Chungus {
 
     pub fn should_update(&self, k: &IVec3) -> bool {
         if let Some(chunk) = self.get(k) {
-            if let Some(light) = self.chunks_light.get(k) {
+            if let Some(light) = self.chunks_complex_light.get(k) {
                 if light.get_last_updated() > chunk.get_last_updated() {
                     return false;
                 }
@@ -241,7 +326,8 @@ impl Chungus {
 
         Ok(Self {
             blocks: Rc::new(RefCell::new(block_types::load_all())),
-            chunks_light: HashMap::with_capacity(1024),
+            chunks_simple_light: HashMap::with_capacity(1024),
+            chunks_complex_light: HashMap::with_capacity(1024),
             chunks_block: HashMap::with_capacity(1024),
             elevation,
             displacement,

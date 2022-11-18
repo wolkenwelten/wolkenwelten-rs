@@ -77,14 +77,14 @@ impl BlockMesh {
         &mut self,
         display: &glium::Display,
         chunks: &[&ChunkBlockData; 27],
-        light: &ChunkLightData,
+        lights: &[&ChunkLightData; 27],
         block_types: &Vec<BlockType>,
         now: Instant,
     ) -> Result<()> {
         self.last_updated = now;
 
         let (vertices, side_start_count) =
-            wolkenwelten_meshgen::generate(chunks, light, block_types);
+            wolkenwelten_meshgen::generate(chunks, lights, block_types);
         self.side_square_count = side_start_count;
         self.side_start[0] = 0;
         for i in 1..6 {

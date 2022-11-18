@@ -105,9 +105,10 @@ fn prepare_debug_text(fe: &mut ClientState, game: &GameState, request: &ChunkReq
     fe.ui_mesh
         .push_string(8, 84, 2, [0xFF, 0xFF, 0xFF, 0xFF], col_text.as_str());
     let text = format!(
-        "Requests: (Block:{}, SimpleLight:{}, Mesh:{})",
+        "Requests: (Block:{}, Light:(Simple:{} / Complex:{}), Mesh:{})",
         request.block_len(),
         request.simple_light_len(),
+        request.complex_light_len(),
         request.mesh_len(),
     );
     fe.ui_mesh

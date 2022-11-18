@@ -712,9 +712,36 @@ fn calc_block_data(block_data: &mut BlockBuffer, chunks: &[&ChunkBlockData; 27])
     }
 }
 
-fn calc_light_data(block_data: &mut BlockBuffer, light: &ChunkLightData) {
+fn calc_light_data_chunk(d: &mut BlockBuffer, chunk: &ChunkLightData, off: [i32; 3]) {
     for (x, y, z) in ChunkPosIter::new() {
-        block_data[x + 1][y + 1][z + 1] = light.data[x][y][z];
+        let cx = x as i32 + off[0];
+        if (cx < 0) || (cx > CHUNK_SIZE as i32 + 1) {
+            continue;
+        }
+        let cy = y as i32 + off[1];
+        if (cy < 0) || (cy > CHUNK_SIZE as i32 + 1) {
+            continue;
+        }
+        let cz = z as i32 + off[2];
+        if (cz < 0) || (cz > CHUNK_SIZE as i32 + 1) {
+            continue;
+        }
+        d[cx as usize][cy as usize][cz as usize] = chunk.data[x][y][z];
+    }
+}
+
+fn calc_light_data(d: &mut BlockBuffer, lights: &[&ChunkLightData; 27]) {
+    for cx in 0..3 {
+        for cy in 0..3 {
+            for cz in 0..3 {
+                let off = [
+                    (cx * CHUNK_SIZE) as i32 - (CHUNK_SIZE as i32 - 1),
+                    (cy * CHUNK_SIZE) as i32 - (CHUNK_SIZE as i32 - 1),
+                    (cz * CHUNK_SIZE) as i32 - (CHUNK_SIZE as i32 - 1),
+                ];
+                calc_light_data_chunk(d, lights[cx * 3 * 3 + cy * 3 + cz], off)
+            }
+        }
     }
 }
 
@@ -738,7 +765,7 @@ fn calc_side_cache(side_cache: &mut SideBuffer, block_data: &BlockBuffer) {
 
 pub fn generate(
     chunks: &[&ChunkBlockData; 27],
-    light: &ChunkLightData,
+    lights: &[&ChunkLightData; 27],
     block_types: &Vec<BlockType>,
 ) -> (Vec<BlockVertex>, [usize; 6]) {
     let mut vertices: Vec<BlockVertex> = Vec::with_capacity(1024);
@@ -748,7 +775,7 @@ pub fn generate(
     let mut side_cache: SideBuffer = [[[0; CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE];
 
     calc_block_data(&mut block_data, chunks);
-    calc_light_data(&mut light_data, light);
+    calc_light_data(&mut light_data, lights);
     calc_side_cache(&mut side_cache, &block_data);
 
     let data = (&block_data, &light_data, &side_cache, block_types);
@@ -777,7 +804,7 @@ pub fn generate_simple(
 
     let off = [1; 3];
     calc_block_data_chunk(&mut block_data, chunk, off);
-    calc_light_data(&mut light_data, light);
+    calc_light_data_chunk(&mut light_data, light, off);
     calc_side_cache(&mut side_cache, &block_data);
 
     let data = (&block_data, &light_data, &side_cache, block_types);

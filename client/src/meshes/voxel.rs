@@ -99,7 +99,7 @@ impl VoxelMesh {
             .into();
             chunk.set_block(b, pos);
         });
-        let light = ChunkLightData::new(&chunk);
+        let light = ChunkLightData::new_simple(&chunk);
 
         let mut ret = BlockMesh::new(display)?;
         ret.update_simple(

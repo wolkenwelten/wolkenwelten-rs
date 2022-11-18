@@ -6,8 +6,7 @@ extern crate wolkenwelten_game;
 mod input;
 pub use input::InputState;
 
-use winit::dpi::PhysicalPosition;
-use winit::event::{DeviceEvent, Event, WindowEvent};
+use winit::event::{Event, WindowEvent};
 use winit::event_loop::{ControlFlow, EventLoop};
 use winit::window::{CursorGrabMode, Fullscreen, Window, WindowBuilder};
 
@@ -95,9 +94,11 @@ pub fn run_event_loop(state: AppState) {
 
             #[cfg(not(target_os = "macos"))]
             Event::DeviceEvent {
-                event: DeviceEvent::MouseMotion { .. },
+                event: winit::event::DeviceEvent::MouseMotion { .. },
                 ..
             } => {
+                use winit::dpi::PhysicalPosition;
+
                 let (x, y) = render.window_size();
                 let center = PhysicalPosition::new(x / 2, y / 2);
                 let _ = render
