@@ -679,21 +679,34 @@ fn gen_right(
     (vertices.len() - start) / 4
 }
 
-fn calc_block_data_chunk(block_data: &mut BlockBuffer, chunk: &ChunkBlockData, off: [i32; 3]) {
-    for (x, y, z) in ChunkPosIter::new() {
-        let cx = x as i32 + off[0];
-        if (cx < 0) || (cx > CHUNK_SIZE as i32 + 1) {
-            continue;
+fn calc_chunk_data_stand_end(off: isize) -> (usize, usize) {
+    let csi = CHUNK_SIZE as isize;
+    let start = off;
+    let end = off + csi;
+    (
+        start.clamp(0, csi + 2) as usize,
+        end.clamp(0, csi + 2) as usize,
+    )
+}
+
+fn calc_chunk_data(
+    block_data: &mut BlockBuffer,
+    chunk: &[[[u8; CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE],
+    off: [isize; 3],
+) {
+    let (x_start, x_end) = calc_chunk_data_stand_end(off[0]);
+    let (y_start, y_end) = calc_chunk_data_stand_end(off[1]);
+    let (z_start, z_end) = calc_chunk_data_stand_end(off[2]);
+
+    for x in x_start..x_end {
+        let cx = (x as isize - off[0]) as usize;
+        for y in y_start..y_end {
+            let cy = (y as isize - off[1]) as usize;
+            for z in z_start..z_end {
+                let cz = (z as isize - off[2]) as usize;
+                block_data[x][y][z] = chunk[cx][cy][cz];
+            }
         }
-        let cy = y as i32 + off[1];
-        if (cy < 0) || (cy > CHUNK_SIZE as i32 + 1) {
-            continue;
-        }
-        let cz = z as i32 + off[2];
-        if (cz < 0) || (cz > CHUNK_SIZE as i32 + 1) {
-            continue;
-        }
-        block_data[cx as usize][cy as usize][cz as usize] = chunk.data[x][y][z];
     }
 }
 
@@ -702,31 +715,13 @@ fn calc_block_data(block_data: &mut BlockBuffer, chunks: &[&ChunkBlockData; 27])
         for cy in 0..3 {
             for cz in 0..3 {
                 let off = [
-                    (cx * CHUNK_SIZE) as i32 - (CHUNK_SIZE as i32 - 1),
-                    (cy * CHUNK_SIZE) as i32 - (CHUNK_SIZE as i32 - 1),
-                    (cz * CHUNK_SIZE) as i32 - (CHUNK_SIZE as i32 - 1),
+                    (cx * CHUNK_SIZE) as isize - (CHUNK_SIZE as isize - 1),
+                    (cy * CHUNK_SIZE) as isize - (CHUNK_SIZE as isize - 1),
+                    (cz * CHUNK_SIZE) as isize - (CHUNK_SIZE as isize - 1),
                 ];
-                calc_block_data_chunk(block_data, chunks[cx * 3 * 3 + cy * 3 + cz], off)
+                calc_chunk_data(block_data, &chunks[cx * 3 * 3 + cy * 3 + cz].data, off)
             }
         }
-    }
-}
-
-fn calc_light_data_chunk(d: &mut BlockBuffer, chunk: &ChunkLightData, off: [i32; 3]) {
-    for (x, y, z) in ChunkPosIter::new() {
-        let cx = x as i32 + off[0];
-        if (cx < 0) || (cx > CHUNK_SIZE as i32 + 1) {
-            continue;
-        }
-        let cy = y as i32 + off[1];
-        if (cy < 0) || (cy > CHUNK_SIZE as i32 + 1) {
-            continue;
-        }
-        let cz = z as i32 + off[2];
-        if (cz < 0) || (cz > CHUNK_SIZE as i32 + 1) {
-            continue;
-        }
-        d[cx as usize][cy as usize][cz as usize] = chunk.data[x][y][z];
     }
 }
 
@@ -735,34 +730,41 @@ fn calc_light_data(d: &mut BlockBuffer, lights: &[&ChunkLightData; 27]) {
         for cy in 0..3 {
             for cz in 0..3 {
                 let off = [
-                    (cx * CHUNK_SIZE) as i32 - (CHUNK_SIZE as i32 - 1),
-                    (cy * CHUNK_SIZE) as i32 - (CHUNK_SIZE as i32 - 1),
-                    (cz * CHUNK_SIZE) as i32 - (CHUNK_SIZE as i32 - 1),
+                    (cx * CHUNK_SIZE) as isize - (CHUNK_SIZE as isize - 1),
+                    (cy * CHUNK_SIZE) as isize - (CHUNK_SIZE as isize - 1),
+                    (cz * CHUNK_SIZE) as isize - (CHUNK_SIZE as isize - 1),
                 ];
-                calc_light_data_chunk(d, lights[cx * 3 * 3 + cy * 3 + cz], off)
+                calc_chunk_data(d, &lights[cx * 3 * 3 + cy * 3 + cz].data, off)
             }
         }
     }
 }
 
-fn calc_sides((x, y, z): (usize, usize, usize), block_data: &BlockBuffer) -> u8 {
+/// Check which sides need to be drawn for a given position.
+fn calc_sides(x:usize, y:usize, z:usize, block_data: &BlockBuffer) -> u8 {
     if block_data[x][y][z] == 0 {
-        return 0;
+        0
+    } else {
+          ((block_data[x][y][z + 1] == 0) as u8)
+        | (((block_data[x][y][z - 1] == 0) as u8) << 1)
+        | (((block_data[x][y + 1][z] == 0) as u8) << 2)
+        | (((block_data[x][y - 1][z] == 0) as u8) << 3)
+        | (((block_data[x - 1][y][z] == 0) as u8) << 4)
+        | (((block_data[x + 1][y][z] == 0) as u8) << 5)
     }
-    (if block_data[x][y][z + 1] == 0 { 1 } else { 0 })
-        | (if block_data[x][y][z - 1] == 0 { 2 } else { 0 })
-        | (if block_data[x][y + 1][z] == 0 { 4 } else { 0 })
-        | (if block_data[x][y - 1][z] == 0 { 8 } else { 0 })
-        | (if block_data[x - 1][y][z] == 0 { 16 } else { 0 })
-        | (if block_data[x + 1][y][z] == 0 { 32 } else { 0 })
 }
 
+/// Fill the side cache, every entry is a bitmask describing which faces
+/// need to be drawn and which can be skipped.
 fn calc_side_cache(side_cache: &mut SideBuffer, block_data: &BlockBuffer) {
     for (x, y, z) in ChunkPosIter::new() {
-        side_cache[x][y][z] = calc_sides((x + 1, y + 1, z + 1), block_data);
+        side_cache[x][y][z] = calc_sides(x + 1, y + 1, z + 1, block_data);
     }
 }
 
+/// Generate a block mesh using a 3x3x3 cube of block/light data.
+/// This is necessary so that there are no lighting artifacts close to
+/// the chunk edge, or any superfluous faces drawn in between chunks.
 pub fn generate(
     chunks: &[&ChunkBlockData; 27],
     lights: &[&ChunkLightData; 27],
@@ -791,6 +793,9 @@ pub fn generate(
     (vertices, side_square_count)
 }
 
+/// Generate a BlockMesh using just a single chunk of block/light data.
+/// This is perfectly fine for held items and similar meshes, it would lead
+/// to distortions if it were used for the world in general though.
 pub fn generate_simple(
     chunk: &ChunkBlockData,
     light: &ChunkLightData,
@@ -803,8 +808,8 @@ pub fn generate_simple(
     let mut side_cache: SideBuffer = [[[0; CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE];
 
     let off = [1; 3];
-    calc_block_data_chunk(&mut block_data, chunk, off);
-    calc_light_data_chunk(&mut light_data, light, off);
+    calc_chunk_data(&mut block_data, &chunk.data, off);
+    calc_chunk_data(&mut light_data, &light.data, off);
     calc_side_cache(&mut side_cache, &block_data);
 
     let data = (&block_data, &light_data, &side_cache, block_types);
