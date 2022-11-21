@@ -1,12 +1,11 @@
 # WolkenWelten
-![Have a screenshot](https://github.com/wolkenwelten/wolkenwelten-screenshots/raw/main/2022_11_20.jpg)
+![Have a screenshot](https://github.com/wolkenwelten/wolkenwelten-screenshots/raw/main/2022_11_23.jpg)
 
-WolkenWelten aspires to be the **open voxel sandbox** you can modify while it's running.
+WolkenWelten tries to be a **fast action-packed voxel rogue-like**, with a flexible engine that allows mods to extend or completely alter the game.
 
 To accomplish this it combines a **custom graphics engine** written in **Rust** with the **V8 JavaScript engine**.
-This should allow for a workflow similar to a browsers DevTools, but with voxels.
 
-Everything is still **very experimental**, and it's more of a proof of concept rather than a finished game.
+Everything is still **very experimental**, and it's more of a proof of concept rather than a finished game, to keep up with development you can read the [devlog](./DEVLOG.md) for short summaries including lots of screenshots.
 
 During development focus has been put into supporting low-end devices like the **Raspberry pi 4(00)**, because of that it should run at ~60FPS in 720p, and ~30-40 in 1080p.
 

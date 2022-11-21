@@ -8,4 +8,6 @@
 /rostregen.iml
 *.core
 perf.data
+perf.data.old
 /replay.json
+flamegraph.svg
