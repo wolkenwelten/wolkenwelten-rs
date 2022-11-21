@@ -741,16 +741,16 @@ fn calc_light_data(d: &mut BlockBuffer, lights: &[&ChunkLightData; 27]) {
 }
 
 /// Check which sides need to be drawn for a given position.
-fn calc_sides(x:usize, y:usize, z:usize, block_data: &BlockBuffer) -> u8 {
+fn calc_sides(x: usize, y: usize, z: usize, block_data: &BlockBuffer) -> u8 {
     if block_data[x][y][z] == 0 {
         0
     } else {
-          ((block_data[x][y][z + 1] == 0) as u8)
-        | (((block_data[x][y][z - 1] == 0) as u8) << 1)
-        | (((block_data[x][y + 1][z] == 0) as u8) << 2)
-        | (((block_data[x][y - 1][z] == 0) as u8) << 3)
-        | (((block_data[x - 1][y][z] == 0) as u8) << 4)
-        | (((block_data[x + 1][y][z] == 0) as u8) << 5)
+        ((block_data[x][y][z + 1] == 0) as u8)
+            | (((block_data[x][y][z - 1] == 0) as u8) << 1)
+            | (((block_data[x][y + 1][z] == 0) as u8) << 2)
+            | (((block_data[x][y - 1][z] == 0) as u8) << 3)
+            | (((block_data[x - 1][y][z] == 0) as u8) << 4)
+            | (((block_data[x + 1][y][z] == 0) as u8) << 5)
     }
 }
 

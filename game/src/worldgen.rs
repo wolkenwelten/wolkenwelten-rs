@@ -94,6 +94,16 @@ pub fn chunk(world: &Chungus, pos: IVec3) -> ChunkBlockData {
                     if assets.trees[i].fits(pos) {
                         r.blit(&assets.trees[i], pos);
                     }
+                } else if rng.gen_range(1..150) == 1 {
+                    let i = rng.gen_range(0..assets.spruce_trees.len());
+                    let pos = IVec3::new(
+                        x - assets.spruce_trees[i].size.x / 2,
+                        grass_y - py - 2,
+                        z - assets.spruce_trees[i].size.z / 2,
+                    );
+                    if assets.spruce_trees[i].fits(pos) {
+                        r.blit(&assets.spruce_trees[i], pos);
+                    }
                 }
             }
         }

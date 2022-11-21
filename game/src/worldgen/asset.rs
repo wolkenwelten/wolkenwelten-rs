@@ -17,6 +17,7 @@ pub struct WorldgenAssetList {
     pub trees: [WorldgenAsset; 3],
     pub bushes: [WorldgenAsset; 3],
     pub rocks: [WorldgenAsset; 3],
+    pub spruce_trees: [WorldgenAsset; 1],
 }
 
 impl WorldgenAssetList {
@@ -64,10 +65,16 @@ impl WorldgenAssetList {
             .with_palette(vec![0, 3, 12]),
         ];
 
+        let spruce_trees = [WorldgenAsset::from_vox_data(include_bytes!(
+            "../../../assets/voxel_meshes/spruce_a.vox"
+        ))?
+        .with_palette(vec![0, 5, 11])];
+
         return Ok(Self {
             trees,
             bushes,
             rocks,
+            spruce_trees,
         });
     }
 }
