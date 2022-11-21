@@ -1,6 +1,7 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
 use anyhow::Result;
+use glium::texture::{RawImage2d, SrgbTexture2d, SrgbTexture2dArray};
 
 #[derive(Debug)]
 pub struct Texture {
@@ -15,17 +16,16 @@ pub struct TextureArray {
 impl Texture {
     pub fn from_bytes(display: &glium::Display, bytes: &'static [u8]) -> Result<Self> {
         let img = image::load_from_memory(bytes)?;
-        let img = img.flipv().to_rgba8();
+        let img = img.to_rgba8();
 
         let image_dimensions = img.dimensions();
-        let img =
-            glium::texture::RawImage2d::from_raw_rgba_reversed(&img.into_raw(), image_dimensions);
-        let texture = glium::texture::SrgbTexture2d::new(display, img)?;
+        let img = RawImage2d::from_raw_rgba(img.into_raw(), image_dimensions);
+        let texture = SrgbTexture2d::new(display, img)?;
         Ok(Self { texture })
     }
 
     #[inline]
-    pub fn texture(&self) -> &glium::texture::SrgbTexture2d {
+    pub fn texture(&self) -> &SrgbTexture2d {
         &self.texture
     }
 }
@@ -46,17 +46,17 @@ impl TextureArray {
                 let from = y as usize * tile_byte_size;
                 let to = from + tile_byte_size;
                 let raw = &raw[from..to];
-                glium::texture::RawImage2d::from_raw_rgba_reversed(raw, image_dimensions)
+                RawImage2d::from_raw_rgba_reversed(raw, image_dimensions)
             })
             .collect();
 
-        let texture = glium::texture::SrgbTexture2dArray::new(display, tiles)?;
+        let texture = SrgbTexture2dArray::new(display, tiles)?;
 
         Ok(Self { texture })
     }
 
     #[inline]
-    pub fn texture(&self) -> &glium::texture::SrgbTexture2dArray {
+    pub fn texture(&self) -> &SrgbTexture2dArray {
         &self.texture
     }
 }

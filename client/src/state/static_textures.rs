@@ -7,6 +7,7 @@ use anyhow::Result;
 #[derive(Debug)]
 pub struct TextureList {
     pub blocks: TextureArray,
+    pub mining: Texture,
     pub gui: Texture,
     pub pear: Texture,
     pub sky: Texture,
@@ -23,9 +24,14 @@ impl TextureList {
         let sky = Texture::from_bytes(display, include_bytes!("../../../assets/textures/sky.png"))?;
         let pear: Texture =
             Texture::from_bytes(display, include_bytes!("../../../assets/textures/pear.png"))?;
+        let mining = Texture::from_bytes(
+            display,
+            include_bytes!("../../../assets/textures/mining.png"),
+        )?;
         Ok(TextureList {
             blocks,
             gui,
+            mining,
             pear,
             sky,
         })

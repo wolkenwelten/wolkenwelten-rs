@@ -23,6 +23,7 @@ pub enum GameEvent {
     CharacterDamage(Vec3, i16),
     CharacterDeath(Vec3),
     BlockMine(IVec3, u8),
+    BlockBreak(IVec3, u8),
     BlockPlace(IVec3, u8),
     EntityCollision(Vec3),
 }

@@ -1,6 +1,7 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
 use super::{Character, Chungus, Entity};
+use crate::BlockMiningMap;
 use anyhow::Result;
 use glam::{IVec3, Vec3};
 use std::time::Instant;
@@ -21,6 +22,8 @@ pub struct GameState {
     pub runtime: Runtime,
     pub world: Chungus,
 
+    mining: BlockMiningMap,
+
     player: Character,
     render_distance: f32,
 }
@@ -38,6 +41,7 @@ impl GameState {
             entities,
             ticks_elapsed: 0,
             last_gc: 0,
+            mining: BlockMiningMap::new(),
             render_distance: 128.0 * 128.0,
             runtime: Runtime::new(),
             world,
@@ -103,6 +107,7 @@ impl GameState {
         let ticks_goal = now / MS_PER_TICK;
         let to_run = ticks_goal - self.ticks_elapsed;
         let mut player_movement = Vec3::ZERO;
+        let mut player_mining: Option<(IVec3, u8)> = None;
 
         msg.iter().for_each(|e| match e {
             Message::InputEvent(msg) => match msg {
@@ -133,12 +138,8 @@ impl GameState {
                     }
                 }
                 InputEvent::PlayerBlockMine(pos) => {
-                    if self.player.may_act(now) {
-                        if let Some(b) = self.world.get_block(*pos) {
-                            self.player.set_cooldown(now + 300);
-                            self.world.set_block(*pos, 0);
-                            events.push(GameEvent::BlockMine(*pos, b).into())
-                        }
+                    if let Some(b) = self.world.get_block(*pos) {
+                        player_mining = Some((*pos, b));
                     }
                 }
                 InputEvent::PlayerBlockPlace(pos) => {
@@ -157,6 +158,20 @@ impl GameState {
 
         for _ in 0..to_run {
             events.push(SyncEvent::GameTick(self.ticks_elapsed).into());
+            if let Some((pos, block)) = player_mining {
+                let blocks = self.world.blocks.clone();
+                let bt = blocks.borrow();
+                if let Some(bt) = bt.get(block as usize) {
+                    if self.mining.mine(pos, block, 2, bt.block_health()) {
+                        events.push(GameEvent::BlockBreak(pos, block).into());
+                        self.world.set_block(pos, 0);
+                    }
+                }
+                if (self.ticks_elapsed & 0x7F) == 0 {
+                    events.push(GameEvent::BlockMine(pos, block).into());
+                }
+            }
+            self.mining.tick();
             self.ticks_elapsed += 1;
             Entity::tick(&mut self.entities, &mut events, &self.player, &self.world);
             self.player.tick(player_movement, &mut events, &self.world);
@@ -215,5 +230,9 @@ impl GameState {
                 }
             }
         }
+    }
+
+    pub fn mining(&self) -> &BlockMiningMap {
+        &self.mining
     }
 }

@@ -4,7 +4,7 @@ extern crate glam;
 extern crate wolkenwelten_game;
 
 pub use self::frustum::Frustum;
-pub use self::meshes::{BlockMesh, Mesh, VoxelMesh};
+pub use self::meshes::{BlockMesh, Mesh, MeshVertex, VoxelMesh};
 pub use self::queue::QueueEntry;
 pub use self::render::{prepare_frame, render_frame, FADE_DISTANCE, RENDER_DISTANCE};
 pub use self::state::ClientState;

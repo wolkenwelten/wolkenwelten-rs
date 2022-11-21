@@ -7,6 +7,7 @@ use glium::{uniform, Surface};
 use wolkenwelten_common::{ChunkRequestQueue, CHUNK_SIZE};
 use wolkenwelten_game::{Character, GameState};
 
+mod block_mining;
 mod chungus;
 mod entity;
 mod held_item;
@@ -65,7 +66,11 @@ fn render_game(
     for entity in game.entities.iter() {
         entity::draw(frame, fe, entity, &view, &projection)?;
     }
-    chungus::draw(frame, fe, game, &mvp, request)
+    chungus::draw(frame, fe, game, &mvp, request)?;
+
+    block_mining::draw(frame, fe, game, &mvp)?;
+
+    Ok(())
 }
 
 /// Render the UI layered on top of the game view

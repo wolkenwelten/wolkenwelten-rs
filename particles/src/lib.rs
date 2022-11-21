@@ -166,14 +166,14 @@ impl ParticleMesh {
 
     /// Create a breaking block effect, the color will be hsv shifted so that
     /// it doesn't look quite as boring/uniform.
-    fn fx_block_break(&mut self, pos: IVec3, color: [RGBA8; 2]) {
+    fn fx_block_break(&mut self, pos: IVec3, color: [RGBA8; 2], part_count: usize) {
         for color in color.iter() {
             let color: Srgb = Srgb::from_components((
                 color.r as f32 / 256.0,
                 color.g as f32 / 256.0,
                 color.b as f32 / 256.0,
             ));
-            for _ in 1..64 {
+            for _ in 0..part_count {
                 let pos = [
                     pos.x as f32 + self.rng.gen_range(0.0..1.0),
                     pos.y as f32 + self.rng.gen_range(0.0..1.0),
@@ -198,7 +198,7 @@ impl ParticleMesh {
     /// Create a new block placement effect, for now it just relays everything to the block break
     /// method.
     fn fx_block_place(&mut self, pos: IVec3, color: [RGBA8; 2]) {
-        self.fx_block_break(pos, color)
+        self.fx_block_break(pos, color, 64)
     }
 
     /// The particle message sink, should be called after the main game handler since
@@ -213,7 +213,11 @@ impl ParticleMesh {
             Message::GameEvent(e) => match e {
                 GameEvent::BlockMine(pos, b) => {
                     let color = block_types[*b as usize].colors();
-                    self.fx_block_break(*pos, color);
+                    self.fx_block_break(*pos, color, 2);
+                }
+                GameEvent::BlockBreak(pos, b) => {
+                    let color = block_types[*b as usize].colors();
+                    self.fx_block_break(*pos, color, 96);
                 }
                 GameEvent::BlockPlace(pos, b) => {
                     let color = block_types[*b as usize].colors();

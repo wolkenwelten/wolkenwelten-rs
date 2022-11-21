@@ -1,6 +1,7 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
 use anyhow::Result;
+use glam::{Vec2, Vec3};
 use glium;
 use glium::implement_vertex;
 
@@ -12,19 +13,197 @@ pub struct MeshVertex {
 }
 implement_vertex!(MeshVertex, pos, tex, lightness);
 
+impl MeshVertex {
+    pub fn new(pos: Vec3, tex: Vec2, lightness: f32) -> Self {
+        Self {
+            pos: [pos.x, pos.y, pos.z],
+            tex: [tex.x, tex.y],
+            lightness,
+        }
+    }
+}
+
 #[derive(Debug)]
 pub struct Mesh {
     buffer: glium::VertexBuffer<MeshVertex>,
 }
 
 impl Mesh {
-    fn from_vec(display: &glium::Display, vertices: &Vec<MeshVertex>) -> Result<Self> {
+    pub fn from_vec(display: &glium::Display, vertices: &Vec<MeshVertex>) -> Result<Self> {
         let buffer = glium::VertexBuffer::dynamic(display, vertices.as_slice())?;
+        Ok(Self { buffer })
+    }
+
+    pub fn from_vec_static(display: &glium::Display, vertices: &Vec<MeshVertex>) -> Result<Self> {
+        let buffer = glium::VertexBuffer::immutable(display, vertices.as_slice())?;
         Ok(Self { buffer })
     }
 
     pub fn buffer(&self) -> &glium::VertexBuffer<MeshVertex> {
         &self.buffer
+    }
+
+    pub fn add_block(
+        vertices: &mut Vec<MeshVertex>,
+        pos_off: Vec3,
+        tex_off: Vec2,
+        tex_scale: Vec2,
+    ) {
+        {
+            vertices.push(MeshVertex::new(pos_off, tex_off, 1.0));
+            vertices.push(MeshVertex::new(
+                pos_off + Vec3::new(1.0, 1.0, 0.0),
+                tex_off + tex_scale,
+                1.0,
+            ));
+            vertices.push(MeshVertex::new(
+                pos_off + Vec3::new(1.0, 0.0, 0.0),
+                tex_off + Vec2::new(tex_scale.x, 0.0),
+                1.0,
+            ));
+
+            vertices.push(MeshVertex::new(
+                pos_off + Vec3::new(1.0, 1.0, 0.0),
+                tex_off + tex_scale,
+                1.0,
+            ));
+            vertices.push(MeshVertex::new(pos_off, tex_off, 1.0));
+            vertices.push(MeshVertex::new(
+                pos_off + Vec3::new(0.0, 1.0, 0.0),
+                tex_off + Vec2::new(0.0, tex_scale.y),
+                1.0,
+            ));
+        }
+        {
+            let pos_off = pos_off + Vec3::new(0.0, 0.0, 1.0);
+            vertices.push(MeshVertex::new(pos_off, tex_off, 1.0));
+            vertices.push(MeshVertex::new(
+                pos_off + Vec3::new(1.0, 0.0, 0.0),
+                tex_off + Vec2::new(tex_scale.x, 0.0),
+                1.0,
+            ));
+            vertices.push(MeshVertex::new(
+                pos_off + Vec3::new(1.0, 1.0, 0.0),
+                tex_off + tex_scale,
+                1.0,
+            ));
+
+            vertices.push(MeshVertex::new(
+                pos_off + Vec3::new(1.0, 1.0, 0.0),
+                tex_off + tex_scale,
+                1.0,
+            ));
+            vertices.push(MeshVertex::new(
+                pos_off + Vec3::new(0.0, 1.0, 0.0),
+                tex_off + Vec2::new(0.0, tex_scale.y),
+                1.0,
+            ));
+            vertices.push(MeshVertex::new(pos_off, tex_off, 1.0));
+        }
+
+        {
+            vertices.push(MeshVertex::new(pos_off, tex_off, 1.0));
+            vertices.push(MeshVertex::new(
+                pos_off + Vec3::new(0.0, 0.0, 1.0),
+                tex_off + Vec2::new(tex_scale.x, 0.0),
+                1.0,
+            ));
+            vertices.push(MeshVertex::new(
+                pos_off + Vec3::new(0.0, 1.0, 1.0),
+                tex_off + tex_scale,
+                1.0,
+            ));
+
+            vertices.push(MeshVertex::new(
+                pos_off + Vec3::new(0.0, 1.0, 1.0),
+                tex_off + tex_scale,
+                1.0,
+            ));
+            vertices.push(MeshVertex::new(
+                pos_off + Vec3::new(0.0, 1.0, 0.0),
+                tex_off + Vec2::new(0.0, tex_scale.y),
+                1.0,
+            ));
+            vertices.push(MeshVertex::new(pos_off, tex_off, 1.0));
+        }
+        {
+            let pos_off = pos_off + Vec3::new(1.0, 0.0, 0.0);
+            vertices.push(MeshVertex::new(pos_off, tex_off, 1.0));
+            vertices.push(MeshVertex::new(
+                pos_off + Vec3::new(0.0, 1.0, 1.0),
+                tex_off + tex_scale,
+                1.0,
+            ));
+            vertices.push(MeshVertex::new(
+                pos_off + Vec3::new(0.0, 0.0, 1.0),
+                tex_off + Vec2::new(tex_scale.x, 0.0),
+                1.0,
+            ));
+
+            vertices.push(MeshVertex::new(
+                pos_off + Vec3::new(0.0, 1.0, 1.0),
+                tex_off + tex_scale,
+                1.0,
+            ));
+            vertices.push(MeshVertex::new(pos_off, tex_off, 1.0));
+            vertices.push(MeshVertex::new(
+                pos_off + Vec3::new(0.0, 1.0, 0.0),
+                tex_off + Vec2::new(0.0, tex_scale.y),
+                1.0,
+            ));
+        }
+
+        {
+            vertices.push(MeshVertex::new(pos_off, tex_off, 1.0));
+            vertices.push(MeshVertex::new(
+                pos_off + Vec3::new(1.0, 0.0, 0.0),
+                tex_off + Vec2::new(tex_scale.x, 0.0),
+                1.0,
+            ));
+            vertices.push(MeshVertex::new(
+                pos_off + Vec3::new(1.0, 0.0, 1.0),
+                tex_off + tex_scale,
+                1.0,
+            ));
+
+            vertices.push(MeshVertex::new(
+                pos_off + Vec3::new(1.0, 0.0, 1.0),
+                tex_off + tex_scale,
+                1.0,
+            ));
+            vertices.push(MeshVertex::new(
+                pos_off + Vec3::new(0.0, 0.0, 1.0),
+                tex_off + Vec2::new(0.0, tex_scale.y),
+                1.0,
+            ));
+            vertices.push(MeshVertex::new(pos_off, tex_off, 1.0));
+        }
+        {
+            let pos_off = pos_off + Vec3::new(0.0, 1.0, 0.0);
+            vertices.push(MeshVertex::new(pos_off, tex_off, 1.0));
+            vertices.push(MeshVertex::new(
+                pos_off + Vec3::new(1.0, 0.0, 1.0),
+                tex_off + tex_scale,
+                1.0,
+            ));
+            vertices.push(MeshVertex::new(
+                pos_off + Vec3::new(1.0, 0.0, 0.0),
+                tex_off + Vec2::new(tex_scale.x, 0.0),
+                1.0,
+            ));
+
+            vertices.push(MeshVertex::new(
+                pos_off + Vec3::new(1.0, 0.0, 1.0),
+                tex_off + tex_scale,
+                1.0,
+            ));
+            vertices.push(MeshVertex::new(pos_off, tex_off, 1.0));
+            vertices.push(MeshVertex::new(
+                pos_off + Vec3::new(0.0, 0.0, 1.0),
+                tex_off + Vec2::new(0.0, tex_scale.y),
+                1.0,
+            ));
+        }
     }
 
     pub fn from_obj_string(display: &glium::Display, s: &str) -> Result<Self> {
@@ -56,6 +235,6 @@ impl Mesh {
                 }
             })
             .collect();
-        Ok(Self::from_vec(display, &vertices)?)
+        Ok(Self::from_vec_static(display, &vertices)?)
     }
 }

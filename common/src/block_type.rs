@@ -3,12 +3,23 @@
 use crate::Side;
 use rgb::RGBA8;
 
+#[derive(Clone, Copy, Debug, Default)]
+pub enum MiningCategory {
+    #[default]
+    None,
+    Axe(u8),
+    Pickaxe(u8),
+    Shovel(u8),
+}
+
 const WHITE: RGBA8 = RGBA8::new(255, 255, 255, 255);
 #[derive(Clone, Debug, Default)]
 pub struct BlockType {
     name: String,
     texture_index: [u8; 6],
     colors: [RGBA8; 2],
+    mining_cat: MiningCategory,
+    block_health: u16,
 }
 
 impl BlockType {
@@ -29,9 +40,11 @@ impl BlockType {
         let name = name.to_string();
         let colors = [WHITE; 2];
         Self {
+            mining_cat: MiningCategory::None,
             name,
             texture_index,
             colors,
+            block_health: 50,
         }
     }
     pub fn with_colors(mut self, a: RGBA8, b: RGBA8) -> Self {
@@ -47,6 +60,15 @@ impl BlockType {
         self.texture_index[i] = tex;
         self
     }
+    pub fn with_mining_cat(mut self, cat: MiningCategory) -> Self {
+        self.mining_cat = cat;
+        self
+    }
+    pub fn with_block_health(mut self, block_health: u16) -> Self {
+        self.block_health = block_health;
+        self
+    }
+
     #[inline]
     pub fn name(&self) -> &str {
         &self.name
@@ -86,6 +108,14 @@ impl BlockType {
     #[inline]
     pub fn tex_bottom(&self) -> u8 {
         self.texture_index[Side::Bottom as usize]
+    }
+    #[inline]
+    pub fn mining_cat(&self) -> MiningCategory {
+        self.mining_cat
+    }
+    #[inline]
+    pub fn block_health(&self) -> u16 {
+        self.block_health
     }
 }
 
