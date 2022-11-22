@@ -26,6 +26,7 @@ pub enum GameEvent {
     BlockBreak(IVec3, u8),
     BlockPlace(IVec3, u8),
     EntityCollision(Vec3),
+    ItemDropPickup(Vec3, u8),
 }
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]

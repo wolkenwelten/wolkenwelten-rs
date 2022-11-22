@@ -96,11 +96,12 @@ fn prepare_debug_text(fe: &mut ClientState, game: &GameState, request: &ChunkReq
     let particles = fe.particles();
     let particles = particles.borrow();
     let col_text = format!(
-        "Count: (Entities:{}, Chunks:{}, BlockMeshes:{}, Particles:{})",
+        "Count: (Entities:{}, Chunks:{}, BlockMeshes:{}, Particles:{} ItemDrops:{})",
         game.get_entity_count(),
         game.world.chunk_count(),
         fe.world_mesh.len(),
         particles.len(),
+        game.drops().len(),
     );
     fe.ui_mesh
         .push_string(8, 84, 2, [0xFF, 0xFF, 0xFF, 0xFF], col_text.as_str());

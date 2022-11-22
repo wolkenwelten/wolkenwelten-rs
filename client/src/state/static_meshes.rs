@@ -7,14 +7,19 @@ use anyhow::Result;
 /// all static meshes included with WW.
 #[derive(Debug)]
 pub struct MeshList {
-    pub grenade: VoxelMesh,
+    pub bag: VoxelMesh,
     pub dome: Mesh,
+    pub grenade: VoxelMesh,
 }
 
 impl MeshList {
     /// Load all the the models from the build-in raw .obj/.vox bytes.
     pub fn new(display: &glium::Display) -> Result<Self> {
         Ok(Self {
+            bag: VoxelMesh::from_vox_data(
+                display,
+                include_bytes!("../../../assets/voxel_meshes/bag.vox"),
+            )?,
             grenade: VoxelMesh::from_vox_data(
                 display,
                 include_bytes!("../../../assets/voxel_meshes/grenade.vox"),

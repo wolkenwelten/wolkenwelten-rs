@@ -9,7 +9,6 @@ pub struct TextureList {
     pub blocks: TextureArray,
     pub mining: Texture,
     pub gui: Texture,
-    pub pear: Texture,
     pub sky: Texture,
 }
 
@@ -22,8 +21,6 @@ impl TextureList {
         )?;
         let gui = Texture::from_bytes(display, include_bytes!("../../../assets/textures/gui.png"))?;
         let sky = Texture::from_bytes(display, include_bytes!("../../../assets/textures/sky.png"))?;
-        let pear: Texture =
-            Texture::from_bytes(display, include_bytes!("../../../assets/textures/pear.png"))?;
         let mining = Texture::from_bytes(
             display,
             include_bytes!("../../../assets/textures/mining.png"),
@@ -32,7 +29,6 @@ impl TextureList {
             blocks,
             gui,
             mining,
-            pear,
             sky,
         })
     }

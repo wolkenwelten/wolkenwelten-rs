@@ -1,7 +1,7 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
-use super::{Character, Chungus, Entity};
-use crate::BlockMiningMap;
+use super::{Character, Chungus, Grenade};
+use crate::{BlockMiningMap, ItemDropList};
 use anyhow::Result;
 use glam::{IVec3, Vec3};
 use std::time::Instant;
@@ -18,10 +18,11 @@ pub struct GameState {
     pub ticks_elapsed: u64,
     pub last_gc: u64,
     pub running: bool,
-    pub entities: Vec<Entity>,
     pub runtime: Runtime,
     pub world: Chungus,
 
+    pub grenades: Vec<Grenade>,
+    drops: ItemDropList,
     mining: BlockMiningMap,
 
     player: Character,
@@ -30,21 +31,18 @@ pub struct GameState {
 
 impl GameState {
     pub fn new() -> Result<Self> {
-        let running = true;
-        let entities = Vec::new();
-        let player = Character::new();
-        let world = Chungus::new()?;
         let mut ret = Self {
             clock: Instant::now(),
-            running,
-            player,
-            entities,
+            running: true,
+            player: Character::new(),
+            grenades: Vec::new(),
             ticks_elapsed: 0,
             last_gc: 0,
+            drops: ItemDropList::new(),
             mining: BlockMiningMap::new(),
             render_distance: 128.0 * 128.0,
             runtime: Runtime::new(),
-            world,
+            world: Chungus::new()?,
         };
         ret.player_rebirth();
         Ok(ret)
@@ -57,12 +55,12 @@ impl GameState {
 
     #[inline]
     pub fn get_entity_count(&self) -> usize {
-        self.entities.len()
+        self.grenades.len()
     }
 
     #[inline]
-    pub fn push_entity(&mut self, e: Entity) {
-        self.entities.push(e);
+    pub fn push_entity(&mut self, e: Grenade) {
+        self.grenades.push(e);
     }
 
     #[inline]
@@ -94,6 +92,11 @@ impl GameState {
 
     pub fn view_steps(&self) -> i32 {
         (self.render_distance().sqrt() as i32 / CHUNK_SIZE as i32) + 1
+    }
+
+    #[inline]
+    pub fn drops(&self) -> &ItemDropList {
+        &self.drops
     }
 
     #[inline]
@@ -130,7 +133,7 @@ impl GameState {
                 InputEvent::PlayerShoot => {
                     if self.player.may_act(now) {
                         self.player.set_cooldown(now + 600);
-                        let mut e = Entity::new();
+                        let mut e = Grenade::new();
                         e.set_pos(self.player.pos());
                         e.set_vel(self.player.direction() * 0.4);
                         self.push_entity(e);
@@ -164,6 +167,7 @@ impl GameState {
                 if let Some(bt) = bt.get(block as usize) {
                     if self.mining.mine(pos, block, 2, bt.block_health()) {
                         events.push(GameEvent::BlockBreak(pos, block).into());
+                        self.drops.add_from_block_break(pos, block);
                         self.world.set_block(pos, 0);
                     }
                 }
@@ -173,7 +177,10 @@ impl GameState {
             }
             self.mining.tick();
             self.ticks_elapsed += 1;
-            Entity::tick(&mut self.entities, &mut events, &self.player, &self.world);
+
+            Grenade::tick_all(&mut self.grenades, &mut events, &self.player, &self.world);
+            self.drops.tick_all(&mut events, &self.player, &self.world);
+
             self.player.tick(player_movement, &mut events, &self.world);
             self.runtime.tick(self.get_millis());
         }
