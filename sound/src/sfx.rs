@@ -79,6 +79,7 @@ impl SfxList {
                 GameEvent::CharacterShoot(_) => self.play(&self.hook_fire, 0.4),
                 GameEvent::CharacterDamage(_, _) => self.play(&self.ungh, 0.3),
                 GameEvent::CharacterDeath(_) => self.play(&self.ungh, 0.4),
+                GameEvent::CharacterStep(_) => self.play(&self.step, 0.2),
                 GameEvent::BlockBreak(_, _) => self.play(&self.tock, 0.3),
                 GameEvent::BlockMine(_, _) => self.play(&self.tock, 0.1),
                 GameEvent::BlockPlace(_, _) => self.play(&self.pock, 0.3),

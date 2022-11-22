@@ -181,7 +181,12 @@ impl GameState {
             Grenade::tick_all(&mut self.grenades, &mut events, &self.player, &self.world);
             self.drops.tick_all(&mut events, &self.player, &self.world);
 
-            self.player.tick(player_movement, &mut events, &self.world);
+            self.player.tick(
+                player_movement,
+                &mut events,
+                &self.world,
+                self.ticks_elapsed,
+            );
             self.runtime.tick(self.get_millis());
         }
         if self.ticks_elapsed > self.last_gc {

@@ -153,7 +153,7 @@ impl Character {
             || world.is_solid(pos + Vec3::new(0.0, 0.8, 0.0))
     }
 
-    pub fn tick(&mut self, v: Vec3, events: &mut Vec<Message>, world: &Chungus) {
+    pub fn tick(&mut self, v: Vec3, events: &mut Vec<Message>, world: &Chungus, cur_tick: u64) {
         if self.no_clip {
             self.pos += self.vel;
             return;
@@ -220,6 +220,14 @@ impl Character {
         let len = self.vel.length();
         if len > 0.5 {
             self.vel *= 1.0 - (len - 0.2).clamp(0.0001, 1.0);
+        }
+
+        if self.may_jump(world) {
+            if len > 0.025 && cur_tick & 0x3F == 0 {
+                events.push(GameEvent::CharacterStep(self.pos).into());
+            } else if len > 0.01 && cur_tick & 0x7F == 0 {
+                events.push(GameEvent::CharacterStep(self.pos).into());
+            }
         }
 
         self.pos += self.vel;
