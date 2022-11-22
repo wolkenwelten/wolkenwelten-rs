@@ -6,7 +6,7 @@ use anyhow::Result;
 use glam::{f32::Vec3, i32::IVec3};
 use std::{collections::HashMap, time::Instant};
 use wolkenwelten_common::CHUNK_SIZE;
-use wolkenwelten_game::Character;
+use wolkenwelten_game::{Character, GameState};
 use wolkenwelten_particles::ParticleMesh;
 
 pub mod static_meshes;
@@ -44,11 +44,11 @@ pub struct ClientState {
 }
 
 impl ClientState {
-    pub fn new(display: glium::Display) -> Result<Self> {
+    pub fn new(display: glium::Display, world: &GameState) -> Result<Self> {
         let meshes = MeshList::new(&display)?;
         let shaders = ShaderList::new(&display)?;
         let ui_mesh = TextMesh::new(&display)?;
-        let textures = TextureList::new(&display)?;
+        let textures = TextureList::new(&display, world)?;
         let block_index_buffer = BlockMesh::gen_index_buffer(&display, 65536 / 4)?;
         let particles = Rc::new(RefCell::new(ParticleMesh::new()));
 

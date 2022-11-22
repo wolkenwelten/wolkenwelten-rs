@@ -1,5 +1,6 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
+use crate::Item;
 use glam::{IVec3, Vec3};
 use serde::{Deserialize, Serialize};
 
@@ -12,6 +13,7 @@ pub enum InputEvent {
     PlayerBlockMine(IVec3),
     PlayerBlockPlace(IVec3),
     PlayerSwitchSelection(i32),
+    PlayerSelect(i32),
     PlayerNoClip(bool),
 }
 
@@ -27,7 +29,7 @@ pub enum GameEvent {
     BlockBreak(IVec3, u8),
     BlockPlace(IVec3, u8),
     EntityCollision(Vec3),
-    ItemDropPickup(Vec3, u8),
+    ItemDropPickup(Vec3, Item),
 }
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]

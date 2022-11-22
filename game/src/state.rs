@@ -6,8 +6,8 @@ use anyhow::Result;
 use glam::{IVec3, Vec3};
 use std::time::Instant;
 use wolkenwelten_common::{
-    ChunkBlockData, ChunkLightData, ChunkRequestQueue, GameEvent, InputEvent, Message, SyncEvent,
-    CHUNK_BITS, CHUNK_MASK, CHUNK_SIZE,
+    BlockItem, ChunkBlockData, ChunkLightData, ChunkRequestQueue, GameEvent, InputEvent, Item,
+    Message, SyncEvent, CHUNK_BITS, CHUNK_MASK, CHUNK_SIZE,
 };
 use wolkenwelten_scripting::Runtime;
 
@@ -77,6 +77,15 @@ impl GameState {
         let mut player = Character::new();
         player.set_pos(Vec3::new(-32.0, -16.0, 338.0));
         player.set_rot(Vec3::new(-130.0, 0.0, 0.0));
+        let inv = player.inventory_mut();
+        inv.clear();
+        inv.resize(10, Item::None);
+        inv[0] = BlockItem::new(1, 32).into();
+        inv[1] = BlockItem::new(2, 24).into();
+        inv[2] = BlockItem::new(3, 16).into();
+        inv[3] = BlockItem::new(4, 12).into();
+        inv[4] = BlockItem::new(5, 8).into();
+        player.set_inventory_active(0);
         self.player = player;
     }
 
@@ -121,9 +130,8 @@ impl GameState {
                     }
                     player_movement = *v;
                 }
-                InputEvent::PlayerSwitchSelection(d) => {
-                    self.mut_player().switch_block_selection(*d)
-                }
+                InputEvent::PlayerSwitchSelection(d) => self.mut_player().switch_selection(*d),
+                InputEvent::PlayerSelect(s) => self.mut_player().set_inventory_active(*s as usize),
                 InputEvent::PlayerNoClip(b) => self.mut_player().set_no_clip(*b),
                 InputEvent::PlayerTurn(v) => {
                     self.player.rot += *v;
@@ -148,10 +156,17 @@ impl GameState {
                 InputEvent::PlayerBlockPlace(pos) => {
                     if self.player.may_act(now) {
                         if self.world.get_block(*pos).unwrap_or(0) == 0 {
-                            self.player.set_cooldown(now + 300);
-                            let b = self.player.block_selection();
-                            self.world.set_block(*pos, b);
-                            events.push(GameEvent::BlockPlace(*pos, b).into())
+                            let item = self.player.item();
+                            match item {
+                                Item::Block(bi) => {
+                                    self.player.set_cooldown(now + 300);
+                                    let b = bi.block;
+                                    self.world.set_block(*pos, b);
+                                    events.push(GameEvent::BlockPlace(*pos, b).into());
+                                    self.player.remove_block_from_inventory(b);
+                                }
+                                _ => (),
+                            }
                         }
                     }
                 }
@@ -179,7 +194,15 @@ impl GameState {
             self.ticks_elapsed += 1;
 
             Grenade::tick_all(&mut self.grenades, &mut events, &self.player, &self.world);
-            self.drops.tick_all(&mut events, &self.player, &self.world);
+            let pickups = self.drops.tick_all(&self.player, &self.world);
+            for e in pickups.iter() {
+                if let Message::GameEvent(GameEvent::ItemDropPickup(_, item)) = e {
+                    if let Item::Block(bi) = item {
+                        self.player.add_block_to_inventory(bi.block);
+                    }
+                }
+            }
+            events.extend(pickups);
 
             self.player.tick(
                 player_movement,

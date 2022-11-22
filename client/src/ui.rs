@@ -4,6 +4,8 @@ use crate::ClientState;
 use wolkenwelten_common::ChunkRequestQueue;
 use wolkenwelten_game::GameState;
 
+mod inventory;
+
 fn prepare_healthbar(fe: &mut ClientState, game: &GameState, x: i16, y: i16, heart_beat: bool) {
     let health = game.player().health();
     let hp = health.health();
@@ -79,19 +81,6 @@ fn prepare_pos(fe: &mut ClientState, game: &GameState) {
         .push_string(8, 64, 2, [0xFF, 0xFF, 0xFF, 0xFF], pos_text.as_str());
 }
 
-fn prepare_block_selection(fe: &mut ClientState, game: &GameState) {
-    let block_types = game.world.blocks.borrow();
-    let block_name = block_types[game.player().block_selection() as usize].name();
-    let block_sel_text = format!("Block selection: {}", block_name);
-    fe.ui_mesh.push_string(
-        8,
-        fe.window_size().1 as i16 - 20,
-        2,
-        [0xFF, 0xFF, 0xFF, 0xFF],
-        block_sel_text.as_str(),
-    );
-}
-
 fn prepare_debug_text(fe: &mut ClientState, game: &GameState, request: &ChunkRequestQueue) {
     let particles = fe.particles();
     let particles = particles.borrow();
@@ -132,11 +121,11 @@ fn prepare_crosshair(fe: &mut ClientState) {
 pub fn prepare(fe: &mut ClientState, game: &GameState, request: &ChunkRequestQueue) {
     prepare_fps(fe);
     prepare_pos(fe, game);
-    prepare_block_selection(fe, game);
     prepare_crosshair(fe);
     prepare_healthbar(fe, game, 16, 16, true);
 
     prepare_debug_text(fe, game, request);
+    inventory::prepare(fe, game);
 
     fe.ui_mesh.prepare(&fe.display);
 }

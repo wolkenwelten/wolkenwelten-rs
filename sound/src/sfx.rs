@@ -75,7 +75,7 @@ impl SfxList {
     pub fn msg_sink(&self, msg: &Vec<Message>) {
         msg.iter().for_each(|e| match e {
             Message::GameEvent(m) => match m {
-                GameEvent::CharacterJump(_) => self.play(&self.jump, 0.2),
+                GameEvent::CharacterJump(_) => self.play(&self.jump, 0.1),
                 GameEvent::CharacterShoot(_) => self.play(&self.hook_fire, 0.4),
                 GameEvent::CharacterDamage(_, _) => self.play(&self.ungh, 0.3),
                 GameEvent::CharacterDeath(_) => self.play(&self.ungh, 0.4),

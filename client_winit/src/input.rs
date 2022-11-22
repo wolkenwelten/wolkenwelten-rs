@@ -126,6 +126,66 @@ impl InputState {
                 } => self.queue.push(InputEvent::PlayerNoClip(false).into()),
 
                 KeyboardInput {
+                    state: ElementState::Pressed,
+                    virtual_keycode: Some(VirtualKeyCode::Key1),
+                    ..
+                } => self.queue.push(InputEvent::PlayerSelect(0).into()),
+
+                KeyboardInput {
+                    state: ElementState::Pressed,
+                    virtual_keycode: Some(VirtualKeyCode::Key2),
+                    ..
+                } => self.queue.push(InputEvent::PlayerSelect(1).into()),
+
+                KeyboardInput {
+                    state: ElementState::Pressed,
+                    virtual_keycode: Some(VirtualKeyCode::Key3),
+                    ..
+                } => self.queue.push(InputEvent::PlayerSelect(2).into()),
+
+                KeyboardInput {
+                    state: ElementState::Pressed,
+                    virtual_keycode: Some(VirtualKeyCode::Key4),
+                    ..
+                } => self.queue.push(InputEvent::PlayerSelect(3).into()),
+
+                KeyboardInput {
+                    state: ElementState::Pressed,
+                    virtual_keycode: Some(VirtualKeyCode::Key5),
+                    ..
+                } => self.queue.push(InputEvent::PlayerSelect(4).into()),
+
+                KeyboardInput {
+                    state: ElementState::Pressed,
+                    virtual_keycode: Some(VirtualKeyCode::Key6),
+                    ..
+                } => self.queue.push(InputEvent::PlayerSelect(5).into()),
+
+                KeyboardInput {
+                    state: ElementState::Pressed,
+                    virtual_keycode: Some(VirtualKeyCode::Key7),
+                    ..
+                } => self.queue.push(InputEvent::PlayerSelect(6).into()),
+
+                KeyboardInput {
+                    state: ElementState::Pressed,
+                    virtual_keycode: Some(VirtualKeyCode::Key8),
+                    ..
+                } => self.queue.push(InputEvent::PlayerSelect(7).into()),
+
+                KeyboardInput {
+                    state: ElementState::Pressed,
+                    virtual_keycode: Some(VirtualKeyCode::Key9),
+                    ..
+                } => self.queue.push(InputEvent::PlayerSelect(8).into()),
+
+                KeyboardInput {
+                    state: ElementState::Pressed,
+                    virtual_keycode: Some(VirtualKeyCode::Key0),
+                    ..
+                } => self.queue.push(InputEvent::PlayerSelect(9).into()),
+
+                KeyboardInput {
                     state,
                     virtual_keycode: Some(VirtualKeyCode::E),
                     ..

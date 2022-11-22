@@ -174,7 +174,7 @@ pub fn run_event_loop(state: AppState) {
 
 pub fn start_app(game_state: GameState, sinks: Vec<MessageSink>) {
     let (event_loop, display) = init();
-    let render_state = ClientState::new(display).expect("Can't create ClientState");
+    let render_state = ClientState::new(display, &game_state).expect("Can't create ClientState");
     let mut message_sinks: Vec<MessageSink> = Vec::new();
     message_sinks.extend(sinks);
     {

@@ -3,7 +3,7 @@
 use super::{Chungus, Health};
 use glam::{IVec3, Vec3, Vec3Swizzles};
 use std::f32::consts::PI;
-use wolkenwelten_common::{GameEvent, Message};
+use wolkenwelten_common::{BlockItem, GameEvent, Item, Message};
 
 #[derive(Clone, Debug, Default)]
 pub struct Character {
@@ -13,8 +13,10 @@ pub struct Character {
 
     no_clip: bool,
     cooldown: u64,
-    block_selection: u8,
     health: Health,
+
+    inventory_active: usize,
+    inventory: Vec<Item>,
 }
 
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
@@ -99,6 +101,31 @@ impl Character {
     }
 
     #[inline]
+    pub fn item(&self) -> Item {
+        self.inventory[self.inventory_active]
+    }
+
+    #[inline]
+    pub fn inventory(&self) -> &Vec<Item> {
+        &self.inventory
+    }
+
+    #[inline]
+    pub fn inventory_mut(&mut self) -> &mut Vec<Item> {
+        &mut self.inventory
+    }
+
+    #[inline]
+    pub fn inventory_active(&self) -> usize {
+        self.inventory_active
+    }
+
+    #[inline]
+    pub fn set_inventory_active(&mut self, v: usize) {
+        self.inventory_active = v.clamp(0, self.inventory.len());
+    }
+
+    #[inline]
     pub fn is_dead(&self) -> bool {
         self.health.is_dead()
     }
@@ -121,14 +148,51 @@ impl Character {
         )
     }
 
-    pub fn switch_block_selection(&mut self, delta: i32) {
-        let sel = (self.block_selection as i32 + if delta > 0 { 1 } else { -1 }) as u8 % 16;
-        self.block_selection = sel;
+    pub fn switch_selection(&mut self, delta: i32) {
+        if delta < 0 {
+            self.inventory_active = (self.inventory_active + 1) % self.inventory.len();
+        } else {
+            self.inventory_active = self.inventory_active.wrapping_sub(1);
+            if self.inventory_active > self.inventory().len() {
+                self.inventory_active = self.inventory.len() - 1;
+            }
+        }
     }
 
-    #[inline]
-    pub fn block_selection(&self) -> u8 {
-        self.block_selection + 1
+    pub fn remove_block_from_inventory(&mut self, block: u8) {
+        for item in self.inventory_mut().iter_mut() {
+            if let Item::Block(bi) = item {
+                if bi.block != block {
+                    continue;
+                }
+                bi.amount -= 1;
+                if bi.amount <= 0 {
+                    *item = Item::None;
+                }
+                return;
+            }
+        }
+    }
+
+    pub fn add_block_to_inventory(&mut self, block: u8) {
+        for item in self.inventory_mut().iter_mut() {
+            if let Item::Block(bi) = item {
+                if bi.block != block {
+                    continue;
+                }
+                if bi.amount >= 99 {
+                    continue;
+                }
+                bi.amount += 1;
+                return;
+            }
+        }
+        for item in self.inventory_mut().iter_mut() {
+            if let Item::None = item {
+                *item = Item::Block(BlockItem::new(block, 1));
+                return;
+            }
+        }
     }
 
     pub fn wrap_rot(&mut self) {

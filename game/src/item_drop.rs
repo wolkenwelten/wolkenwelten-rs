@@ -2,13 +2,13 @@
 // All rights reserved. AGPL-3.0+ license.
 use crate::{Character, Chungus, Entity};
 use glam::{IVec3, Vec3};
-use wolkenwelten_common::{GameEvent, Message};
+use wolkenwelten_common::{BlockItem, GameEvent, Item, Message};
 
 const ITEM_DROP_PICKUP_RANGE: f32 = 1.35;
 
 #[derive(Clone, Default, Debug)]
 pub struct ItemDrop {
-    block: u8,
+    item: Item,
     ent: Entity,
 }
 
@@ -16,7 +16,8 @@ impl ItemDrop {
     pub fn new(pos: Vec3, block: u8) -> Self {
         let mut ent = Entity::new();
         ent.set_pos(pos);
-        Self { block, ent }
+        let item = BlockItem::new(block, 1).into();
+        Self { item, ent }
     }
     #[inline]
     pub fn pos(&self) -> Vec3 {
@@ -31,8 +32,8 @@ impl ItemDrop {
         self.ent.vel()
     }
     #[inline]
-    pub fn block(&self) -> u8 {
-        self.block
+    pub fn item(&self) -> Item {
+        self.item
     }
 
     #[inline]
@@ -84,8 +85,9 @@ impl ItemDropList {
         self.drops.len()
     }
 
-    pub fn tick_all(&mut self, events: &mut Vec<Message>, player: &Character, world: &Chungus) {
+    pub fn tick_all(&mut self, player: &Character, world: &Chungus) -> Vec<Message> {
         let player_pos = player.pos();
+        let mut events = vec![];
         for index in (0..self.drops.len()).rev() {
             self.drops[index].tick(world);
             let dist = self.drops[index].pos() - player_pos;
@@ -94,11 +96,12 @@ impl ItemDropList {
                 self.drops.swap_remove(index); // Remove when far enough away
             } else if dd < ITEM_DROP_PICKUP_RANGE * ITEM_DROP_PICKUP_RANGE {
                 events.push(
-                    GameEvent::ItemDropPickup(self.drops[index].pos(), self.drops[index].block())
+                    GameEvent::ItemDropPickup(self.drops[index].pos(), self.drops[index].item())
                         .into(),
                 );
                 self.drops.swap_remove(index);
             }
         }
+        events
     }
 }

@@ -2,6 +2,7 @@
 // All rights reserved. AGPL-3.0+ license.
 use crate::{Texture, TextureArray};
 use anyhow::Result;
+use wolkenwelten_game::GameState;
 
 /// A colleciton of all the textures included with WW
 #[derive(Debug)]
@@ -14,12 +15,15 @@ pub struct TextureList {
 
 impl TextureList {
     /// Initialize a new TextureList with all the textures initialized/loaded
-    pub fn new(display: &glium::Display) -> Result<TextureList> {
-        let blocks = TextureArray::from_bytes(
+    pub fn new(display: &glium::Display, game: &GameState) -> Result<TextureList> {
+        let block_bytes = include_bytes!("../../../assets/textures/blocks.png");
+        let blocks = TextureArray::from_bytes(display, block_bytes)?;
+        let gui = Texture::gui_texture(
             display,
-            include_bytes!("../../../assets/textures/blocks.png"),
+            include_bytes!("../../../assets/textures/gui.png"),
+            block_bytes,
+            game,
         )?;
-        let gui = Texture::from_bytes(display, include_bytes!("../../../assets/textures/gui.png"))?;
         let sky = Texture::from_bytes(display, include_bytes!("../../../assets/textures/sky.png"))?;
         let mining = Texture::from_bytes(
             display,
