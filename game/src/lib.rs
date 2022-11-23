@@ -3,7 +3,7 @@
 extern crate glam;
 
 pub use self::block_mining::BlockMiningMap;
-pub use self::character::{Character, RaycastReturn};
+pub use self::character::{Character, CharacterAnimation, RaycastReturn};
 pub use self::chungus::Chungus;
 pub use self::entity::Entity;
 pub use self::grenade::Grenade;

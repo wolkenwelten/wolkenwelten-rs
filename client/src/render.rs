@@ -81,11 +81,11 @@ fn render_game(
 fn render_ui(
     frame: &mut glium::Frame,
     fe: &ClientState,
-    _game: &GameState,
+    game: &GameState,
     projection: &Mat4,
 ) -> Result<()> {
     frame.clear_depth(4095.0);
-    held_item::draw(frame, fe, projection)?;
+    held_item::draw(frame, fe, game, projection)?;
 
     let (window_width, window_height) = fe.window_size();
     let projection = Mat4::orthographic_rh_gl(

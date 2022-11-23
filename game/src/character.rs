@@ -2,8 +2,15 @@
 // All rights reserved. AGPL-3.0+ license.
 use super::{Chungus, Health};
 use glam::{IVec3, Vec3, Vec3Swizzles};
-use std::f32::consts::PI;
+use std::{f32::consts::PI, time::Instant};
 use wolkenwelten_common::{BlockItem, GameEvent, Item, Message};
+
+#[derive(Copy, Clone, Debug, Default, Eq, PartialEq)]
+pub enum CharacterAnimation {
+    #[default]
+    None,
+    Hit(Instant),
+}
 
 #[derive(Clone, Debug, Default)]
 pub struct Character {
@@ -17,6 +24,8 @@ pub struct Character {
 
     inventory_active: usize,
     inventory: Vec<Item>,
+
+    animation: CharacterAnimation,
 }
 
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
@@ -133,6 +142,28 @@ impl Character {
     #[inline]
     pub fn is_dead(&self) -> bool {
         self.health.is_dead()
+    }
+
+    #[inline]
+    pub fn animation(&self) -> CharacterAnimation {
+        self.animation
+    }
+
+    #[inline]
+    pub fn set_animation_none(&mut self) {
+        self.animation = CharacterAnimation::None;
+    }
+
+    pub fn set_animation_hit(&mut self) {
+        self.animation = CharacterAnimation::Hit(Instant::now());
+    }
+
+    pub fn check_animation(&mut self) {
+        if let CharacterAnimation::Hit(t) = self.animation {
+            if t.elapsed().as_millis() > 500 {
+                self.set_animation_none();
+            }
+        }
     }
 
     pub fn direction(&self) -> Vec3 {

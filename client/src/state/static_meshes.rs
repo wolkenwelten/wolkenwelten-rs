@@ -10,6 +10,7 @@ use wolkenwelten_game::GameState;
 pub struct MeshList {
     pub bag: VoxelMesh,
     pub dome: Mesh,
+    pub fist: VoxelMesh,
     pub grenade: VoxelMesh,
     pub blocks: Vec<Mesh>,
 }
@@ -37,6 +38,10 @@ impl MeshList {
             bag: VoxelMesh::from_vox_data(
                 display,
                 include_bytes!("../../../assets/voxel_meshes/bag.vox"),
+            )?,
+            fist: VoxelMesh::from_vox_data(
+                display,
+                include_bytes!("../../../assets/voxel_meshes/fist.vox"),
             )?,
             grenade: VoxelMesh::from_vox_data(
                 display,

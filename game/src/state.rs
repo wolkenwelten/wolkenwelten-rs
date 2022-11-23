@@ -140,6 +140,7 @@ impl GameState {
                 InputEvent::PlayerFly(v) => self.player.vel = *v * 0.15,
                 InputEvent::PlayerShoot => {
                     if self.player.may_act(now) {
+                        self.player.set_animation_hit();
                         self.player.set_cooldown(now + 600);
                         let mut e = Grenade::new();
                         e.set_pos(self.player.pos());
@@ -150,9 +151,10 @@ impl GameState {
                 }
                 InputEvent::PlayerDropItem => {
                     if self.player.may_act(now) {
-                        self.player.set_cooldown(now + 100);
                         let item = self.player.drop_item(self.player.inventory_active());
                         if item != Item::None {
+                            self.player.set_animation_hit();
+                            self.player.set_cooldown(now + 100);
                             let vel = self.player.direction();
                             let pos = self.player.pos() + vel * 2.0;
                             let vel = vel * 0.03;
@@ -163,6 +165,10 @@ impl GameState {
                 InputEvent::PlayerBlockMine(pos) => {
                     if let Some(b) = self.world.get_block(*pos) {
                         player_mining = Some((*pos, b));
+                        if self.player.may_act(now) {
+                            self.player.set_animation_hit();
+                            self.player.set_cooldown(now + 300);
+                        }
                     }
                 }
                 InputEvent::PlayerBlockPlace(pos) => {
@@ -171,6 +177,7 @@ impl GameState {
                             let item = self.player.item();
                             match item {
                                 Item::Block(bi) => {
+                                    self.player.set_animation_hit();
                                     self.player.set_cooldown(now + 300);
                                     let b = bi.block;
                                     self.world.set_block(*pos, b);
@@ -224,6 +231,7 @@ impl GameState {
             );
             self.runtime.tick(self.get_millis());
         }
+        self.player.check_animation();
         if self.ticks_elapsed > self.last_gc {
             self.world.gc(&self.player, self.render_distance);
             self.last_gc = self.ticks_elapsed + 50;
