@@ -86,6 +86,10 @@ impl BlockType {
     }
 
     #[inline]
+    pub fn tex(&self) -> [u8; 6] {
+        self.texture_index
+    }
+    #[inline]
     pub fn tex_front(&self) -> u8 {
         self.texture_index[Side::Front as usize]
     }

@@ -106,6 +106,11 @@ impl Character {
     }
 
     #[inline]
+    pub fn item_at(&self, pos: usize) -> Item {
+        self.inventory[pos]
+    }
+
+    #[inline]
     pub fn inventory(&self) -> &Vec<Item> {
         &self.inventory
     }
@@ -193,6 +198,22 @@ impl Character {
                 return;
             }
         }
+    }
+
+    pub fn drop_item(&mut self, pos: usize) -> Item {
+        let item = self.item_at(pos);
+        match item {
+            Item::Block(bi) => {
+                if bi.amount > 1 {
+                    let item = BlockItem::new(bi.block, 1).into();
+                    self.inventory[pos] = BlockItem::new(bi.block, bi.amount - 1).into();
+                    return item;
+                }
+            }
+            _ => (),
+        }
+        self.inventory[pos] = Item::None;
+        item
     }
 
     pub fn wrap_rot(&mut self) {

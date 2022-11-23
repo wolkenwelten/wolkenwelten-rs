@@ -4,7 +4,7 @@ use crate::{Character, Chungus, Entity};
 use glam::{IVec3, Vec3};
 use wolkenwelten_common::{BlockItem, GameEvent, Item, Message};
 
-const ITEM_DROP_PICKUP_RANGE: f32 = 1.35;
+const ITEM_DROP_PICKUP_RANGE: f32 = 1.5;
 
 #[derive(Clone, Default, Debug)]
 pub struct ItemDrop {
@@ -13,10 +13,9 @@ pub struct ItemDrop {
 }
 
 impl ItemDrop {
-    pub fn new(pos: Vec3, block: u8) -> Self {
+    pub fn new(pos: Vec3, item: Item) -> Self {
         let mut ent = Entity::new();
         ent.set_pos(pos);
-        let item = BlockItem::new(block, 1).into();
         Self { item, ent }
     }
     #[inline]
@@ -71,8 +70,15 @@ impl ItemDropList {
     }
 
     pub fn add_from_block_break(&mut self, pos: IVec3, block: u8) {
-        let pos = pos.as_vec3() + Vec3::new(0.5, 0.8, 0.5);
-        self.drops.push(ItemDrop::new(pos, block));
+        let pos = pos.as_vec3() + Vec3::new(0.5, 0.5, 0.5);
+        let item = BlockItem::new(block, 1).into();
+        self.drops.push(ItemDrop::new(pos, item));
+    }
+
+    pub fn add(&mut self, pos: Vec3, vel: Vec3, item: Item) {
+        let mut drop = ItemDrop::new(pos, item);
+        drop.set_vel(vel);
+        self.drops.push(drop);
     }
 
     #[inline]

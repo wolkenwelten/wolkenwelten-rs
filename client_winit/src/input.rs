@@ -22,6 +22,7 @@ pub enum Key {
     Jump,
     Crouch,
     Sprint,
+    Drop,
 
     Primary,
     Secondary,
@@ -193,6 +194,12 @@ impl InputState {
 
                 KeyboardInput {
                     state,
+                    virtual_keycode: Some(VirtualKeyCode::Q),
+                    ..
+                } => self.key_up_down(Key::Drop, state == ElementState::Pressed),
+
+                KeyboardInput {
+                    state,
                     virtual_keycode: Some(VirtualKeyCode::W),
                     ..
                 } => self.key_up_down(Key::Up, state == ElementState::Pressed),
@@ -332,6 +339,10 @@ impl InputState {
 
         if self.button_states[Key::Tertiary] {
             msgs.push(InputEvent::PlayerShoot.into());
+        }
+
+        if self.button_states[Key::Drop] {
+            msgs.push(InputEvent::PlayerDropItem.into());
         }
 
         msgs

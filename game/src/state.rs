@@ -148,6 +148,18 @@ impl GameState {
                         events.push(GameEvent::CharacterShoot(self.player.pos).into())
                     }
                 }
+                InputEvent::PlayerDropItem => {
+                    if self.player.may_act(now) {
+                        self.player.set_cooldown(now + 100);
+                        let item = self.player.drop_item(self.player.inventory_active());
+                        if item != Item::None {
+                            let vel = self.player.direction();
+                            let pos = self.player.pos() + vel * 2.0;
+                            let vel = vel * 0.03;
+                            self.drops.add(pos, vel, item);
+                        }
+                    }
+                }
                 InputEvent::PlayerBlockMine(pos) => {
                     if let Some(b) = self.world.get_block(*pos) {
                         player_mining = Some((*pos, b));

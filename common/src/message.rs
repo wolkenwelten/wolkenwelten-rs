@@ -7,6 +7,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub enum InputEvent {
     PlayerShoot,
+    PlayerDropItem,
     PlayerMove(Vec3),
     PlayerFly(Vec3),
     PlayerTurn(Vec3),

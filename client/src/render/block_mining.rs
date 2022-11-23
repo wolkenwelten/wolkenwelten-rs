@@ -24,14 +24,7 @@ pub fn draw(
     let m = Mesh::from_vec(&fe.display, &vertices)?;
     let in_color: [f32; 4] = [1.0, 1.0, 1.0, 1.0];
     let mat_mvp = mvp.to_cols_array_2d();
-    let cur_tex = fe
-        .textures
-        .mining
-        .texture()
-        .sampled()
-        .magnify_filter(glium::uniforms::MagnifySamplerFilter::Nearest)
-        .minify_filter(glium::uniforms::MinifySamplerFilter::Linear)
-        .wrap_function(glium::uniforms::SamplerWrapFunction::Clamp);
+    let cur_tex = fe.textures.mining.texture_nn();
 
     frame.draw(
         m.buffer(),

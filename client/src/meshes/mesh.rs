@@ -3,7 +3,10 @@
 use anyhow::Result;
 use glam::{Vec2, Vec3};
 use glium;
-use glium::implement_vertex;
+use glium::{implement_vertex, uniform, Surface};
+use wolkenwelten_common::BlockType;
+
+use crate::Texture;
 
 #[derive(Copy, Clone, Debug)]
 pub struct MeshVertex {
@@ -102,6 +105,58 @@ impl Mesh {
         }
 
         {
+            let pos_off = pos_off + Vec3::new(0.0, 1.0, 0.0);
+            vertices.push(MeshVertex::new(pos_off, tex_off, 1.0));
+            vertices.push(MeshVertex::new(
+                pos_off + Vec3::new(1.0, 0.0, 1.0),
+                tex_off + tex_scale,
+                1.0,
+            ));
+            vertices.push(MeshVertex::new(
+                pos_off + Vec3::new(1.0, 0.0, 0.0),
+                tex_off + Vec2::new(tex_scale.x, 0.0),
+                1.0,
+            ));
+
+            vertices.push(MeshVertex::new(
+                pos_off + Vec3::new(1.0, 0.0, 1.0),
+                tex_off + tex_scale,
+                1.0,
+            ));
+            vertices.push(MeshVertex::new(pos_off, tex_off, 1.0));
+            vertices.push(MeshVertex::new(
+                pos_off + Vec3::new(0.0, 0.0, 1.0),
+                tex_off + Vec2::new(0.0, tex_scale.y),
+                1.0,
+            ));
+        }
+        {
+            vertices.push(MeshVertex::new(pos_off, tex_off, 1.0));
+            vertices.push(MeshVertex::new(
+                pos_off + Vec3::new(1.0, 0.0, 0.0),
+                tex_off + Vec2::new(tex_scale.x, 0.0),
+                1.0,
+            ));
+            vertices.push(MeshVertex::new(
+                pos_off + Vec3::new(1.0, 0.0, 1.0),
+                tex_off + tex_scale,
+                1.0,
+            ));
+
+            vertices.push(MeshVertex::new(
+                pos_off + Vec3::new(1.0, 0.0, 1.0),
+                tex_off + tex_scale,
+                1.0,
+            ));
+            vertices.push(MeshVertex::new(
+                pos_off + Vec3::new(0.0, 0.0, 1.0),
+                tex_off + Vec2::new(0.0, tex_scale.y),
+                1.0,
+            ));
+            vertices.push(MeshVertex::new(pos_off, tex_off, 1.0));
+        }
+
+        {
             vertices.push(MeshVertex::new(pos_off, tex_off, 1.0));
             vertices.push(MeshVertex::new(
                 pos_off + Vec3::new(0.0, 0.0, 1.0),
@@ -152,58 +207,19 @@ impl Mesh {
                 1.0,
             ));
         }
+    }
 
-        {
-            vertices.push(MeshVertex::new(pos_off, tex_off, 1.0));
-            vertices.push(MeshVertex::new(
-                pos_off + Vec3::new(1.0, 0.0, 0.0),
-                tex_off + Vec2::new(tex_scale.x, 0.0),
-                1.0,
-            ));
-            vertices.push(MeshVertex::new(
-                pos_off + Vec3::new(1.0, 0.0, 1.0),
-                tex_off + tex_scale,
-                1.0,
-            ));
-
-            vertices.push(MeshVertex::new(
-                pos_off + Vec3::new(1.0, 0.0, 1.0),
-                tex_off + tex_scale,
-                1.0,
-            ));
-            vertices.push(MeshVertex::new(
-                pos_off + Vec3::new(0.0, 0.0, 1.0),
-                tex_off + Vec2::new(0.0, tex_scale.y),
-                1.0,
-            ));
-            vertices.push(MeshVertex::new(pos_off, tex_off, 1.0));
+    pub fn add_block_type(vertices: &mut Vec<MeshVertex>, block: &BlockType, tile_size: f32) {
+        let mut tmp: Vec<MeshVertex> = vec![];
+        Self::add_block(&mut tmp, Vec3::new(-0.5, -0.5, -0.5), Vec2::ZERO, Vec2::ONE);
+        for (i, v) in tmp.iter_mut().enumerate() {
+            let i = i / 6;
+            let tex = block.tex()[i] as f32;
+            let off = tex * tile_size;
+            v.pos = v.pos.map(|f| f * 16.0);
+            v.tex = [v.tex[0] * 0.5, off + (v.tex[1] * tile_size / 2.0)];
         }
-        {
-            let pos_off = pos_off + Vec3::new(0.0, 1.0, 0.0);
-            vertices.push(MeshVertex::new(pos_off, tex_off, 1.0));
-            vertices.push(MeshVertex::new(
-                pos_off + Vec3::new(1.0, 0.0, 1.0),
-                tex_off + tex_scale,
-                1.0,
-            ));
-            vertices.push(MeshVertex::new(
-                pos_off + Vec3::new(1.0, 0.0, 0.0),
-                tex_off + Vec2::new(tex_scale.x, 0.0),
-                1.0,
-            ));
-
-            vertices.push(MeshVertex::new(
-                pos_off + Vec3::new(1.0, 0.0, 1.0),
-                tex_off + tex_scale,
-                1.0,
-            ));
-            vertices.push(MeshVertex::new(pos_off, tex_off, 1.0));
-            vertices.push(MeshVertex::new(
-                pos_off + Vec3::new(0.0, 0.0, 1.0),
-                tex_off + Vec2::new(0.0, tex_scale.y),
-                1.0,
-            ));
-        }
+        vertices.extend(tmp);
     }
 
     pub fn from_obj_string(display: &glium::Display, s: &str) -> Result<Self> {
@@ -236,5 +252,36 @@ impl Mesh {
             })
             .collect();
         Ok(Self::from_vec_static(display, &vertices)?)
+    }
+
+    pub fn draw(
+        &self,
+        frame: &mut glium::Frame,
+        texture: &Texture,
+        program: &glium::Program,
+        mat_mvp: &glam::Mat4,
+    ) -> Result<()> {
+        let mat_mvp = mat_mvp.to_cols_array_2d();
+        let texture = texture.texture_nn();
+        frame.draw(
+            self.buffer(),
+            glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList),
+            program,
+            &uniform! {
+                mat_mvp: mat_mvp,
+                cur_tex: texture,
+            },
+            &glium::DrawParameters {
+                backface_culling: glium::draw_parameters::BackfaceCullingMode::CullClockwise,
+                blend: glium::draw_parameters::Blend::alpha_blending(),
+                depth: glium::draw_parameters::Depth {
+                    test: glium::draw_parameters::DepthTest::IfLess,
+                    write: true,
+                    ..Default::default()
+                },
+                ..Default::default()
+            },
+        )?;
+        Ok(())
     }
 }

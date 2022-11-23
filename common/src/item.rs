@@ -2,7 +2,7 @@
 // All rights reserved. AGPL-3.0+ license.
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Copy, Default, Debug, Serialize, Deserialize)]
+#[derive(Clone, Copy, Default, Debug, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
 pub struct BlockItem {
     pub block: u8,
     pub amount: u16,
@@ -20,7 +20,7 @@ impl BlockItem {
     }
 }
 
-#[derive(Clone, Copy, Default, Debug, Serialize, Deserialize)]
+#[derive(Clone, Copy, Default, Debug, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Item {
     #[default]
     None,

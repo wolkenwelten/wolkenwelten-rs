@@ -45,7 +45,7 @@ pub struct ClientState {
 
 impl ClientState {
     pub fn new(display: glium::Display, world: &GameState) -> Result<Self> {
-        let meshes = MeshList::new(&display)?;
+        let meshes = MeshList::new(&display, world)?;
         let shaders = ShaderList::new(&display)?;
         let ui_mesh = TextMesh::new(&display)?;
         let textures = TextureList::new(&display, world)?;

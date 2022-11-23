@@ -1,7 +1,10 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
 use anyhow::Result;
-use glium::texture::{RawImage2d, SrgbTexture2d, SrgbTexture2dArray};
+use glium::{
+    texture::{RawImage2d, SrgbTexture2d, SrgbTexture2dArray},
+    uniforms::Sampler,
+};
 use image::{DynamicImage, Rgba};
 use wolkenwelten_game::GameState;
 
@@ -120,6 +123,14 @@ impl Texture {
     #[inline]
     pub fn texture(&self) -> &SrgbTexture2d {
         &self.texture
+    }
+
+    pub fn texture_nn(&self) -> Sampler<'_, glium::texture::SrgbTexture2d> {
+        self.texture()
+            .sampled()
+            .magnify_filter(glium::uniforms::MagnifySamplerFilter::Nearest)
+            .minify_filter(glium::uniforms::MinifySamplerFilter::Linear)
+            .wrap_function(glium::uniforms::SamplerWrapFunction::Clamp)
     }
 }
 

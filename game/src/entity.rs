@@ -3,8 +3,9 @@
 use super::Chungus;
 use glam::Vec3;
 
-const ENTITY_SIZE: f32 = 0.6;
-const ENTITY_BOUNCE_RATE: f32 = 0.6;
+const ENTITY_SIZE: f32 = 0.4;
+const ENTITY_BOUNCE_RATE: f32 = 0.4;
+const ENTITY_SLIDE_RATE: f32 = 0.95;
 
 #[derive(Clone, Debug, Default)]
 pub struct Entity {
@@ -59,33 +60,34 @@ impl Entity {
     pub fn tick(&mut self, world: &Chungus) -> bool {
         let mut bounce = false;
 
-        if world.is_solid(self.pos + Vec3::new(-ENTITY_SIZE, 0.0, 0.0))
+        if world.is_solid(self.pos + Vec3::new(ENTITY_SIZE, 0.0, 0.0))
             | world.is_solid(self.pos + Vec3::new(-ENTITY_SIZE, 0.0, 0.0))
         {
+            self.vel *= ENTITY_SLIDE_RATE;
             self.vel.x *= -ENTITY_BOUNCE_RATE;
             self.pos.x += self.vel.x;
             bounce = true;
         }
-        if world.is_solid(self.pos + Vec3::new(0.0, -ENTITY_SIZE, 0.0))
+        if world.is_solid(self.pos + Vec3::new(0.0, ENTITY_SIZE, 0.0))
             | world.is_solid(self.pos + Vec3::new(0.0, -ENTITY_SIZE, 0.0))
         {
+            self.vel *= ENTITY_SLIDE_RATE;
             self.vel.y *= -ENTITY_BOUNCE_RATE;
             self.pos.y += self.vel.y;
             bounce = true;
         }
-        if world.is_solid(self.pos + Vec3::new(0.0, 0.0, -ENTITY_SIZE))
+        if world.is_solid(self.pos + Vec3::new(0.0, 0.0, ENTITY_SIZE))
             | world.is_solid(self.pos + Vec3::new(0.0, 0.0, -ENTITY_SIZE))
         {
+            self.vel *= ENTITY_SLIDE_RATE;
             self.vel.z *= -ENTITY_BOUNCE_RATE;
             self.pos.z += self.vel.z;
             bounce = true;
         }
-        {
-            let v = self.vel;
-            self.pos += v;
-            self.vel.y -= 0.0005;
-            self.rot.y += 0.01;
-        }
+        let v = self.vel;
+        self.pos += v;
+        self.vel.y -= 0.0005;
+        self.rot.y += 0.2;
 
         bounce
     }
