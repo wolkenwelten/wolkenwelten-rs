@@ -21,7 +21,7 @@ pub struct GameState {
     pub runtime: Runtime,
     pub world: Chungus,
 
-    pub grenades: Vec<Grenade>,
+    grenades: Vec<Grenade>,
     drops: ItemDropList,
     mining: BlockMiningMap,
 
@@ -106,6 +106,16 @@ impl GameState {
     #[inline]
     pub fn drops(&self) -> &ItemDropList {
         &self.drops
+    }
+
+    #[inline]
+    pub fn grenades(&self) -> &Vec<Grenade> {
+        &self.grenades
+    }
+
+    #[inline]
+    pub fn grenades_mut(&mut self) -> &mut Vec<Grenade> {
+        &mut self.grenades
     }
 
     #[inline]

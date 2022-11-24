@@ -1,7 +1,7 @@
 # WolkenWelten
 ![Have a screenshot](https://github.com/wolkenwelten/wolkenwelten-screenshots/raw/main/2022_11_23.jpg)
 
-WolkenWelten tries to be a **fast action-packed voxel rogue-like**, with a flexible engine that allows mods to extend or completely alter the game.
+WolkenWelten tries to be an **action-packed voxel rogue-lite**, with a flexible engine that allows mods to extend or completely alter the game.
 
 To accomplish this it combines a **custom graphics engine** written in **Rust** with the **V8 JavaScript engine**.
 

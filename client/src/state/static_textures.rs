@@ -12,6 +12,7 @@ pub struct TextureList {
     pub mining: Texture,
     pub gui: Texture,
     pub sky: Texture,
+    pub shadow: Texture,
 }
 
 impl TextureList {
@@ -26,6 +27,10 @@ impl TextureList {
             block_bytes,
             game,
         )?;
+        let shadow = Texture::from_bytes(
+            display,
+            include_bytes!("../../../assets/textures/shadow.png"),
+        )?;
         let sky = Texture::from_bytes(display, include_bytes!("../../../assets/textures/sky.png"))?;
         let mining = Texture::from_bytes(
             display,
@@ -36,6 +41,7 @@ impl TextureList {
             blocks_raw,
             gui,
             mining,
+            shadow,
             sky,
         })
     }

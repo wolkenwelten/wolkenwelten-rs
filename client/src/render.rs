@@ -12,6 +12,7 @@ mod chungus;
 mod grenade;
 mod held_item;
 mod item_drop;
+mod shadow;
 mod sky;
 
 pub const RENDER_DISTANCE: f32 = if cfg!(target_arch = "arm") || cfg!(target_arch = "aarch64") {
@@ -64,13 +65,15 @@ fn render_game(
         particles.draw(frame, &fe.display, &fe.shaders.particle, &mvp)?;
     }
 
-    for entity in game.grenades.iter() {
+    for entity in game.grenades().iter() {
         grenade::draw(frame, fe, entity, &view, &projection)?;
     }
     for entity in game.drops().iter() {
         item_drop::draw(frame, fe, entity, &view, &projection)?;
     }
     chungus::draw(frame, fe, game, &mvp, request)?;
+
+    shadow::draw(frame, fe, game, &mvp)?;
 
     block_mining::draw(frame, fe, game, &mvp)?;
 
