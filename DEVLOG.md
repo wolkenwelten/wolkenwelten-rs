@@ -1,6 +1,11 @@
 # WolkenWelten DevLog / Screenshots
 Here you can read about what I've been working on including screenshots.
 
+### 2022-11-24 - Items / Shadows
+![Some items](https://github.com/wolkenwelten/wolkenwelten-screenshots/raw/main/2022_11_24.jpg)
+Now itemdrops use an actual blockmesh, which is also shown to indicate the held item instead of the
+placeholder grenade. Also added simple shadows and code for dropping items on the floor.
+
 ### 2022-11-23 - Inventory
 ![Some icons](https://github.com/wolkenwelten/wolkenwelten-screenshots/raw/main/2022_11_23.jpg)
 Added a simple inventory/hotbar as well as code that automatically generates icons from the block
