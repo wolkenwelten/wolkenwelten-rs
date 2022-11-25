@@ -72,7 +72,7 @@ fn prepare_fps(fe: &mut ClientState) {
 }
 
 fn prepare_pos(fe: &mut ClientState, game: &GameState) {
-    let pos = game.player().pos;
+    let pos = game.player().pos();
     let pos_text = format!(
         "X:{:8.2} Y:{:8.2} Z:{:8.2}   Ticks:{}",
         pos[0], pos[1], pos[2], game.ticks_elapsed
@@ -90,7 +90,7 @@ fn prepare_debug_text(fe: &mut ClientState, game: &GameState, request: &ChunkReq
     let col_text = format!(
         "Count: (Entities:{}, Chunks:{}, BlockMeshes:{}, Particles:{} ItemDrops:{})",
         game.get_entity_count(),
-        game.world.chunk_count(),
+        game.world().chunk_count(),
         fe.world_mesh.len(),
         particles.len(),
         game.drops().len(),

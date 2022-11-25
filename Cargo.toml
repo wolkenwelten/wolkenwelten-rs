@@ -8,6 +8,11 @@ authors = ["Benjamin Vincent Schulenburg <ben@wolkenwelten.net>"]
 description = """
 An open voxel sandbox
 """
+# The general section with crate name, license, etc.
+build = "build.rs"
+
+[target.'cfg(windows)'.build-dependencies]
+embed-resource = "1.6"
 
 [dependencies]
 wolkenwelten-client-winit = { path = "client_winit" }

@@ -1,9 +1,9 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
-use super::{Chungus, Health};
+use super::{Chungus, GameState, Health};
 use glam::{IVec3, Vec3, Vec3Swizzles};
 use std::{f32::consts::PI, time::Instant};
-use wolkenwelten_common::{BlockItem, GameEvent, Item, Message};
+use wolkenwelten_common::{BlockItem, Item, Message, Reactor};
 
 #[derive(Copy, Clone, Debug, Default, Eq, PartialEq)]
 pub enum CharacterAnimation {
@@ -17,6 +17,9 @@ pub struct Character {
     pub pos: Vec3,
     pub rot: Vec3,
     pub vel: Vec3,
+
+    movement: Vec3,
+    mining: Option<(IVec3, u8)>,
 
     no_clip: bool,
     cooldown: u64,
@@ -52,6 +55,23 @@ impl Character {
     pub fn new() -> Self {
         Self::default()
     }
+
+    pub fn rebirth(&mut self) {
+        self.set_pos(Vec3::new(-32.0, -16.0, 338.0));
+        self.set_rot(Vec3::new(-130.0, 0.0, 0.0));
+        let inv = self.inventory_mut();
+        inv.clear();
+        inv.resize(10, Item::None);
+        inv[0] = BlockItem::new(1, 32).into();
+        inv[1] = BlockItem::new(2, 24).into();
+        inv[2] = BlockItem::new(3, 16).into();
+        inv[3] = BlockItem::new(4, 12).into();
+        inv[4] = BlockItem::new(5, 8).into();
+        self.set_inventory_active(0);
+        self.health.set_max_health(16);
+        self.health.set_full_health();
+    }
+
     #[inline]
     pub fn pos(&self) -> Vec3 {
         self.pos
@@ -63,6 +83,19 @@ impl Character {
     #[inline]
     pub fn vel(&self) -> Vec3 {
         self.vel
+    }
+    #[inline]
+    pub fn movement(&self) -> Vec3 {
+        self.movement
+    }
+    #[inline]
+    pub fn mining(&self) -> Option<(IVec3, u8)> {
+        self.mining
+    }
+
+    #[inline]
+    pub fn set_mining(&mut self, m: Option<(IVec3, u8)>) {
+        self.mining = m;
     }
 
     #[inline]
@@ -85,6 +118,10 @@ impl Character {
     #[inline]
     pub fn set_rot(&mut self, rot: Vec3) {
         self.rot = rot;
+    }
+    #[inline]
+    pub fn set_movement(&mut self, v: Vec3) {
+        self.movement = v;
     }
 
     #[inline]
@@ -269,7 +306,7 @@ impl Character {
             || world.is_solid(pos + Vec3::new(0.0, 0.8, 0.0))
     }
 
-    pub fn tick(&mut self, v: Vec3, events: &mut Vec<Message>, world: &Chungus, cur_tick: u64) {
+    pub fn tick(&mut self, reactor: &Reactor<Message>, world: &Chungus, cur_tick: u64) {
         if self.no_clip {
             self.pos += self.vel;
             return;
@@ -279,7 +316,7 @@ impl Character {
             return; // Just freeze the character until we have loaded the area, this shouldn't happen if at all possible
         }
 
-        let accel = if v.xz().length() > 0.01 {
+        let accel = if self.movement.xz().length() > 0.01 {
             CHARACTER_ACCELERATION
         } else {
             CHARACTER_STOP_RATE
@@ -290,8 +327,8 @@ impl Character {
             accel * 0.4 // Slow down player movement changes during jumps
         };
 
-        self.vel.x = self.vel.x * (1.0 - accel) + (v.x * 0.02) * accel;
-        self.vel.z = self.vel.z * (1.0 - accel) + (v.z * 0.02) * accel;
+        self.vel.x = self.vel.x * (1.0 - accel) + (self.movement.x * 0.02) * accel;
+        self.vel.z = self.vel.z * (1.0 - accel) + (self.movement.z * 0.02) * accel;
 
         self.vel.y -= 0.0005;
         let old = self.vel;
@@ -319,16 +356,17 @@ impl Character {
 
         let force = (old - self.vel).length();
         if force > 0.01 {
-            events.push(GameEvent::CharacterStomp(self.pos).into());
+            reactor.dispatch(Message::CharacterStomp(self.pos));
         }
         if force > 0.05 {
             let amount = (force * 14.0) as i16;
             if amount > 0 {
                 self.health.damage(amount * amount);
                 if self.health().is_dead() {
-                    events.push(GameEvent::CharacterDeath(self.pos).into());
+                    reactor.dispatch(Message::CharacterDeath(self.pos));
+                    self.rebirth();
                 } else {
-                    events.push(GameEvent::CharacterDamage(self.pos, amount).into());
+                    reactor.dispatch(Message::CharacterDamage(self.pos, amount));
                 }
             }
         }
@@ -340,9 +378,9 @@ impl Character {
 
         if self.may_jump(world) {
             if len > 0.025 && cur_tick & 0x3F == 0 {
-                events.push(GameEvent::CharacterStep(self.pos).into());
+                reactor.dispatch(Message::CharacterStep(self.pos));
             } else if len > 0.01 && cur_tick & 0x7F == 0 {
-                events.push(GameEvent::CharacterStep(self.pos).into());
+                reactor.dispatch(Message::CharacterStep(self.pos));
             }
         }
 
@@ -372,5 +410,179 @@ impl Character {
             pos = n_pos;
         }
         None
+    }
+
+    pub fn add_handler(reactor: &mut Reactor<Message>, game: &GameState) {
+        {
+            let player = game.player_ref();
+            let f = move |_: &Reactor<Message>, msg: Message| {
+                if let Message::PlayerSwitchSelection(d) = msg {
+                    player.borrow_mut().switch_selection(d);
+                }
+            };
+            reactor.add_sink(Message::PlayerSwitchSelection(0), Box::new(f));
+        }
+        {
+            let player = game.player_ref();
+            let f = move |_: &Reactor<Message>, msg: Message| {
+                if let Message::PlayerSelect(s) = msg {
+                    player
+                        .borrow_mut()
+                        .set_inventory_active(s.try_into().unwrap());
+                }
+            };
+            reactor.add_sink(Message::PlayerSelect(0), Box::new(f));
+        }
+        {
+            let player = game.player_ref();
+            let f = move |_: &Reactor<Message>, msg: Message| {
+                if let Message::PlayerNoClip(t) = msg {
+                    player.borrow_mut().set_no_clip(t);
+                }
+            };
+            reactor.add_sink(Message::PlayerNoClip(false), Box::new(f));
+        }
+        {
+            let player = game.player_ref();
+            let f = move |_: &Reactor<Message>, msg: Message| {
+                if let Message::PlayerTurn(v) = msg {
+                    let mut player = player.borrow_mut();
+                    player.rot += v;
+                    player.wrap_rot();
+                }
+            };
+            reactor.add_sink(Message::PlayerTurn(Vec3::ZERO), Box::new(f));
+        }
+        {
+            let player = game.player_ref();
+            let f = move |_: &Reactor<Message>, msg: Message| {
+                if let Message::PlayerFly(v) = msg {
+                    player.borrow_mut().vel = v * 0.15;
+                }
+            };
+            reactor.add_sink(Message::PlayerFly(Vec3::ZERO), Box::new(f));
+        }
+        {
+            let player = game.player_ref();
+            let f = move |_reactor: &Reactor<Message>, msg: Message| {
+                if let Message::ItemDropPickup(_, item) = msg {
+                    if let Item::Block(bi) = item {
+                        player.borrow_mut().add_block_to_inventory(bi.block);
+                    }
+                }
+            };
+            reactor.add_sink(Message::ItemDropPickup(Vec3::ZERO, Item::None), Box::new(f));
+        }
+        {
+            let player = game.player_ref();
+            let f = move |_reactor: &Reactor<Message>, _msg: Message| {
+                player.borrow_mut().check_animation();
+            };
+            reactor.add_sink(Message::DrawFrame(Vec3::ZERO, 0, 0.0), Box::new(f));
+        }
+        {
+            let player = game.player_ref();
+            let world = game.world_ref();
+            let f = move |reactor: &Reactor<Message>, msg: Message| {
+                if let Message::PlayerMove(v) = msg {
+                    let mut player = player.borrow_mut();
+                    player.set_movement(v);
+                    if v.y > 0.0 && player.may_jump(&world.borrow()) {
+                        player.jump();
+                        reactor.dispatch(Message::CharacterJump(player.pos).into())
+                    }
+                }
+            };
+            reactor.add_sink(Message::PlayerMove(Vec3::ZERO), Box::new(f));
+        }
+        {
+            let player = game.player_ref();
+            let world = game.world_ref();
+            let clock = game.clock_ref();
+            let f = move |reactor: &Reactor<Message>, msg: Message| {
+                if let Message::PlayerBlockPlace(pos) = msg {
+                    let mut player = player.borrow_mut();
+                    let now = clock.borrow().elapsed().as_millis() as u64;
+                    if player.may_act(now) {
+                        let mut world = world.borrow_mut();
+                        if world.get_block(pos).unwrap_or(0) == 0 {
+                            let item = player.item();
+                            match item {
+                                Item::Block(bi) => {
+                                    player.set_animation_hit();
+                                    player.set_cooldown(now + 300);
+                                    let b = bi.block;
+                                    world.set_block(pos, b);
+                                    player.remove_block_from_inventory(b);
+                                    reactor.dispatch(Message::BlockPlace(pos, b).into());
+                                }
+                                _ => (),
+                            }
+                        }
+                    }
+                }
+            };
+            reactor.add_sink(Message::PlayerBlockPlace(IVec3::ZERO), Box::new(f));
+        }
+        {
+            let player = game.player_ref();
+            let clock = game.clock_ref();
+            let world = game.world_ref();
+            let f = move |_reactor: &Reactor<Message>, msg: Message| {
+                if let Message::PlayerBlockMine(o) = msg {
+                    if let Some(pos) = o {
+                        if let Some(b) = world.borrow_mut().get_block(pos) {
+                            let mut player = player.borrow_mut();
+                            player.set_mining(Some((pos, b)));
+                            let now = clock.borrow().elapsed().as_millis() as u64;
+                            if player.may_act(now) {
+                                player.set_animation_hit();
+                                player.set_cooldown(now + 300);
+                            }
+                        }
+                    } else {
+                        let mut player = player.borrow_mut();
+                        player.set_mining(None);
+                    }
+                }
+            };
+            reactor.add_sink(Message::PlayerBlockMine(None), Box::new(f));
+        }
+        {
+            let player = game.player_ref();
+            let clock = game.clock_ref();
+            let drops = game.drops_ref();
+            let f = move |_reactor: &Reactor<Message>, _msg: Message| {
+                let mut player = player.borrow_mut();
+                let now = clock.borrow().elapsed().as_millis() as u64;
+                if player.may_act(now) {
+                    let pos = player.inventory_active();
+                    let item = player.drop_item(pos);
+                    if item != Item::None {
+                        player.set_animation_hit();
+                        player.set_cooldown(now + 100);
+                        let vel = player.direction();
+                        let pos = player.pos() + vel * 2.0;
+                        let vel = vel * 0.03;
+                        let mut drops = drops.borrow_mut();
+                        drops.add(pos, vel, item);
+                    }
+                }
+            };
+            reactor.add_sink(Message::PlayerDropItem, Box::new(f));
+        }
+        {
+            let player = game.player_ref();
+            let world = game.world_ref();
+            let f = move |reactor: &Reactor<Message>, msg: Message| {
+                if let Message::GameTick(ticks) = msg {
+                    player.borrow_mut().tick(reactor, &world.borrow(), ticks);
+                    let player = player.borrow();
+                    let msg = Message::CharacterPosRotVel(player.pos(), player.rot(), player.vel());
+                    reactor.dispatch(msg);
+                }
+            };
+            reactor.add_sink(Message::GameTick(0), Box::new(f));
+        }
     }
 }

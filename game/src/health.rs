@@ -44,6 +44,17 @@ impl Health {
     pub fn heal(&mut self, amount: i16) {
         self.hp = (self.hp + amount).clamp(0, self.max_hp);
     }
+
+    #[inline]
+    pub fn set_max_health(&mut self, amount: i16) {
+        self.max_hp = amount;
+        self.hp = self.hp.min(amount);
+    }
+
+    #[inline]
+    pub fn set_full_health(&mut self) {
+        self.hp = self.max_hp;
+    }
 }
 
 impl ops::Add<i16> for Health {

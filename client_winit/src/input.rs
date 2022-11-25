@@ -8,7 +8,7 @@ use winit::event::{
     DeviceEvent, ElementState, Event, KeyboardInput, MouseButton, MouseScrollDelta, VirtualKeyCode,
     WindowEvent,
 };
-use wolkenwelten_common::{InputEvent, Message, SyncEvent};
+use wolkenwelten_common::{Message, Reactor};
 use wolkenwelten_game::{GameState, RaycastReturn};
 
 #[derive(Clone, Copy, Debug, Default, Enum)]
@@ -32,7 +32,6 @@ pub enum Key {
 #[derive(Clone, Debug, Default)]
 pub struct InputState {
     button_states: EnumMap<Key, bool>,
-    queue: Vec<Message>,
 }
 
 impl InputState {
@@ -40,28 +39,17 @@ impl InputState {
         Self::default()
     }
 
-    pub fn flush_queue(&mut self, msgs: &mut Vec<Message>) {
-        if self.queue.is_empty() {
-            return;
-        }
-        msgs.append(&mut self.queue);
-        self.queue.clear();
-    }
-
-    pub fn handle_winit_event(&mut self, event: Event<()>) {
+    pub fn handle_winit_event(&mut self, reactor: &Reactor<Message>, event: Event<()>) {
         match event {
             Event::DeviceEvent {
                 event: DeviceEvent::MouseMotion { delta },
                 ..
             } => {
-                self.queue.push(
-                    InputEvent::PlayerTurn(Vec3::new(
-                        delta.0 as f32 * 0.05,
-                        delta.1 as f32 * 0.05,
-                        0.0,
-                    ))
-                    .into(),
-                );
+                reactor.dispatch(Message::PlayerTurn(Vec3::new(
+                    delta.0 as f32 * 0.05,
+                    delta.1 as f32 * 0.05,
+                    0.0,
+                )));
             }
 
             Event::WindowEvent {
@@ -98,12 +86,12 @@ impl InputState {
                 event: WindowEvent::MouseWheel { delta, .. },
                 ..
             } => match delta {
-                MouseScrollDelta::LineDelta(_, y) => self
-                    .queue
-                    .push(InputEvent::PlayerSwitchSelection(y.round() as i32).into()),
-                MouseScrollDelta::PixelDelta(PhysicalPosition { x: _x, y }) => self
-                    .queue
-                    .push(InputEvent::PlayerSwitchSelection(y.round() as i32).into()),
+                MouseScrollDelta::LineDelta(_, y) => {
+                    reactor.dispatch(Message::PlayerSwitchSelection(y.round() as i32))
+                }
+                MouseScrollDelta::PixelDelta(PhysicalPosition { x: _x, y }) => {
+                    reactor.dispatch(Message::PlayerSwitchSelection(y.round() as i32))
+                }
             },
 
             Event::DeviceEvent {
@@ -118,73 +106,73 @@ impl InputState {
                     state: ElementState::Pressed,
                     virtual_keycode: Some(VirtualKeyCode::N),
                     ..
-                } => self.queue.push(InputEvent::PlayerNoClip(true).into()),
+                } => reactor.dispatch(Message::PlayerNoClip(true).into()),
 
                 KeyboardInput {
                     state: ElementState::Pressed,
                     virtual_keycode: Some(VirtualKeyCode::M),
                     ..
-                } => self.queue.push(InputEvent::PlayerNoClip(false).into()),
+                } => reactor.dispatch(Message::PlayerNoClip(false).into()),
 
                 KeyboardInput {
                     state: ElementState::Pressed,
                     virtual_keycode: Some(VirtualKeyCode::Key1),
                     ..
-                } => self.queue.push(InputEvent::PlayerSelect(0).into()),
+                } => reactor.dispatch(Message::PlayerSelect(0)),
 
                 KeyboardInput {
                     state: ElementState::Pressed,
                     virtual_keycode: Some(VirtualKeyCode::Key2),
                     ..
-                } => self.queue.push(InputEvent::PlayerSelect(1).into()),
+                } => reactor.dispatch(Message::PlayerSelect(1)),
 
                 KeyboardInput {
                     state: ElementState::Pressed,
                     virtual_keycode: Some(VirtualKeyCode::Key3),
                     ..
-                } => self.queue.push(InputEvent::PlayerSelect(2).into()),
+                } => reactor.dispatch(Message::PlayerSelect(2)),
 
                 KeyboardInput {
                     state: ElementState::Pressed,
                     virtual_keycode: Some(VirtualKeyCode::Key4),
                     ..
-                } => self.queue.push(InputEvent::PlayerSelect(3).into()),
+                } => reactor.dispatch(Message::PlayerSelect(3)),
 
                 KeyboardInput {
                     state: ElementState::Pressed,
                     virtual_keycode: Some(VirtualKeyCode::Key5),
                     ..
-                } => self.queue.push(InputEvent::PlayerSelect(4).into()),
+                } => reactor.dispatch(Message::PlayerSelect(4)),
 
                 KeyboardInput {
                     state: ElementState::Pressed,
                     virtual_keycode: Some(VirtualKeyCode::Key6),
                     ..
-                } => self.queue.push(InputEvent::PlayerSelect(5).into()),
+                } => reactor.dispatch(Message::PlayerSelect(5)),
 
                 KeyboardInput {
                     state: ElementState::Pressed,
                     virtual_keycode: Some(VirtualKeyCode::Key7),
                     ..
-                } => self.queue.push(InputEvent::PlayerSelect(6).into()),
+                } => reactor.dispatch(Message::PlayerSelect(6)),
 
                 KeyboardInput {
                     state: ElementState::Pressed,
                     virtual_keycode: Some(VirtualKeyCode::Key8),
                     ..
-                } => self.queue.push(InputEvent::PlayerSelect(7).into()),
+                } => reactor.dispatch(Message::PlayerSelect(7)),
 
                 KeyboardInput {
                     state: ElementState::Pressed,
                     virtual_keycode: Some(VirtualKeyCode::Key9),
                     ..
-                } => self.queue.push(InputEvent::PlayerSelect(8).into()),
+                } => reactor.dispatch(Message::PlayerSelect(8)),
 
                 KeyboardInput {
                     state: ElementState::Pressed,
                     virtual_keycode: Some(VirtualKeyCode::Key0),
                     ..
-                } => self.queue.push(InputEvent::PlayerSelect(9).into()),
+                } => reactor.dispatch(Message::PlayerSelect(9)),
 
                 KeyboardInput {
                     state,
@@ -214,7 +202,7 @@ impl InputState {
                     state: ElementState::Pressed,
                     virtual_keycode: Some(VirtualKeyCode::Escape),
                     ..
-                } => self.queue.push(SyncEvent::GameQuit.into()),
+                } => reactor.dispatch(Message::GameQuit.into()),
 
                 KeyboardInput {
                     state,
@@ -298,53 +286,46 @@ impl InputState {
         )
     }
 
-    fn input_tick_no_clip(&mut self, game: &GameState, msg: &mut Vec<Message>) {
+    pub fn tick(&mut self, game: &GameState, reactor: &Reactor<Message>) {
         let view = glam::Mat4::from_rotation_y(-game.player().rot[0].to_radians());
-        let view = view * glam::Mat4::from_rotation_x(-game.player().rot[1].to_radians());
-        let v = glam::Vec4::from((self.get_movement_vector(), 1.0_f32));
-        let move_vec = (view * v).xyz();
-
-        msg.push(InputEvent::PlayerFly(move_vec * self.get_speed()).into());
-    }
-
-    fn input_tick_default(&mut self, game: &GameState, msg: &mut Vec<Message>) {
-        let view = glam::Mat4::from_rotation_y(-game.player().rot[0].to_radians());
-        let m = self.get_movement_vector();
-        let v = glam::Vec4::from((m, 1.0_f32));
-        let move_vec = (view * v).xyz() * self.get_speed();
-
-        msg.push(InputEvent::PlayerMove(Vec3::new(move_vec.x, m.y, move_vec.z)).into());
-    }
-
-    pub fn tick(&mut self, game: &GameState) -> Vec<Message> {
-        let mut msgs: Vec<Message> = vec![];
-        self.flush_queue(&mut msgs);
         if game.player().no_clip() {
-            self.input_tick_no_clip(game, &mut msgs);
+            let view = view * glam::Mat4::from_rotation_x(-game.player().rot[1].to_radians());
+            let v = glam::Vec4::from((self.get_movement_vector(), 1.0_f32));
+            let move_vec = (view * v).xyz();
+
+            reactor.dispatch(Message::PlayerFly(move_vec * self.get_speed()));
         } else {
-            self.input_tick_default(game, &mut msgs);
+            let m = self.get_movement_vector();
+            let v = glam::Vec4::from((m, 1.0_f32));
+            let move_vec = (view * v).xyz() * self.get_speed();
+
+            reactor.dispatch(Message::PlayerMove(Vec3::new(move_vec.x, m.y, move_vec.z)));
         };
 
         if self.button_states[Key::Primary] {
-            if let Some(pos) = game.player().raycast(&game.world, RaycastReturn::Within) {
-                msgs.push(InputEvent::PlayerBlockMine(pos).into());
+            let o = game.player().raycast(&game.world(), RaycastReturn::Within);
+            if let Some(pos) = o {
+                reactor.dispatch(Message::PlayerBlockMine(Some(pos)));
+            } else {
+                reactor.dispatch(Message::PlayerBlockMine(None));
             }
+        } else {
+            reactor.dispatch(Message::PlayerBlockMine(None));
         }
 
         if self.button_states[Key::Secondary] {
-            if let Some(pos) = game.player().raycast(&game.world, RaycastReturn::Front) {
-                msgs.push(InputEvent::PlayerBlockPlace(pos).into());
+            let o = game.player().raycast(&game.world(), RaycastReturn::Front);
+            if let Some(pos) = o {
+                reactor.dispatch(Message::PlayerBlockPlace(pos));
             }
         }
 
         if self.button_states[Key::Tertiary] {
-            msgs.push(InputEvent::PlayerShoot.into());
+            reactor.dispatch(Message::PlayerShoot);
         }
 
         if self.button_states[Key::Drop] {
-            msgs.push(InputEvent::PlayerDropItem.into());
+            reactor.dispatch(Message::PlayerDropItem);
         }
-
-        msgs
     }
 }

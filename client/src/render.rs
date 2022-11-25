@@ -37,9 +37,9 @@ pub fn prepare_frame(
     game: &GameState,
     request: &mut ChunkRequestQueue,
 ) -> Result<()> {
-    fe.set_fov(calc_fov(fe.fov(), game.player()));
+    fe.set_fov(calc_fov(fe.fov(), &game.player()));
     fe.calc_fps();
-    fe.gc(game.player());
+    fe.gc(&game.player());
     super::ui::prepare(fe, game, &request);
     chungus::handle_requests(fe, game, request)?;
     Ok(())

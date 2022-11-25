@@ -1,8 +1,8 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
-use crate::{Character, Chungus, Entity};
+use crate::{Chungus, Entity, GameState};
 use glam::{IVec3, Vec3};
-use wolkenwelten_common::{BlockItem, GameEvent, Item, Message};
+use wolkenwelten_common::{BlockItem, Item, Message, Reactor};
 
 const ITEM_DROP_PICKUP_RANGE: f32 = 1.5;
 
@@ -91,9 +91,7 @@ impl ItemDropList {
         self.drops.len()
     }
 
-    pub fn tick_all(&mut self, player: &Character, world: &Chungus) -> Vec<Message> {
-        let player_pos = player.pos();
-        let mut events = vec![];
+    pub fn tick_all(&mut self, reactor: &Reactor<Message>, player_pos: Vec3, world: &Chungus) {
         for index in (0..self.drops.len()).rev() {
             self.drops[index].tick(world);
             let dist = self.drops[index].pos() - player_pos;
@@ -101,13 +99,27 @@ impl ItemDropList {
             if dd > (256.0 * 256.0) {
                 self.drops.swap_remove(index); // Remove when far enough away
             } else if dd < ITEM_DROP_PICKUP_RANGE * ITEM_DROP_PICKUP_RANGE {
-                events.push(
-                    GameEvent::ItemDropPickup(self.drops[index].pos(), self.drops[index].item())
-                        .into(),
-                );
+                reactor.dispatch(Message::ItemDropPickup(
+                    self.drops[index].pos(),
+                    self.drops[index].item(),
+                ));
                 self.drops.swap_remove(index);
             }
         }
-        events
+    }
+
+    pub fn add_handler(reactor: &mut Reactor<Message>, game: &GameState) {
+        {
+            let player = game.player_ref();
+            let drops = game.drops_ref();
+            let world = game.world_ref();
+            let f = move |reactor: &Reactor<Message>, _msg: Message| {
+                let player_pos = player.borrow().pos();
+                drops
+                    .borrow_mut()
+                    .tick_all(reactor, player_pos, &world.borrow());
+            };
+            reactor.add_sink(Message::GameTick(0), Box::new(f));
+        }
     }
 }

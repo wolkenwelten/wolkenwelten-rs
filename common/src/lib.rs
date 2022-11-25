@@ -6,6 +6,7 @@ mod item;
 mod iter;
 mod message;
 mod queue;
+mod reactor;
 
 pub use block_type::*;
 pub use chunk::*;
@@ -13,6 +14,7 @@ pub use item::*;
 pub use iter::*;
 pub use message::*;
 pub use queue::ChunkRequestQueue;
+pub use reactor::*;
 
 pub const CHUNK_BITS: i32 = 5;
 pub const CHUNK_SIZE: usize = 1 << CHUNK_BITS;

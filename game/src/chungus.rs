@@ -1,21 +1,20 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
 use super::block_types;
-use super::Character;
 use crate::worldgen;
 use crate::worldgen::WorldgenAssetList;
+use crate::GameState;
 use anyhow::Result;
 use glam::f32::Vec3;
 use glam::i32::IVec3;
 use noise::utils::{NoiseMap, NoiseMapBuilder, PlaneMapBuilder};
 use noise::{Perlin, Seedable};
 use std::cell::RefCell;
-use std::collections::HashMap;
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
 use wolkenwelten_common::{
-    BlockType, ChunkBlockData, ChunkLightData, ChunkRequestQueue, CHUNK_BITS, CHUNK_MASK,
-    CHUNK_SIZE,
+    BlockType, ChunkBlockData, ChunkLightData, ChunkRequestQueue, Message, Reactor, CHUNK_BITS,
+    CHUNK_MASK, CHUNK_SIZE,
 };
 
 pub struct Chungus {
@@ -30,8 +29,8 @@ pub struct Chungus {
 }
 
 impl Chungus {
-    pub fn gc(&mut self, player: &Character, render_distance: f32) {
-        let max_d = render_distance * 4.0;
+    pub fn gc_block(&mut self, player_pos: Vec3, render_distance: f32) {
+        let max_d = render_distance * render_distance * 4.0;
         self.chunks_block.retain(|&pos, _| {
             let diff: Vec3 = (pos.as_vec3() * CHUNK_SIZE as f32)
                 + Vec3::new(
@@ -39,10 +38,14 @@ impl Chungus {
                     CHUNK_SIZE as f32 / 2.0,
                     CHUNK_SIZE as f32 / 2.0,
                 )
-                - player.pos;
+                - player_pos;
             let d = diff.dot(diff);
             d < (max_d)
         });
+    }
+
+    pub fn gc_simple_light(&mut self, player_pos: Vec3, render_distance: f32) {
+        let max_d = render_distance * render_distance * 4.0;
         self.chunks_simple_light.retain(|&pos, _| {
             let diff: Vec3 = (pos.as_vec3() * CHUNK_SIZE as f32)
                 + Vec3::new(
@@ -50,10 +53,57 @@ impl Chungus {
                     CHUNK_SIZE as f32 / 2.0,
                     CHUNK_SIZE as f32 / 2.0,
                 )
-                - player.pos;
+                - player_pos;
             let d = diff.dot(diff);
             d < (max_d)
         });
+    }
+
+    pub fn gc_complex_light(&mut self, player_pos: Vec3, render_distance: f32) {
+        let max_d = render_distance * render_distance * 4.0;
+        self.chunks_complex_light.retain(|&pos, _| {
+            let diff: Vec3 = (pos.as_vec3() * CHUNK_SIZE as f32)
+                + Vec3::new(
+                    CHUNK_SIZE as f32 / 2.0,
+                    CHUNK_SIZE as f32 / 2.0,
+                    CHUNK_SIZE as f32 / 2.0,
+                )
+                - player_pos;
+            let d = diff.dot(diff);
+            d < (max_d)
+        });
+    }
+
+    pub fn add_handler(reactor: &mut Reactor<Message>, game: &GameState) {
+        {
+            let world = game.world_ref();
+            let player = game.player_ref();
+            let last_gc = RefCell::new(0);
+            let which_gc = RefCell::new(0);
+            let f = move |_reactor: &Reactor<Message>, msg: Message| {
+                if let Message::FinishedFrame(_, ticks_elapsed, render_distance) = msg {
+                    let last = *last_gc.borrow();
+                    if ticks_elapsed > last {
+                        let player_pos = player.borrow().pos();
+                        last_gc.replace(ticks_elapsed + 500);
+                        let which = *which_gc.borrow() % 3;
+                        // We GC each type separately so that the pauses are as small as possible
+                        match which {
+                            0 => world.borrow_mut().gc_block(player_pos, render_distance),
+                            1 => world
+                                .borrow_mut()
+                                .gc_simple_light(player_pos, render_distance),
+                            2 => world
+                                .borrow_mut()
+                                .gc_complex_light(player_pos, render_distance),
+                            _ => (),
+                        }
+                        which_gc.replace(which);
+                    }
+                }
+            };
+            reactor.add_sink(Message::FinishedFrame(Vec3::ZERO, 0, 0.0), Box::new(f));
+        }
     }
 
     pub fn handle_requests(&mut self, request: &mut ChunkRequestQueue) {
@@ -283,7 +333,7 @@ impl Chungus {
         }
     }
 
-    pub fn add_explosion(&mut self, pos: &Vec3, power: f32) {
+    pub fn add_explosion(&mut self, pos: Vec3, power: f32) {
         let pos = pos.floor().as_ivec3();
         let p = power.round() as i32;
         let pp = p * p;

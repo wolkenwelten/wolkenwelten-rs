@@ -19,7 +19,7 @@ impl MeshList {
     fn gen_block_meshes(display: &glium::Display, game: &GameState) -> Result<Vec<Mesh>> {
         let tile_size = 64.0 / 1600.0;
         Ok(game
-            .world
+            .world()
             .blocks
             .borrow()
             .iter()

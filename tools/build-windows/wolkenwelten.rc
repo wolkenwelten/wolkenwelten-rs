@@ -1,0 +1,25 @@
+1 VERSIONINFO
+FILEVERSION     0,0,4
+PRODUCTVERSION  0,0,4
+BEGIN
+  BLOCK "StringFileInfo"
+  BEGIN
+    BLOCK "040904E4"
+    BEGIN
+      VALUE "CompanyName",      "Moon Computing"
+      VALUE "FileDescription",  "WolkenWelten"
+      VALUE "FileVersion",      "0.0.4"
+      VALUE "InternalName",     "wolkenWelten"
+      VALUE "LegalCopyright",   "WolkenWelten"
+      VALUE "OriginalFilename", "wolkenwelten.exe"
+      VALUE "ProductName",      "WolkenWelten"
+      VALUE "ProductVersion",   "0.0.4"
+    END
+  END
+  BLOCK "VarFileInfo"
+  BEGIN
+    VALUE "Translation", 0x409, 1200
+  END
+END
+
+wolkenweltenicon ICON "icon.ico"

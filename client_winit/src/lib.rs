@@ -11,10 +11,8 @@ use winit::event_loop::{ControlFlow, EventLoop};
 use winit::window::{CursorGrabMode, Fullscreen, Window, WindowBuilder};
 
 use wolkenwelten_client::{prepare_frame, render_frame, ClientState, RENDER_DISTANCE};
-use wolkenwelten_common::{ChunkRequestQueue, GameEvent, Message, SyncEvent};
+use wolkenwelten_common::{ChunkRequestQueue, Message, Reactor};
 use wolkenwelten_game::GameState;
-
-pub type MessageSink = Box<dyn Fn(&Vec<Message>)>;
 
 /// Stores everything necessary to run a WolkenWelten instance
 pub struct AppState {
@@ -22,7 +20,6 @@ pub struct AppState {
     pub render_state: ClientState,
     pub input: InputState,
     pub event_loop: EventLoop<()>,
-    pub message_sinks: Vec<MessageSink>,
 }
 
 /// Try and grab the cursor, first by locking, then by confiningg it
@@ -77,14 +74,11 @@ pub fn init() -> (EventLoop<()>, glium::Display) {
 }
 
 /// Run the actual game, this function only returns when the game quits
-pub fn run_event_loop(state: AppState) {
+pub fn run_event_loop(state: AppState, reactor: Reactor<Message>) {
     let mut render = state.render_state;
     let mut game = state.game_state;
     let mut input = state.input;
     let event_loop = state.event_loop;
-
-    let mut msgs: Vec<Message> = vec![];
-    game.set_render_distance(RENDER_DISTANCE * RENDER_DISTANCE);
 
     let mut request = ChunkRequestQueue::new();
 
@@ -154,66 +148,58 @@ pub fn run_event_loop(state: AppState) {
             }
 
             Event::RedrawRequested(_) => {
-                msgs.push(
-                    SyncEvent::DrawFrame(game.player().pos, render.ticks(), RENDER_DISTANCE).into(),
-                );
+                let player_pos = game.player().pos;
+                reactor.dispatch(Message::DrawFrame(
+                    player_pos,
+                    render.ticks(),
+                    RENDER_DISTANCE,
+                ));
+
                 let mut frame = render.display.draw();
                 prepare_frame(&mut render, &game, &mut request)
                     .expect("Error during frame preparation");
                 render_frame(&mut frame, &render, &game, &mut request)
                     .expect("Error during rendering");
                 frame.finish().expect("Error during frame finish");
+
+                reactor.dispatch(Message::FinishedFrame(
+                    player_pos,
+                    render.ticks(),
+                    RENDER_DISTANCE,
+                ));
             }
 
             Event::MainEventsCleared => {
-                msgs.extend(input.tick(&game));
-                msgs.extend(game.tick(&msgs, &mut request));
-                msgs.iter().for_each(|e| match e {
-                    Message::SyncEvent(SyncEvent::GameQuit) => *control_flow = ControlFlow::Exit,
-                    Message::GameEvent(m) => match m {
-                        GameEvent::CharacterDeath(_) => {
-                            game.player_rebirth();
-                        }
-                        GameEvent::EntityCollision(pos) => {
-                            game.world.add_explosion(pos, 7.0);
-                        }
-                        _ => (),
-                    },
-                    _ => (),
-                });
-                state.message_sinks.iter().for_each(|λ| λ(&msgs));
-
-                msgs.clear();
-                game.world.handle_requests(&mut request);
+                input.tick(&game, &reactor);
+                game.tick(&reactor, &mut request);
+                game.world_mut().handle_requests(&mut request);
                 render.request_redraw();
+                if !game.running() {
+                    *control_flow = ControlFlow::Exit;
+                }
             }
             _ => {}
         };
-        input.handle_winit_event(event);
+        input.handle_winit_event(&reactor, event);
     });
 }
 
-pub fn start_app(game_state: GameState, sinks: Vec<MessageSink>) {
+pub fn start_app(game_state: GameState, mut reactor: Reactor<Message>) {
     let (event_loop, display) = init();
     let render_state = ClientState::new(display, &game_state).expect("Can't create ClientState");
-    let mut message_sinks: Vec<MessageSink> = Vec::new();
-    message_sinks.extend(sinks);
-    {
-        let particles = render_state.particles().clone();
-        let block_types = game_state.world.blocks.clone();
-        let λ = move |msgs: &Vec<Message>| {
-            let mut particles = particles.borrow_mut();
-            let block_types = block_types.borrow();
-            particles.msg_sink(msgs, &block_types);
-        };
-        message_sinks.push(Box::new(λ));
-    }
 
-    run_event_loop(AppState {
-        game_state,
-        render_state,
-        event_loop,
-        input: InputState::new(),
-        message_sinks,
-    })
+    render_state
+        .particles()
+        .borrow()
+        .add_handler(&mut reactor, game_state.world().blocks.clone());
+
+    run_event_loop(
+        AppState {
+            game_state,
+            render_state,
+            event_loop,
+            input: InputState::new(),
+        },
+        reactor,
+    )
 }

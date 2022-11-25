@@ -3,119 +3,114 @@
 use super::{Character, Chungus, Grenade};
 use crate::{BlockMiningMap, ItemDropList};
 use anyhow::Result;
-use glam::{IVec3, Vec3};
-use std::time::Instant;
+use glam::IVec3;
+use std::{
+    cell::{Ref, RefCell, RefMut},
+    rc::Rc,
+    time::Instant,
+};
+
 use wolkenwelten_common::{
-    BlockItem, ChunkBlockData, ChunkLightData, ChunkRequestQueue, GameEvent, InputEvent, Item,
-    Message, SyncEvent, CHUNK_BITS, CHUNK_MASK, CHUNK_SIZE,
+    ChunkRequestQueue, Message, Reactor, CHUNK_BITS, CHUNK_MASK, CHUNK_SIZE,
 };
 use wolkenwelten_scripting::Runtime;
 
 const MS_PER_TICK: u64 = 4;
 
 pub struct GameState {
-    pub clock: Instant,
+    clock: Rc<RefCell<Instant>>,
     pub ticks_elapsed: u64,
-    pub last_gc: u64,
-    pub running: bool,
-    pub runtime: Runtime,
-    pub world: Chungus,
+    pub runtime: Rc<RefCell<Runtime>>,
+    world: Rc<RefCell<Chungus>>,
 
-    grenades: Vec<Grenade>,
-    drops: ItemDropList,
-    mining: BlockMiningMap,
+    grenades: Rc<RefCell<Vec<Grenade>>>,
+    drops: Rc<RefCell<ItemDropList>>,
+    mining: Rc<RefCell<BlockMiningMap>>,
 
-    player: Character,
-    render_distance: f32,
+    player: Rc<RefCell<Character>>,
+    running: Rc<RefCell<bool>>,
 }
 
 impl GameState {
     pub fn new() -> Result<Self> {
-        let mut ret = Self {
-            clock: Instant::now(),
-            running: true,
-            player: Character::new(),
-            grenades: Vec::new(),
+        let player = Rc::new(RefCell::new(Character::new()));
+        player.borrow_mut().rebirth();
+        Ok(Self {
+            clock: Rc::new(RefCell::new(Instant::now())),
+            running: Rc::new(RefCell::new(true)),
+            player,
+            grenades: Rc::new(RefCell::new(Vec::new())),
             ticks_elapsed: 0,
-            last_gc: 0,
-            drops: ItemDropList::new(),
-            mining: BlockMiningMap::new(),
-            render_distance: 128.0 * 128.0,
-            runtime: Runtime::new(),
-            world: Chungus::new()?,
-        };
-        ret.player_rebirth();
-        Ok(ret)
+            drops: Rc::new(RefCell::new(ItemDropList::new())),
+            mining: Rc::new(RefCell::new(BlockMiningMap::new())),
+            runtime: Rc::new(RefCell::new(Runtime::new())),
+            world: Rc::new(RefCell::new(Chungus::new()?)),
+        })
     }
 
     #[inline]
     pub fn get_millis(&self) -> u64 {
-        self.clock.elapsed().as_millis().try_into().unwrap()
+        self.clock
+            .borrow()
+            .elapsed()
+            .as_millis()
+            .try_into()
+            .unwrap()
     }
 
     #[inline]
     pub fn get_entity_count(&self) -> usize {
-        self.grenades.len()
+        self.grenades.borrow().len()
     }
 
     #[inline]
     pub fn push_entity(&mut self, e: Grenade) {
-        self.grenades.push(e);
+        self.grenades.borrow_mut().push(e);
     }
 
     #[inline]
-    pub fn player(&self) -> &Character {
-        &self.player
+    pub fn player(&self) -> Ref<Character> {
+        self.player.borrow()
     }
 
     #[inline]
-    pub fn mut_player(&mut self) -> &mut Character {
-        &mut self.player
-    }
-
-    pub fn player_rebirth(&mut self) {
-        let mut player = Character::new();
-        player.set_pos(Vec3::new(-32.0, -16.0, 338.0));
-        player.set_rot(Vec3::new(-130.0, 0.0, 0.0));
-        let inv = player.inventory_mut();
-        inv.clear();
-        inv.resize(10, Item::None);
-        inv[0] = BlockItem::new(1, 32).into();
-        inv[1] = BlockItem::new(2, 24).into();
-        inv[2] = BlockItem::new(3, 16).into();
-        inv[3] = BlockItem::new(4, 12).into();
-        inv[4] = BlockItem::new(5, 8).into();
-        player.set_inventory_active(0);
-        self.player = player;
+    pub fn player_mut(&self) -> RefMut<Character> {
+        self.player.borrow_mut()
     }
 
     #[inline]
-    pub fn render_distance(&self) -> f32 {
-        self.render_distance
+    pub fn player_ref(&self) -> Rc<RefCell<Character>> {
+        self.player.clone()
     }
 
     #[inline]
-    pub fn set_render_distance(&mut self, render_distance: f32) {
-        self.render_distance = render_distance;
-    }
-
-    pub fn view_steps(&self) -> i32 {
-        (self.render_distance().sqrt() as i32 / CHUNK_SIZE as i32) + 1
+    pub fn drops(&self) -> Ref<ItemDropList> {
+        self.drops.borrow()
     }
 
     #[inline]
-    pub fn drops(&self) -> &ItemDropList {
-        &self.drops
+    pub fn drops_mut(&self) -> RefMut<ItemDropList> {
+        self.drops.borrow_mut()
     }
 
     #[inline]
-    pub fn grenades(&self) -> &Vec<Grenade> {
-        &self.grenades
+    pub fn drops_ref(&self) -> Rc<RefCell<ItemDropList>> {
+        self.drops.clone()
     }
 
     #[inline]
-    pub fn grenades_mut(&mut self) -> &mut Vec<Grenade> {
-        &mut self.grenades
+    pub fn mining(&self) -> Ref<BlockMiningMap> {
+        self.mining.borrow()
+    }
+
+    #[inline]
+    pub fn mining_mut(&self) -> RefMut<BlockMiningMap> {
+        self.mining.borrow_mut()
+    }
+
+    #[inline]
+    pub fn mining_ref(&self) -> Rc<RefCell<BlockMiningMap>> {
+        self.mining.clone()
     }
 
     #[inline]
@@ -123,149 +118,80 @@ impl GameState {
         self.ticks_elapsed
     }
 
-    pub fn tick(&mut self, msg: &Vec<Message>, request: &mut ChunkRequestQueue) -> Vec<Message> {
-        let mut events: Vec<Message> = Vec::new();
-        let now = self.get_millis();
-        let ticks_goal = now / MS_PER_TICK;
-        let to_run = ticks_goal - self.ticks_elapsed;
-        let mut player_movement = Vec3::ZERO;
-        let mut player_mining: Option<(IVec3, u8)> = None;
-        events.push(
-            GameEvent::CharacterPosRotVel(self.player.pos, self.player.rot, self.player.vel).into(),
-        );
+    #[inline]
+    pub fn running(&self) -> bool {
+        *self.running.borrow()
+    }
 
-        msg.iter().for_each(|e| match e {
-            Message::InputEvent(msg) => match msg {
-                InputEvent::PlayerMove(v) => {
-                    if v.y > 0.0 && self.player.may_jump(&self.world) {
-                        self.player.jump();
-                        events.push(GameEvent::CharacterJump(self.player.pos).into())
-                    }
-                    player_movement = *v;
-                }
-                InputEvent::PlayerSwitchSelection(d) => self.mut_player().switch_selection(*d),
-                InputEvent::PlayerSelect(s) => self.mut_player().set_inventory_active(*s as usize),
-                InputEvent::PlayerNoClip(b) => self.mut_player().set_no_clip(*b),
-                InputEvent::PlayerTurn(v) => {
-                    self.player.rot += *v;
-                    self.player.wrap_rot();
-                }
-                InputEvent::PlayerFly(v) => self.player.vel = *v * 0.15,
-                InputEvent::PlayerShoot => {
-                    if self.player.may_act(now) {
-                        self.player.set_animation_hit();
-                        self.player.set_cooldown(now + 600);
-                        let mut e = Grenade::new();
-                        e.set_pos(self.player.pos());
-                        e.set_vel(self.player.direction() * 0.4);
-                        self.push_entity(e);
-                        events.push(GameEvent::CharacterShoot(self.player.pos).into())
-                    }
-                }
-                InputEvent::PlayerDropItem => {
-                    if self.player.may_act(now) {
-                        let item = self.player.drop_item(self.player.inventory_active());
-                        if item != Item::None {
-                            self.player.set_animation_hit();
-                            self.player.set_cooldown(now + 100);
-                            let vel = self.player.direction();
-                            let pos = self.player.pos() + vel * 2.0;
-                            let vel = vel * 0.03;
-                            self.drops.add(pos, vel, item);
-                        }
-                    }
-                }
-                InputEvent::PlayerBlockMine(pos) => {
-                    if let Some(b) = self.world.get_block(*pos) {
-                        player_mining = Some((*pos, b));
-                        if self.player.may_act(now) {
-                            self.player.set_animation_hit();
-                            self.player.set_cooldown(now + 300);
-                        }
-                    }
-                }
-                InputEvent::PlayerBlockPlace(pos) => {
-                    if self.player.may_act(now) {
-                        if self.world.get_block(*pos).unwrap_or(0) == 0 {
-                            let item = self.player.item();
-                            match item {
-                                Item::Block(bi) => {
-                                    self.player.set_animation_hit();
-                                    self.player.set_cooldown(now + 300);
-                                    let b = bi.block;
-                                    self.world.set_block(*pos, b);
-                                    events.push(GameEvent::BlockPlace(*pos, b).into());
-                                    self.player.remove_block_from_inventory(b);
-                                }
-                                _ => (),
-                            }
-                        }
-                    }
-                }
-            },
-            _ => (),
-        });
+    #[inline]
+    pub fn world(&self) -> Ref<Chungus> {
+        self.world.borrow()
+    }
 
-        for _ in 0..to_run {
-            events.push(SyncEvent::GameTick(self.ticks_elapsed).into());
-            if let Some((pos, block)) = player_mining {
-                let blocks = self.world.blocks.clone();
-                let bt = blocks.borrow();
-                if let Some(bt) = bt.get(block as usize) {
-                    if self.mining.mine(pos, block, 2, bt.block_health()) {
-                        events.push(GameEvent::BlockBreak(pos, block).into());
-                        self.drops.add_from_block_break(pos, block);
-                        self.world.set_block(pos, 0);
-                    }
-                }
-                if (self.ticks_elapsed & 0x7F) == 0 {
-                    events.push(GameEvent::BlockMine(pos, block).into());
-                }
-            }
-            self.mining.tick();
-            self.ticks_elapsed += 1;
+    #[inline]
+    pub fn world_mut(&self) -> RefMut<Chungus> {
+        self.world.borrow_mut()
+    }
 
-            Grenade::tick_all(&mut self.grenades, &mut events, &self.player, &self.world);
-            let pickups = self.drops.tick_all(&self.player, &self.world);
-            for e in pickups.iter() {
-                if let Message::GameEvent(GameEvent::ItemDropPickup(_, item)) = e {
-                    if let Item::Block(bi) = item {
-                        self.player.add_block_to_inventory(bi.block);
-                    }
-                }
-            }
-            events.extend(pickups);
+    #[inline]
+    pub fn world_ref(&self) -> Rc<RefCell<Chungus>> {
+        self.world.clone()
+    }
 
-            self.player.tick(
-                player_movement,
-                &mut events,
-                &self.world,
-                self.ticks_elapsed,
-            );
-            self.runtime.tick(self.get_millis());
+    #[inline]
+    pub fn clock_ref(&self) -> Rc<RefCell<Instant>> {
+        self.clock.clone()
+    }
+
+    #[inline]
+    pub fn grenades(&self) -> Ref<Vec<Grenade>> {
+        self.grenades.borrow()
+    }
+
+    #[inline]
+    pub fn grenades_ref(&self) -> Rc<RefCell<Vec<Grenade>>> {
+        self.grenades.clone()
+    }
+
+    pub fn add_handler(&self, reactor: &mut Reactor<Message>) {
+        Grenade::add_handler(reactor, self);
+        Character::add_handler(reactor, self);
+        BlockMiningMap::add_handler(reactor, self);
+        Chungus::add_handler(reactor, self);
+        ItemDropList::add_handler(reactor, self);
+
+        {
+            let running = self.running.clone();
+            let f = move |_: &Reactor<Message>, msg: Message| {
+                if let Message::GameQuit = msg {
+                    running.replace(false);
+                }
+            };
+            reactor.add_sink(Message::GameQuit, Box::new(f));
         }
-        self.player.check_animation();
-        if self.ticks_elapsed > self.last_gc {
-            self.world.gc(&self.player, self.render_distance);
-            self.last_gc = self.ticks_elapsed + 50;
+        {
+            let runtime = self.runtime.clone();
+            let clock = self.clock.clone();
+            let f = move |_reactor: &Reactor<Message>, _msg: Message| {
+                let millis = clock.borrow().elapsed().as_millis() as u64;
+                runtime.borrow_mut().tick(millis);
+            };
+            reactor.add_sink(Message::GameTick(0), Box::new(f));
+        }
+    }
+
+    pub fn tick(&mut self, reactor: &Reactor<Message>, request: &mut ChunkRequestQueue) {
+        let to_run = self.get_millis() / MS_PER_TICK - self.ticks_elapsed;
+        for _ in 0..to_run {
+            self.ticks_elapsed += 1;
+            reactor.dispatch(Message::GameTick(self.ticks_elapsed));
         }
         self.prepare_world(request);
-        events
     }
 
     #[inline]
     pub fn has_chunk(&self, pos: IVec3) -> bool {
-        self.world.get(&pos).is_some()
-    }
-
-    #[inline]
-    pub fn get_chunk_block(&self, pos: IVec3) -> Option<&ChunkBlockData> {
-        self.world.get(&pos)
-    }
-
-    #[inline]
-    pub fn get_chunk_light(&self, pos: IVec3) -> Option<&ChunkLightData> {
-        self.world.get_light(&pos)
+        self.world().get(&pos).is_some()
     }
 
     pub fn get_single_block(&self, (x, y, z): (i32, i32, i32)) -> u8 {
@@ -274,8 +200,8 @@ impl GameState {
             y / CHUNK_SIZE as i32,
             z / CHUNK_SIZE as i32,
         );
-        let chunk = self.get_chunk_block(pos);
-        if let Some(chnk) = chunk {
+        let world = self.world_mut();
+        if let Some(chnk) = world.get(&pos) {
             chnk.data[(x & CHUNK_MASK) as usize][(y & CHUNK_MASK) as usize]
                 [(z & CHUNK_MASK) as usize]
         } else {
@@ -284,23 +210,20 @@ impl GameState {
     }
 
     pub fn prepare_world(&mut self, request: &mut ChunkRequestQueue) {
-        let px = (self.player.pos.x as i32) >> CHUNK_BITS;
-        let py = (self.player.pos.y as i32) >> CHUNK_BITS;
-        let pz = (self.player.pos.z as i32) >> CHUNK_BITS;
+        let pos = self.player.borrow().pos();
+        let px = (pos.x as i32) >> CHUNK_BITS;
+        let py = (pos.y as i32) >> CHUNK_BITS;
+        let pz = (pos.z as i32) >> CHUNK_BITS;
 
         for cx in -1..=1 {
             for cy in -1..=1 {
                 for cz in -1..=1 {
                     let pos = IVec3::new(cx + px, cy + py, cz + pz);
-                    if self.world.get(&pos).is_none() {
+                    if self.world().get(&pos).is_none() {
                         request.block(pos);
                     }
                 }
             }
         }
-    }
-
-    pub fn mining(&self) -> &BlockMiningMap {
-        &self.mining
     }
 }

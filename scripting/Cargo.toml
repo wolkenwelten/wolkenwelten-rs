@@ -6,5 +6,5 @@ license = "AGPL-3.0-or-later"
 homepage = "https://wolkenwelten.net"
 
 [dependencies]
-deno_core = "0.158"
-deno_ops = "0.36"
+deno_core = "0.161"
+deno_ops = "0.39"

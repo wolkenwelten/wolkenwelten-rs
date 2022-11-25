@@ -5,21 +5,13 @@ use glam::{IVec3, Vec3};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
-pub enum InputEvent {
-    PlayerShoot,
-    PlayerDropItem,
-    PlayerMove(Vec3),
-    PlayerFly(Vec3),
-    PlayerTurn(Vec3),
-    PlayerBlockMine(IVec3),
-    PlayerBlockPlace(IVec3),
-    PlayerSwitchSelection(i32),
-    PlayerSelect(i32),
-    PlayerNoClip(bool),
-}
+pub enum Message {
+    DrawFrame(Vec3, u64, f32),
+    FinishedFrame(Vec3, u64, f32),
+    GameTick(u64),
+    GameQuit,
+    GameInit,
 
-#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
-pub enum GameEvent {
     CharacterPosRotVel(Vec3, Vec3, Vec3),
     CharacterJump(Vec3),
     CharacterStomp(Vec3),
@@ -32,35 +24,36 @@ pub enum GameEvent {
     BlockPlace(IVec3, u8),
     EntityCollision(Vec3),
     ItemDropPickup(Vec3, Item),
+
+    PlayerShoot,
+    PlayerDropItem,
+    PlayerMove(Vec3),
+    PlayerFly(Vec3),
+    PlayerTurn(Vec3),
+    PlayerBlockMine(Option<IVec3>),
+    PlayerBlockPlace(IVec3),
+    PlayerSwitchSelection(i32),
+    PlayerSelect(i32),
+    PlayerNoClip(bool),
 }
 
-#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
-pub enum SyncEvent {
-    DrawFrame(Vec3, u64, f32),
-    GameTick(u64),
-    GameQuit,
-    GameInit,
-}
-
-#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
-pub enum Message {
-    InputEvent(InputEvent),
-    GameEvent(GameEvent),
-    SyncEvent(SyncEvent),
-}
-
-impl From<InputEvent> for Message {
-    fn from(e: InputEvent) -> Self {
-        Self::InputEvent(e)
-    }
-}
-impl From<GameEvent> for Message {
-    fn from(e: GameEvent) -> Self {
-        Self::GameEvent(e)
-    }
-}
-impl From<SyncEvent> for Message {
-    fn from(e: SyncEvent) -> Self {
-        Self::SyncEvent(e)
+impl Message {
+    /// Returns a positions if there is one associated with that message, mainly
+    /// used for positioning sound effects.
+    pub fn pos(&self) -> Option<Vec3> {
+        match self {
+            Message::BlockPlace(ipos, _)
+            | Message::BlockBreak(ipos, _)
+            | Message::BlockMine(ipos, _) => Some(ipos.as_vec3()),
+            Message::ItemDropPickup(pos, _)
+            | Message::EntityCollision(pos)
+            | Message::CharacterStep(pos)
+            | Message::CharacterDeath(pos)
+            | Message::CharacterDamage(pos, _)
+            | Message::CharacterShoot(pos)
+            | Message::CharacterStomp(pos)
+            | Message::CharacterJump(pos) => Some(*pos),
+            _ => None,
+        }
     }
 }

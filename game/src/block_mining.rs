@@ -1,7 +1,9 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
+use super::GameState;
 use glam::IVec3;
 use std::collections::HashMap;
+use wolkenwelten_common::{Message, Reactor};
 
 #[derive(Clone, Copy, Debug, Default)]
 pub struct BlockMining {
@@ -49,5 +51,43 @@ impl BlockMiningMap {
 
     pub fn iter(&self) -> std::collections::hash_map::Iter<IVec3, BlockMining> {
         self.map.iter()
+    }
+
+    pub fn add_handler(reactor: &mut Reactor<Message>, game: &GameState) {
+        {
+            let mining = game.mining_ref();
+            let f = move |_reactor: &Reactor<Message>, _msg: Message| {
+                mining.borrow_mut().tick();
+            };
+            reactor.add_sink(Message::GameTick(0), Box::new(f));
+        }
+        {
+            let player = game.player_ref();
+            let world = game.world_ref();
+            let mining = game.mining_ref();
+            let drops = game.drops_ref();
+            let f = move |reactor: &Reactor<Message>, msg: Message| {
+                if let Message::GameTick(ticks_elapsed) = msg {
+                    let player = player.borrow();
+                    if let Some((pos, block)) = player.mining() {
+                        let mut world = world.borrow_mut();
+                        let blocks = world.blocks.clone();
+                        let bt = blocks.borrow();
+                        if let Some(bt) = bt.get(block as usize) {
+                            let mut mining = mining.borrow_mut();
+                            if mining.mine(pos, block, 2, bt.block_health()) {
+                                drops.borrow_mut().add_from_block_break(pos, block);
+                                world.set_block(pos, 0);
+                                reactor.defer(Message::BlockBreak(pos, block));
+                            }
+                        }
+                        if (ticks_elapsed & 0x7F) == 0 {
+                            reactor.defer(Message::BlockMine(pos, block).into());
+                        }
+                    }
+                }
+            };
+            reactor.add_sink(Message::GameTick(0), Box::new(f));
+        }
     }
 }

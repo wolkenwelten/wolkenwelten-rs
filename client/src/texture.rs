@@ -37,7 +37,8 @@ impl Texture {
         let bimg = image::load_from_memory(block_bytes)?;
         let bimg = bimg.to_rgba8();
 
-        let blocks = game.world.blocks.borrow();
+        let world = game.world();
+        let blocks = world.blocks.borrow();
         let mut ret = Vec::with_capacity(blocks.len());
         for block in blocks.iter() {
             let mut img = image::RgbaImage::new(tile_size, tile_size);

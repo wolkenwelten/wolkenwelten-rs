@@ -36,7 +36,7 @@ fn add_shadow(vertices: &mut Vec<MeshVertex>, p: Vec3, game: &GameState) {
     for off_y in 0..8 {
         let y = p.y - off_y as f32;
         let pos = Vec3::new(p.x, y.floor(), p.z);
-        if game.world.is_solid(pos) {
+        if game.world().is_solid(pos) {
             let d = ((p.y - pos.y).abs() / 8.0).clamp(0.0, 1.0);
             let lightness = 1.0 - d;
             let size = d + 0.75;
