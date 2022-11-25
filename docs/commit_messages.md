@@ -12,6 +12,7 @@ the following:
 - Fix: This is for bugfixes
 - New: Added a new feature
 - Change: When something (gameplay) related changed
+- Minor: Minor changes
 - Linux: Linux specific change/fix
 - Mac: Linux specific change/fix
 - Win: Windows specific change/fix

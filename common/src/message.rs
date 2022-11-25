@@ -20,6 +20,7 @@ pub enum InputEvent {
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub enum GameEvent {
+    CharacterPosRotVel(Vec3, Vec3, Vec3),
     CharacterJump(Vec3),
     CharacterStomp(Vec3),
     CharacterShoot(Vec3),

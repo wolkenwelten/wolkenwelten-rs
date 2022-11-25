@@ -2772,6 +2772,7 @@ dependencies = [
 name = "wolkenwelten-sound"
 version = "0.0.3"
 dependencies = [
+ "glam",
  "rodio",
  "wolkenwelten-common",
 ]

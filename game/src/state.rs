@@ -130,6 +130,9 @@ impl GameState {
         let to_run = ticks_goal - self.ticks_elapsed;
         let mut player_movement = Vec3::ZERO;
         let mut player_mining: Option<(IVec3, u8)> = None;
+        events.push(
+            GameEvent::CharacterPosRotVel(self.player.pos, self.player.rot, self.player.vel).into(),
+        );
 
         msg.iter().for_each(|e| match e {
             Message::InputEvent(msg) => match msg {

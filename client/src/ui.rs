@@ -82,7 +82,9 @@ fn prepare_pos(fe: &mut ClientState, game: &GameState) {
 }
 
 fn prepare_debug_text(fe: &mut ClientState, game: &GameState, request: &ChunkRequestQueue) {
-    if !fe.show_debug_info() { return }
+    if !fe.show_debug_info() {
+        return;
+    }
     let particles = fe.particles();
     let particles = particles.borrow();
     let col_text = format!(

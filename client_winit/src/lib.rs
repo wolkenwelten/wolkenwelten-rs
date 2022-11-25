@@ -138,7 +138,7 @@ pub fn run_event_loop(state: AppState) {
                     ..
                 } => render.set_show_debug_info(true),
                 _ => (),
-            }
+            },
 
             Event::WindowEvent {
                 event: WindowEvent::CloseRequested,
