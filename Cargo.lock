@@ -2676,7 +2676,7 @@ dependencies = [
 
 [[package]]
 name = "wolkenwelten"
-version = "0.0.3"
+version = "0.0.4"
 dependencies = [
  "wolkenwelten-client-winit",
  "wolkenwelten-common",
@@ -2686,7 +2686,7 @@ dependencies = [
 
 [[package]]
 name = "wolkenwelten-client"
-version = "0.0.3"
+version = "0.0.4"
 dependencies = [
  "anyhow",
  "glam",
@@ -2703,7 +2703,7 @@ dependencies = [
 
 [[package]]
 name = "wolkenwelten-client-winit"
-version = "0.0.3"
+version = "0.0.4"
 dependencies = [
  "enum-map",
  "glam",
@@ -2716,7 +2716,7 @@ dependencies = [
 
 [[package]]
 name = "wolkenwelten-common"
-version = "0.0.3"
+version = "0.0.4"
 dependencies = [
  "glam",
  "rgb",
@@ -2726,7 +2726,7 @@ dependencies = [
 
 [[package]]
 name = "wolkenwelten-game"
-version = "0.0.3"
+version = "0.0.4"
 dependencies = [
  "anyhow",
  "glam",
@@ -2741,7 +2741,7 @@ dependencies = [
 
 [[package]]
 name = "wolkenwelten-meshgen"
-version = "0.0.3"
+version = "0.0.4"
 dependencies = [
  "glium",
  "wolkenwelten-common",
@@ -2749,7 +2749,7 @@ dependencies = [
 
 [[package]]
 name = "wolkenwelten-particles"
-version = "0.0.3"
+version = "0.0.4"
 dependencies = [
  "glam",
  "glium",
@@ -2762,7 +2762,7 @@ dependencies = [
 
 [[package]]
 name = "wolkenwelten-scripting"
-version = "0.0.3"
+version = "0.0.4"
 dependencies = [
  "deno_core",
  "deno_ops",
@@ -2770,7 +2770,7 @@ dependencies = [
 
 [[package]]
 name = "wolkenwelten-sound"
-version = "0.0.3"
+version = "0.0.4"
 dependencies = [
  "glam",
  "rodio",
