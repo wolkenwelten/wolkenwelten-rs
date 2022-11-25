@@ -82,6 +82,7 @@ fn prepare_pos(fe: &mut ClientState, game: &GameState) {
 }
 
 fn prepare_debug_text(fe: &mut ClientState, game: &GameState, request: &ChunkRequestQueue) {
+    if !fe.show_debug_info() { return }
     let particles = fe.particles();
     let particles = particles.borrow();
     let col_text = format!(
@@ -93,7 +94,7 @@ fn prepare_debug_text(fe: &mut ClientState, game: &GameState, request: &ChunkReq
         game.drops().len(),
     );
     fe.ui_mesh
-        .push_string(8, 84, 2, [0xFF, 0xFF, 0xFF, 0xFF], col_text.as_str());
+        .push_string(8, 88, 2, [0xFF, 0xFF, 0xFF, 0xFF], col_text.as_str());
     let text = format!(
         "Requests: (Block:{}, Light:(Simple:{} / Complex:{}), Mesh:{})",
         request.block_len(),
@@ -102,7 +103,7 @@ fn prepare_debug_text(fe: &mut ClientState, game: &GameState, request: &ChunkReq
         request.mesh_len(),
     );
     fe.ui_mesh
-        .push_string(8, 108, 2, [0xFF, 0xFF, 0xFF, 0xFF], text.as_str());
+        .push_string(8, 112, 2, [0xFF, 0xFF, 0xFF, 0xFF], text.as_str());
 }
 
 fn prepare_crosshair(fe: &mut ClientState) {

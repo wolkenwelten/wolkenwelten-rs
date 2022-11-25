@@ -35,6 +35,7 @@ pub struct ClientState {
 
     pub ui_mesh: TextMesh,
     particles: Rc<RefCell<ParticleMesh>>,
+    show_debug_info: bool,
 
     ticks: u64,
     cur_fov: f32,
@@ -67,6 +68,7 @@ impl ClientState {
             ui_mesh,
             particles,
 
+            show_debug_info: cfg!(debug_assertions),
             cur_fov: 90.0,
             cur_fps: 0,
             frame_count: 0,
@@ -78,6 +80,16 @@ impl ClientState {
     #[inline]
     pub fn ticks(&self) -> u64 {
         self.ticks
+    }
+
+    #[inline]
+    pub fn show_debug_info(&self) -> bool {
+        self.show_debug_info
+    }
+
+    #[inline]
+    pub fn set_show_debug_info(&mut self, s: bool) {
+        self.show_debug_info = s;
     }
 
     pub fn request_redraw(&mut self) {

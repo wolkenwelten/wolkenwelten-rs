@@ -119,6 +119,27 @@ pub fn run_event_loop(state: AppState) {
                 }
             }
 
+            Event::DeviceEvent {
+                event: winit::event::DeviceEvent::Key(input),
+                ..
+            }
+            | Event::WindowEvent {
+                event: WindowEvent::KeyboardInput { input, .. },
+                ..
+            } => match input {
+                winit::event::KeyboardInput {
+                    state: winit::event::ElementState::Pressed,
+                    virtual_keycode: Some(winit::event::VirtualKeyCode::F11),
+                    ..
+                } => render.set_show_debug_info(false),
+                winit::event::KeyboardInput {
+                    state: winit::event::ElementState::Pressed,
+                    virtual_keycode: Some(winit::event::VirtualKeyCode::F12),
+                    ..
+                } => render.set_show_debug_info(true),
+                _ => (),
+            }
+
             Event::WindowEvent {
                 event: WindowEvent::CloseRequested,
                 ..
