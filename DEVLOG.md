@@ -1,6 +1,12 @@
 # WolkenWelten DevLog / Screenshots
 Here you can read about what I've been working on including screenshots.
 
+### 2022-11-29 - V8 / JS
+![Intriguing shapes](https://github.com/wolkenwelten/wolkenwelten-screenshots/raw/main/2022_11_29.jpg)
+Not much new to see for the last couple of days since I've mostly been improving the overall architecture of the code.
+But now I was finally able to properly embed V8 and as a test wrote some sort of snake automaton that produces some
+very interesting shapes.
+
 ### 2022-11-24 - Items / Shadows
 ![Some items](https://github.com/wolkenwelten/wolkenwelten-screenshots/raw/main/2022_11_24.jpg)
 Now itemdrops use an actual blockmesh, which is also shown to indicate the held item instead of the

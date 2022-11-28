@@ -18,6 +18,7 @@ embed-resource = "1.6"
 wolkenwelten-client-winit = { path = "client_winit" }
 wolkenwelten-common = { path = "common" }
 wolkenwelten-game = { path = "game" }
+wolkenwelten-scripting = { path = "scripting" }
 wolkenwelten-sound = { path = "sound", optional = true }
 
 [profile.dev]

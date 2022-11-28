@@ -2,9 +2,9 @@
 // All rights reserved. AGPL-3.0+ license.
 extern crate wolkenwelten_game;
 
-use wolkenwelten_client_winit::start_app;
 use wolkenwelten_common::Reactor;
 use wolkenwelten_game::GameState;
+use wolkenwelten_scripting::start_runtime;
 
 /// Here we just create a new GameState, optionally add the Sfx handler and
 /// then start pass that along to the wolkenwelten-client-winit crate.
@@ -17,5 +17,5 @@ pub fn main() {
     }
     let game_state = GameState::new().expect("Couldn't initialize game backend");
     game_state.add_handler(&mut reactor);
-    start_app(game_state, reactor)
+    start_runtime(game_state, reactor);
 }

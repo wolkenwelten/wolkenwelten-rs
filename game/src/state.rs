@@ -13,14 +13,12 @@ use std::{
 use wolkenwelten_common::{
     ChunkRequestQueue, Message, Reactor, CHUNK_BITS, CHUNK_MASK, CHUNK_SIZE,
 };
-use wolkenwelten_scripting::Runtime;
 
 const MS_PER_TICK: u64 = 4;
 
 pub struct GameState {
     clock: Rc<RefCell<Instant>>,
     pub ticks_elapsed: u64,
-    pub runtime: Rc<RefCell<Runtime>>,
     world: Rc<RefCell<Chungus>>,
 
     grenades: Rc<RefCell<Vec<Grenade>>>,
@@ -43,7 +41,6 @@ impl GameState {
             ticks_elapsed: 0,
             drops: Rc::new(RefCell::new(ItemDropList::new())),
             mining: Rc::new(RefCell::new(BlockMiningMap::new())),
-            runtime: Rc::new(RefCell::new(Runtime::new())),
             world: Rc::new(RefCell::new(Chungus::new()?)),
         })
     }
@@ -168,15 +165,6 @@ impl GameState {
                 }
             };
             reactor.add_sink(Message::GameQuit, Box::new(f));
-        }
-        {
-            let runtime = self.runtime.clone();
-            let clock = self.clock.clone();
-            let f = move |_reactor: &Reactor<Message>, _msg: Message| {
-                let millis = clock.borrow().elapsed().as_millis() as u64;
-                runtime.borrow_mut().tick(millis);
-            };
-            reactor.add_sink(Message::GameTick(0), Box::new(f));
         }
     }
 

@@ -2,4 +2,4 @@
 // All rights reserved. AGPL-3.0+ license.
 mod runtime;
 
-pub use runtime::Runtime;
+pub use runtime::start_runtime;
