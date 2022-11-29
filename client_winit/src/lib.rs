@@ -149,11 +149,11 @@ pub fn run_event_loop(state: AppState, reactor: Reactor<Message>) {
 
             Event::RedrawRequested(_) => {
                 let player_pos = game.player().pos;
-                reactor.dispatch(Message::DrawFrame(
+                reactor.dispatch(Message::DrawFrame {
                     player_pos,
-                    render.ticks(),
-                    RENDER_DISTANCE,
-                ));
+                    ticks: render.ticks(),
+                    render_distance: RENDER_DISTANCE,
+                });
 
                 let mut frame = render.display.draw();
                 prepare_frame(&mut render, &game, &mut request)
@@ -162,11 +162,11 @@ pub fn run_event_loop(state: AppState, reactor: Reactor<Message>) {
                     .expect("Error during rendering");
                 frame.finish().expect("Error during frame finish");
 
-                reactor.dispatch(Message::FinishedFrame(
+                reactor.dispatch(Message::FinishedFrame {
                     player_pos,
-                    render.ticks(),
-                    RENDER_DISTANCE,
-                ));
+                    ticks: render.ticks(),
+                    render_distance: RENDER_DISTANCE,
+                });
             }
 
             Event::MainEventsCleared => {

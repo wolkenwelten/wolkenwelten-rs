@@ -2501,6 +2501,8 @@ name = "wolkenwelten-scripting"
 version = "0.0.4"
 dependencies = [
  "glam",
+ "serde",
+ "serde_json",
  "v8",
  "wolkenwelten-client-winit",
  "wolkenwelten-common",

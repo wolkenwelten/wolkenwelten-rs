@@ -104,10 +104,10 @@ impl ItemDropList {
             if dd > (256.0 * 256.0) {
                 self.drops.swap_remove(index); // Remove when far enough away
             } else if dd < ITEM_DROP_PICKUP_RANGE * ITEM_DROP_PICKUP_RANGE {
-                reactor.dispatch(Message::ItemDropPickup(
-                    self.drops[index].pos(),
-                    self.drops[index].item(),
-                ));
+                reactor.dispatch(Message::ItemDropPickup {
+                    pos: self.drops[index].pos(),
+                    item: self.drops[index].item(),
+                });
                 self.drops.swap_remove(index);
             }
         }
@@ -124,7 +124,7 @@ impl ItemDropList {
                     .borrow_mut()
                     .tick_all(reactor, player_pos, &world.borrow());
             };
-            reactor.add_sink(Message::GameTick(0), Box::new(f));
+            reactor.add_sink(Message::GameTick { ticks: 0 }, Box::new(f));
         }
     }
 }

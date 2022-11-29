@@ -172,7 +172,9 @@ impl GameState {
         let to_run = self.get_millis() / MS_PER_TICK - self.ticks_elapsed;
         for _ in 0..to_run {
             self.ticks_elapsed += 1;
-            reactor.dispatch(Message::GameTick(self.ticks_elapsed));
+            reactor.dispatch(Message::GameTick {
+                ticks: self.ticks_elapsed,
+            });
         }
         self.prepare_world(request);
     }

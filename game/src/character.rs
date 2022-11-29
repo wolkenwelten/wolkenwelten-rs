@@ -353,17 +353,21 @@ impl Character {
 
         let force = (old - self.vel).length();
         if force > 0.01 {
-            reactor.dispatch(Message::CharacterStomp(self.pos));
+            reactor.dispatch(Message::CharacterStomp { pos: self.pos });
         }
         if force > 0.05 {
             let amount = (force * 14.0) as i16;
             if amount > 0 {
-                self.health.damage(amount * amount);
+                let damage = amount * amount;
+                self.health.damage(damage);
                 if self.health().is_dead() {
-                    reactor.dispatch(Message::CharacterDeath(self.pos));
+                    reactor.dispatch(Message::CharacterDeath { pos: self.pos });
                     self.rebirth();
                 } else {
-                    reactor.dispatch(Message::CharacterDamage(self.pos, amount));
+                    reactor.dispatch(Message::CharacterDamage {
+                        pos: self.pos,
+                        damage,
+                    });
                 }
             }
         }
@@ -376,7 +380,7 @@ impl Character {
         if self.may_jump(world)
             && ((len > 0.025 && cur_tick & 0x3F == 0) || (len > 0.01 && cur_tick & 0x7F == 0))
         {
-            reactor.dispatch(Message::CharacterStep(self.pos));
+            reactor.dispatch(Message::CharacterStep { pos: self.pos });
         }
 
         self.pos += self.vel;
@@ -411,89 +415,121 @@ impl Character {
         {
             let player = game.player_ref();
             let f = move |_: &Reactor<Message>, msg: Message| {
-                if let Message::PlayerSwitchSelection(d) = msg {
-                    player.borrow_mut().switch_selection(d);
+                if let Message::PlayerSwitchSelection { delta, .. } = msg {
+                    player.borrow_mut().switch_selection(delta);
                 }
             };
-            reactor.add_sink(Message::PlayerSwitchSelection(0), Box::new(f));
+            reactor.add_sink(Message::PlayerSwitchSelection { delta: 0 }, Box::new(f));
         }
         {
             let player = game.player_ref();
             let f = move |_: &Reactor<Message>, msg: Message| {
-                if let Message::PlayerSelect(s) = msg {
+                if let Message::PlayerSelect { i, .. } = msg {
                     player
                         .borrow_mut()
-                        .set_inventory_active(s.try_into().unwrap());
+                        .set_inventory_active(i.try_into().unwrap());
                 }
             };
-            reactor.add_sink(Message::PlayerSelect(0), Box::new(f));
+            reactor.add_sink(Message::PlayerSelect { i: 0 }, Box::new(f));
         }
         {
             let player = game.player_ref();
             let f = move |_: &Reactor<Message>, msg: Message| {
-                if let Message::PlayerNoClip(t) = msg {
-                    player.borrow_mut().set_no_clip(t);
+                if let Message::PlayerNoClip { no_clip, .. } = msg {
+                    player.borrow_mut().set_no_clip(no_clip);
                 }
             };
-            reactor.add_sink(Message::PlayerNoClip(false), Box::new(f));
+            reactor.add_sink(Message::PlayerNoClip { no_clip: false }, Box::new(f));
         }
         {
             let player = game.player_ref();
             let f = move |_: &Reactor<Message>, msg: Message| {
-                if let Message::PlayerTurn(v) = msg {
+                if let Message::PlayerTurn { direction, .. } = msg {
                     let mut player = player.borrow_mut();
-                    player.rot += v;
+                    player.rot += direction;
                     player.wrap_rot();
                 }
             };
-            reactor.add_sink(Message::PlayerTurn(Vec3::ZERO), Box::new(f));
+            reactor.add_sink(
+                Message::PlayerTurn {
+                    direction: Vec3::ZERO,
+                },
+                Box::new(f),
+            );
         }
         {
             let player = game.player_ref();
             let f = move |_: &Reactor<Message>, msg: Message| {
-                if let Message::PlayerFly(v) = msg {
-                    player.borrow_mut().vel = v * 0.15;
+                if let Message::PlayerFly { direction, .. } = msg {
+                    player.borrow_mut().vel = direction * 0.15;
                 }
             };
-            reactor.add_sink(Message::PlayerFly(Vec3::ZERO), Box::new(f));
+            reactor.add_sink(
+                Message::PlayerFly {
+                    direction: Vec3::ZERO,
+                },
+                Box::new(f),
+            );
         }
         {
             let player = game.player_ref();
             let f = move |_reactor: &Reactor<Message>, msg: Message| {
-                if let Message::ItemDropPickup(_, Item::Block(bi)) = msg {
+                if let Message::ItemDropPickup {
+                    item: Item::Block(bi),
+                    ..
+                } = msg
+                {
                     player.borrow_mut().add_block_to_inventory(bi.block);
                 }
             };
-            reactor.add_sink(Message::ItemDropPickup(Vec3::ZERO, Item::None), Box::new(f));
+            reactor.add_sink(
+                Message::ItemDropPickup {
+                    pos: Vec3::ZERO,
+                    item: Item::None,
+                },
+                Box::new(f),
+            );
         }
         {
             let player = game.player_ref();
             let f = move |_reactor: &Reactor<Message>, _msg: Message| {
                 player.borrow_mut().check_animation();
             };
-            reactor.add_sink(Message::DrawFrame(Vec3::ZERO, 0, 0.0), Box::new(f));
+            reactor.add_sink(
+                Message::DrawFrame {
+                    player_pos: Vec3::ZERO,
+                    ticks: 0,
+                    render_distance: 0.0,
+                },
+                Box::new(f),
+            );
         }
         {
             let player = game.player_ref();
             let world = game.world_ref();
             let f = move |reactor: &Reactor<Message>, msg: Message| {
-                if let Message::PlayerMove(v) = msg {
+                if let Message::PlayerMove { direction, .. } = msg {
                     let mut player = player.borrow_mut();
-                    player.set_movement(v);
-                    if v.y > 0.0 && player.may_jump(&world.borrow()) {
+                    player.set_movement(direction);
+                    if direction.y > 0.0 && player.may_jump(&world.borrow()) {
                         player.jump();
-                        reactor.dispatch(Message::CharacterJump(player.pos))
+                        reactor.dispatch(Message::CharacterJump { pos: player.pos })
                     }
                 }
             };
-            reactor.add_sink(Message::PlayerMove(Vec3::ZERO), Box::new(f));
+            reactor.add_sink(
+                Message::PlayerMove {
+                    direction: Vec3::ZERO,
+                },
+                Box::new(f),
+            );
         }
         {
             let player = game.player_ref();
             let world = game.world_ref();
             let clock = game.clock_ref();
             let f = move |reactor: &Reactor<Message>, msg: Message| {
-                if let Message::PlayerBlockPlace(pos) = msg {
+                if let Message::PlayerBlockPlace { pos, .. } = msg {
                     let mut player = player.borrow_mut();
                     let now = clock.borrow().elapsed().as_millis() as u64;
                     if player.may_act(now) {
@@ -505,21 +541,21 @@ impl Character {
                                 let b = bi.block;
                                 world.set_block(pos, b);
                                 player.remove_block_from_inventory(b);
-                                reactor.dispatch(Message::BlockPlace(pos, b));
+                                reactor.dispatch(Message::BlockPlace { pos, block: b });
                             }
                         }
                     }
                 }
             };
-            reactor.add_sink(Message::PlayerBlockPlace(IVec3::ZERO), Box::new(f));
+            reactor.add_sink(Message::PlayerBlockPlace { pos: IVec3::ZERO }, Box::new(f));
         }
         {
             let player = game.player_ref();
             let clock = game.clock_ref();
             let world = game.world_ref();
             let f = move |_reactor: &Reactor<Message>, msg: Message| {
-                if let Message::PlayerBlockMine(o) = msg {
-                    if let Some(pos) = o {
+                if let Message::PlayerBlockMine { pos, .. } = msg {
+                    if let Some(pos) = pos {
                         if let Some(b) = world.borrow_mut().get_block(pos) {
                             let mut player = player.borrow_mut();
                             player.set_mining(Some((pos, b)));
@@ -535,7 +571,7 @@ impl Character {
                     }
                 }
             };
-            reactor.add_sink(Message::PlayerBlockMine(None), Box::new(f));
+            reactor.add_sink(Message::PlayerBlockMine { pos: None }, Box::new(f));
         }
         {
             let player = game.player_ref();
@@ -564,14 +600,18 @@ impl Character {
             let player = game.player_ref();
             let world = game.world_ref();
             let f = move |reactor: &Reactor<Message>, msg: Message| {
-                if let Message::GameTick(ticks) = msg {
+                if let Message::GameTick { ticks } = msg {
                     player.borrow_mut().tick(reactor, &world.borrow(), ticks);
                     let player = player.borrow();
-                    let msg = Message::CharacterPosRotVel(player.pos(), player.rot(), player.vel());
+                    let msg = Message::CharacterPosRotVel {
+                        pos: player.pos(),
+                        rot: player.rot(),
+                        vel: player.vel(),
+                    };
                     reactor.dispatch(msg);
                 }
             };
-            reactor.add_sink(Message::GameTick(0), Box::new(f));
+            reactor.add_sink(Message::GameTick { ticks: 0 }, Box::new(f));
         }
     }
 }

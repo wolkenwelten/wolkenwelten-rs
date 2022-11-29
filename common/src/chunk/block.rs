@@ -102,13 +102,13 @@ mod tests {
         assert_eq!(sum(&chunk), 0);
         chunk.data[0][0][0] = 1;
         assert_eq!(sum(&chunk), 1);
-        assert_eq!(chunk.get_block((0, 0, 0)), 1);
-        chunk.set_block(4, (1, 1, 1));
+        assert_eq!(chunk.get_block(IVec3::new(0, 0, 0)), 1);
+        chunk.set_block(4, IVec3::new(1, 1, 1));
         assert_eq!(sum(&chunk), 5);
-        assert_eq!(chunk.get_block((1, 1, 1)), 4);
-        chunk.set_box(1, (0, 0, 0), (2, 2, 2));
+        assert_eq!(chunk.get_block(IVec3::new(1, 1, 1)), 4);
+        chunk.set_box(1, IVec3::new(0, 0, 0), IVec3::new(2, 2, 2));
         assert_eq!(sum(&chunk), 8);
-        chunk.set_sphere(1, (8, 8, 8), 4);
+        chunk.set_sphere(1, IVec3::new(8, 8, 8), 4);
         assert_eq!(sum(&chunk), 259);
     }
 }

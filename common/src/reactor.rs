@@ -12,6 +12,7 @@ pub struct Reactor<T> {
     handler: ReactorHandlerMap<T>,
     defer_queue: RefCell<Vec<T>>,
     defer_active: RefCell<bool>,
+    msg_log: RefCell<Vec<T>>,
 }
 
 impl<T> Default for Reactor<T>
@@ -32,6 +33,7 @@ where
             handler: HashMap::new(),
             defer_queue: RefCell::new(vec![]),
             defer_active: RefCell::new(false),
+            msg_log: RefCell::new(vec![]),
         }
     }
 
@@ -39,6 +41,7 @@ where
         if let Some(handler) = self.handler.get(&mem::discriminant(&msg)) {
             handler.iter().for_each(|f| f(self, msg));
         }
+        self.msg_log.borrow_mut().push(msg);
     }
 
     fn dispatch_defer(&self, msg: T) {
@@ -87,5 +90,16 @@ where
             let handler: Vec<ReactorHandler<T>> = vec![f];
             self.handler.insert(mem::discriminant(&msg), handler);
         }
+    }
+
+    pub fn clear_log(&self) {
+        self.msg_log.borrow_mut().clear();
+    }
+
+    pub fn log_for_each<F>(&self, λ: F)
+    where
+        F: Fn(&T),
+    {
+        self.msg_log.borrow().iter().for_each(λ);
     }
 }

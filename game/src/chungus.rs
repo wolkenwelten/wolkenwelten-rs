@@ -81,11 +81,16 @@ impl Chungus {
             let last_gc = RefCell::new(0);
             let which_gc = RefCell::new(0);
             let f = move |_reactor: &Reactor<Message>, msg: Message| {
-                if let Message::FinishedFrame(_, ticks_elapsed, render_distance) = msg {
+                if let Message::FinishedFrame {
+                    ticks,
+                    render_distance,
+                    ..
+                } = msg
+                {
                     let last = *last_gc.borrow();
-                    if ticks_elapsed > last {
+                    if ticks > last {
                         let player_pos = player.borrow().pos();
-                        last_gc.replace(ticks_elapsed + 500);
+                        last_gc.replace(ticks + 500);
                         let which = *which_gc.borrow() % 3;
                         // We GC each type separately so that the pauses are as small as possible
                         match which {
@@ -102,7 +107,14 @@ impl Chungus {
                     }
                 }
             };
-            reactor.add_sink(Message::FinishedFrame(Vec3::ZERO, 0, 0.0), Box::new(f));
+            reactor.add_sink(
+                Message::FinishedFrame {
+                    player_pos: Vec3::ZERO,
+                    ticks: 0,
+                    render_distance: 0.0,
+                },
+                Box::new(f),
+            );
         }
     }
 

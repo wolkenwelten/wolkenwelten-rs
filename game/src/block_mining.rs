@@ -59,7 +59,7 @@ impl BlockMiningMap {
             let f = move |_reactor: &Reactor<Message>, _msg: Message| {
                 mining.borrow_mut().tick();
             };
-            reactor.add_sink(Message::GameTick(0), Box::new(f));
+            reactor.add_sink(Message::GameTick { ticks: 0 }, Box::new(f));
         }
         {
             let player = game.player_ref();
@@ -67,7 +67,7 @@ impl BlockMiningMap {
             let mining = game.mining_ref();
             let drops = game.drops_ref();
             let f = move |reactor: &Reactor<Message>, msg: Message| {
-                if let Message::GameTick(ticks_elapsed) = msg {
+                if let Message::GameTick { ticks } = msg {
                     let player = player.borrow();
                     if let Some((pos, block)) = player.mining() {
                         let mut world = world.borrow_mut();
@@ -78,16 +78,16 @@ impl BlockMiningMap {
                             if mining.mine(pos, block, 2, bt.block_health()) {
                                 drops.borrow_mut().add_from_block_break(pos, block);
                                 world.set_block(pos, 0);
-                                reactor.defer(Message::BlockBreak(pos, block));
+                                reactor.defer(Message::BlockBreak { pos, block });
                             }
                         }
-                        if (ticks_elapsed & 0x7F) == 0 {
-                            reactor.defer(Message::BlockMine(pos, block));
+                        if (ticks & 0x7F) == 0 {
+                            reactor.defer(Message::BlockMine { pos, block });
                         }
                     }
                 }
             };
-            reactor.add_sink(Message::GameTick(0), Box::new(f));
+            reactor.add_sink(Message::GameTick { ticks: 0 }, Box::new(f));
         }
     }
 }

@@ -35,3 +35,6 @@ panic = "abort"
 [features]
 default = ["sound"]
 sound = ["dep:wolkenwelten-sound"]
+
+[workspace]
+members = ["client","client_winit","common","game","meshgen","particles","scripting","sound"]

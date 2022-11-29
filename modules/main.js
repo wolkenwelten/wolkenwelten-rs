@@ -5,7 +5,6 @@ const vec_rot_shift = dir => ({
 	y: dir.x,
 	z: dir.y,
 });
-const vec_log = pos => console.log(`[${pos.x}, ${pos.y}, ${pos.z}]`);
 
 (() => {
 	let seconds = 0;

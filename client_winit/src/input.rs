@@ -45,11 +45,9 @@ impl InputState {
                 event: DeviceEvent::MouseMotion { delta },
                 ..
             } => {
-                reactor.dispatch(Message::PlayerTurn(Vec3::new(
-                    delta.0 as f32 * 0.05,
-                    delta.1 as f32 * 0.05,
-                    0.0,
-                )));
+                reactor.dispatch(Message::PlayerTurn {
+                    direction: Vec3::new(delta.0 as f32 * 0.05, delta.1 as f32 * 0.05, 0.0),
+                });
             }
 
             Event::WindowEvent {
@@ -87,10 +85,14 @@ impl InputState {
                 ..
             } => match delta {
                 MouseScrollDelta::LineDelta(_, y) => {
-                    reactor.dispatch(Message::PlayerSwitchSelection(y.round() as i32))
+                    reactor.dispatch(Message::PlayerSwitchSelection {
+                        delta: y.round() as i32,
+                    })
                 }
                 MouseScrollDelta::PixelDelta(PhysicalPosition { x: _x, y }) => {
-                    reactor.dispatch(Message::PlayerSwitchSelection(y.round() as i32))
+                    reactor.dispatch(Message::PlayerSwitchSelection {
+                        delta: y.round() as i32,
+                    })
                 }
             },
 
@@ -106,73 +108,73 @@ impl InputState {
                     state: ElementState::Pressed,
                     virtual_keycode: Some(VirtualKeyCode::N),
                     ..
-                } => reactor.dispatch(Message::PlayerNoClip(true)),
+                } => reactor.dispatch(Message::PlayerNoClip { no_clip: true }),
 
                 KeyboardInput {
                     state: ElementState::Pressed,
                     virtual_keycode: Some(VirtualKeyCode::M),
                     ..
-                } => reactor.dispatch(Message::PlayerNoClip(false)),
+                } => reactor.dispatch(Message::PlayerNoClip { no_clip: false }),
 
                 KeyboardInput {
                     state: ElementState::Pressed,
                     virtual_keycode: Some(VirtualKeyCode::Key1),
                     ..
-                } => reactor.dispatch(Message::PlayerSelect(0)),
+                } => reactor.dispatch(Message::PlayerSelect { i: 0 }),
 
                 KeyboardInput {
                     state: ElementState::Pressed,
                     virtual_keycode: Some(VirtualKeyCode::Key2),
                     ..
-                } => reactor.dispatch(Message::PlayerSelect(1)),
+                } => reactor.dispatch(Message::PlayerSelect { i: 1 }),
 
                 KeyboardInput {
                     state: ElementState::Pressed,
                     virtual_keycode: Some(VirtualKeyCode::Key3),
                     ..
-                } => reactor.dispatch(Message::PlayerSelect(2)),
+                } => reactor.dispatch(Message::PlayerSelect { i: 2 }),
 
                 KeyboardInput {
                     state: ElementState::Pressed,
                     virtual_keycode: Some(VirtualKeyCode::Key4),
                     ..
-                } => reactor.dispatch(Message::PlayerSelect(3)),
+                } => reactor.dispatch(Message::PlayerSelect { i: 3 }),
 
                 KeyboardInput {
                     state: ElementState::Pressed,
                     virtual_keycode: Some(VirtualKeyCode::Key5),
                     ..
-                } => reactor.dispatch(Message::PlayerSelect(4)),
+                } => reactor.dispatch(Message::PlayerSelect { i: 4 }),
 
                 KeyboardInput {
                     state: ElementState::Pressed,
                     virtual_keycode: Some(VirtualKeyCode::Key6),
                     ..
-                } => reactor.dispatch(Message::PlayerSelect(5)),
+                } => reactor.dispatch(Message::PlayerSelect { i: 5 }),
 
                 KeyboardInput {
                     state: ElementState::Pressed,
                     virtual_keycode: Some(VirtualKeyCode::Key7),
                     ..
-                } => reactor.dispatch(Message::PlayerSelect(6)),
+                } => reactor.dispatch(Message::PlayerSelect { i: 6 }),
 
                 KeyboardInput {
                     state: ElementState::Pressed,
                     virtual_keycode: Some(VirtualKeyCode::Key8),
                     ..
-                } => reactor.dispatch(Message::PlayerSelect(7)),
+                } => reactor.dispatch(Message::PlayerSelect { i: 7 }),
 
                 KeyboardInput {
                     state: ElementState::Pressed,
                     virtual_keycode: Some(VirtualKeyCode::Key9),
                     ..
-                } => reactor.dispatch(Message::PlayerSelect(8)),
+                } => reactor.dispatch(Message::PlayerSelect { i: 8 }),
 
                 KeyboardInput {
                     state: ElementState::Pressed,
                     virtual_keycode: Some(VirtualKeyCode::Key0),
                     ..
-                } => reactor.dispatch(Message::PlayerSelect(9)),
+                } => reactor.dispatch(Message::PlayerSelect { i: 9 }),
 
                 KeyboardInput {
                     state,
@@ -293,30 +295,34 @@ impl InputState {
             let v = glam::Vec4::from((self.get_movement_vector(), 1.0_f32));
             let move_vec = (view * v).xyz();
 
-            reactor.dispatch(Message::PlayerFly(move_vec * self.get_speed()));
+            reactor.dispatch(Message::PlayerFly {
+                direction: move_vec * self.get_speed(),
+            });
         } else {
             let m = self.get_movement_vector();
             let v = glam::Vec4::from((m, 1.0_f32));
             let move_vec = (view * v).xyz() * self.get_speed();
 
-            reactor.dispatch(Message::PlayerMove(Vec3::new(move_vec.x, m.y, move_vec.z)));
+            reactor.dispatch(Message::PlayerMove {
+                direction: Vec3::new(move_vec.x, m.y, move_vec.z),
+            });
         };
 
         if self.button_states[Key::Primary] {
             let o = game.player().raycast(&game.world(), RaycastReturn::Within);
             if let Some(pos) = o {
-                reactor.dispatch(Message::PlayerBlockMine(Some(pos)));
+                reactor.dispatch(Message::PlayerBlockMine { pos: Some(pos) });
             } else {
-                reactor.dispatch(Message::PlayerBlockMine(None));
+                reactor.dispatch(Message::PlayerBlockMine { pos: None });
             }
         } else {
-            reactor.dispatch(Message::PlayerBlockMine(None));
+            reactor.dispatch(Message::PlayerBlockMine { pos: None });
         }
 
         if self.button_states[Key::Secondary] {
             let o = game.player().raycast(&game.world(), RaycastReturn::Front);
             if let Some(pos) = o {
-                reactor.dispatch(Message::PlayerBlockPlace(pos));
+                reactor.dispatch(Message::PlayerBlockPlace { pos });
             }
         }
 

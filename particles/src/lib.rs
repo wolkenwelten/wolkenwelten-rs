@@ -229,7 +229,13 @@ impl ParticleMesh {
             let particles = self.particles.clone();
             let last_update = RefCell::new(0);
             let f = move |_: &Reactor<Message>, msg: Message| {
-                if let Message::DrawFrame(player_pos, ticks, render_distance) = msg {
+                if let Message::DrawFrame {
+                    player_pos,
+                    ticks,
+                    render_distance,
+                    ..
+                } = msg
+                {
                     let delta = (ticks - *last_update.borrow()) as f32 / (1000.0 / 60.0);
                     last_update.replace(ticks);
                     Self::update(
@@ -240,15 +246,22 @@ impl ParticleMesh {
                     )
                 }
             };
-            reactor.add_sink(Message::DrawFrame(Vec3::ZERO, 0, 0.0), Box::new(f));
+            reactor.add_sink(
+                Message::DrawFrame {
+                    player_pos: Vec3::ZERO,
+                    ticks: 0,
+                    render_distance: 0.0,
+                },
+                Box::new(f),
+            );
         }
         {
             let particles = self.particles.clone();
             let rng = self.rng.clone();
             let blocks = blocks.clone();
             let f = move |_: &Reactor<Message>, msg: Message| {
-                if let Message::BlockBreak(pos, b) = msg {
-                    if let Some(bt) = blocks.borrow().get(b as usize) {
+                if let Message::BlockBreak { pos, block } = msg {
+                    if let Some(bt) = blocks.borrow().get(block as usize) {
                         let color = bt.colors();
                         Self::fx_block_break(
                             &mut particles.borrow_mut(),
@@ -260,15 +273,21 @@ impl ParticleMesh {
                     }
                 }
             };
-            reactor.add_sink(Message::BlockBreak(IVec3::ZERO, 0), Box::new(f));
+            reactor.add_sink(
+                Message::BlockBreak {
+                    pos: IVec3::ZERO,
+                    block: 0,
+                },
+                Box::new(f),
+            );
         }
         {
             let particles = self.particles.clone();
             let rng = self.rng.clone();
             let blocks = blocks.clone();
             let f = move |_: &Reactor<Message>, msg: Message| {
-                if let Message::BlockMine(pos, b) = msg {
-                    if let Some(bt) = blocks.borrow().get(b as usize) {
+                if let Message::BlockMine { pos, block } = msg {
+                    if let Some(bt) = blocks.borrow().get(block as usize) {
                         let color = bt.colors();
                         Self::fx_block_break(
                             &mut particles.borrow_mut(),
@@ -280,14 +299,20 @@ impl ParticleMesh {
                     }
                 }
             };
-            reactor.add_sink(Message::BlockMine(IVec3::ZERO, 0), Box::new(f));
+            reactor.add_sink(
+                Message::BlockMine {
+                    pos: IVec3::ZERO,
+                    block: 0,
+                },
+                Box::new(f),
+            );
         }
         {
             let particles = self.particles.clone();
             let rng = self.rng.clone();
             let f = move |_: &Reactor<Message>, msg: Message| {
-                if let Message::BlockPlace(pos, b) = msg {
-                    if let Some(bt) = blocks.borrow().get(b as usize) {
+                if let Message::BlockPlace { pos, block } = msg {
+                    if let Some(bt) = blocks.borrow().get(block as usize) {
                         let color = bt.colors();
                         Self::fx_block_place(
                             &mut particles.borrow_mut(),
@@ -298,13 +323,19 @@ impl ParticleMesh {
                     }
                 }
             };
-            reactor.add_sink(Message::BlockPlace(IVec3::ZERO, 0), Box::new(f));
+            reactor.add_sink(
+                Message::BlockPlace {
+                    pos: IVec3::ZERO,
+                    block: 0,
+                },
+                Box::new(f),
+            );
         }
         {
             let particles = self.particles.clone();
             let rng = self.rng.clone();
             let f = move |_: &Reactor<Message>, msg: Message| {
-                if let Message::EntityCollision(pos) = msg {
+                if let Message::EntityCollision { pos } = msg {
                     Self::fx_explosion(
                         &mut particles.borrow_mut(),
                         &mut rng.borrow_mut(),
@@ -313,7 +344,7 @@ impl ParticleMesh {
                     );
                 }
             };
-            reactor.add_sink(Message::EntityCollision(Vec3::ZERO), Box::new(f));
+            reactor.add_sink(Message::EntityCollision { pos: Vec3::ZERO }, Box::new(f));
         }
     }
 

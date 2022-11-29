@@ -9,7 +9,7 @@ use rodio::{
 use std::cell::RefCell;
 use std::io::Cursor;
 use std::rc::Rc;
-use wolkenwelten_common::{Item, Message, Reactor};
+use wolkenwelten_common::{Item, Message, Reactor, SfxId};
 
 struct Sfx {
     buf: Buffered<SamplesBuffer<i16>>,
@@ -71,25 +71,21 @@ impl<'a> SfxList<'a> {
         sink.detach();
     }
 
-    /// This function creates a new closure that emits a specific sound whenever
-    /// a particular message is emitted.
-    fn add_fun(&mut self, sfx: Rc<RefCell<Sfx>>, msg: Message, volume: f32) {
-        let state = self.state.clone();
-        let stream = self.stream.clone();
-        let f = move |_: &Reactor<Message>, msg: Message| {
-            Self::play_spatial_sound(
-                &stream.borrow().1,
-                &sfx.borrow(),
-                volume,
-                &state.borrow(),
-                msg.pos().unwrap_or_default(),
-            )
-        };
-        self.reactor.add_sink(msg, Box::new(f));
+    fn add_relay(&mut self, sfx: SfxId, msg: Message, volume: f32) {
+        self.reactor.add_sink(
+            msg,
+            Box::new(move |reactor: &Reactor<Message>, msg: Message| {
+                reactor.dispatch(Message::SfxPlay {
+                    pos: msg.pos().unwrap_or_default(),
+                    volume,
+                    sfx,
+                });
+            }),
+        );
     }
 
-    fn sfx_new(bytes: &'static [u8]) -> Rc<RefCell<Sfx>> {
-        Rc::new(RefCell::new(Sfx::from_bytes(bytes)))
+    fn sfx_new(bytes: &'static [u8]) -> RefCell<Sfx> {
+        RefCell::new(Sfx::from_bytes(bytes))
     }
 
     pub fn add_handler(reactor: &'a mut Reactor<Message>) {
@@ -110,37 +106,140 @@ impl<'a> SfxList<'a> {
         {
             let state = s.state.clone();
             let f = move |_: &Reactor<Message>, msg: Message| {
-                if let Message::CharacterPosRotVel(pos, _vel, rot) = msg {
+                if let Message::CharacterPosRotVel { pos, rot, .. } = msg {
                     let mut state = state.borrow_mut();
                     state.player_pos = pos;
                     state.player_rot = rot;
                 }
             };
             s.reactor.add_sink(
-                Message::CharacterPosRotVel(Vec3::ZERO, Vec3::ZERO, Vec3::ZERO),
+                Message::CharacterPosRotVel {
+                    pos: Vec3::ZERO,
+                    rot: Vec3::ZERO,
+                    vel: Vec3::ZERO,
+                },
                 Box::new(f),
             );
         }
-        let jump = Self::sfx_new(include_bytes!("../../assets/sfx/jump.ogg"));
-        let hook_fire = Self::sfx_new(include_bytes!("../../assets/sfx/hookFire.ogg"));
-        let ungh = Self::sfx_new(include_bytes!("../../assets/sfx/ungh.ogg"));
-        let step = Self::sfx_new(include_bytes!("../../assets/sfx/step.ogg"));
-        let stomp = Self::sfx_new(include_bytes!("../../assets/sfx/stomp.ogg"));
-        let bomb = Self::sfx_new(include_bytes!("../../assets/sfx/bomb.ogg"));
-        let pock = Self::sfx_new(include_bytes!("../../assets/sfx/pock.ogg"));
-        let tock = Self::sfx_new(include_bytes!("../../assets/sfx/tock.ogg"));
 
-        s.add_fun(pock.clone(), Message::BlockPlace(IVec3::ZERO, 0), 0.3);
-        s.add_fun(jump, Message::CharacterJump(Vec3::ZERO), 0.1);
-        s.add_fun(hook_fire, Message::CharacterShoot(Vec3::ZERO), 0.4);
-        s.add_fun(ungh.clone(), Message::CharacterDamage(Vec3::ZERO, 0), 0.3);
-        s.add_fun(ungh, Message::CharacterDeath(Vec3::ZERO), 0.3);
-        s.add_fun(step, Message::CharacterStep(Vec3::ZERO), 0.2);
-        s.add_fun(stomp, Message::CharacterStomp(Vec3::ZERO), 0.2);
-        s.add_fun(bomb, Message::EntityCollision(Vec3::ZERO), 0.2);
-        s.add_fun(pock.clone(), Message::BlockPlace(IVec3::ZERO, 0), 0.3);
-        s.add_fun(pock, Message::ItemDropPickup(Vec3::ZERO, Item::None), 0.1);
-        s.add_fun(tock.clone(), Message::BlockBreak(IVec3::ZERO, 0), 0.3);
-        s.add_fun(tock, Message::BlockMine(IVec3::ZERO, 0), 0.1);
+        s.add_relay(SfxId::Jump, Message::CharacterJump { pos: Vec3::ZERO }, 0.1);
+        s.add_relay(
+            SfxId::Pock,
+            Message::BlockPlace {
+                pos: IVec3::ZERO,
+                block: 0,
+            },
+            0.3,
+        );
+        s.add_relay(
+            SfxId::HookFire,
+            Message::CharacterShoot { pos: Vec3::ZERO },
+            0.4,
+        );
+        s.add_relay(
+            SfxId::Ungh,
+            Message::CharacterDamage {
+                pos: Vec3::ZERO,
+                damage: 0,
+            },
+            0.3,
+        );
+        s.add_relay(
+            SfxId::Ungh,
+            Message::CharacterDeath { pos: Vec3::ZERO },
+            0.3,
+        );
+        s.add_relay(SfxId::Step, Message::CharacterStep { pos: Vec3::ZERO }, 0.2);
+        s.add_relay(
+            SfxId::Stomp,
+            Message::CharacterStomp { pos: Vec3::ZERO },
+            0.2,
+        );
+        s.add_relay(
+            SfxId::Bomb,
+            Message::EntityCollision { pos: Vec3::ZERO },
+            0.2,
+        );
+        s.add_relay(
+            SfxId::Pock,
+            Message::BlockPlace {
+                pos: IVec3::ZERO,
+                block: 0,
+            },
+            0.3,
+        );
+        s.add_relay(
+            SfxId::Pock,
+            Message::ItemDropPickup {
+                pos: Vec3::ZERO,
+                item: Item::None,
+            },
+            0.1,
+        );
+        s.add_relay(
+            SfxId::Tock,
+            Message::BlockBreak {
+                pos: IVec3::ZERO,
+                block: 0,
+            },
+            0.3,
+        );
+        s.add_relay(
+            SfxId::Tock,
+            Message::BlockMine {
+                pos: IVec3::ZERO,
+                block: 0,
+            },
+            0.1,
+        );
+
+        {
+            let state = s.state.clone();
+            let stream = s.stream.clone();
+            let jump = Self::sfx_new(include_bytes!("../../assets/sfx/jump.ogg"));
+            let hook_fire = Self::sfx_new(include_bytes!("../../assets/sfx/hookFire.ogg"));
+            let ungh = Self::sfx_new(include_bytes!("../../assets/sfx/ungh.ogg"));
+            let step = Self::sfx_new(include_bytes!("../../assets/sfx/step.ogg"));
+            let stomp = Self::sfx_new(include_bytes!("../../assets/sfx/stomp.ogg"));
+            let bomb = Self::sfx_new(include_bytes!("../../assets/sfx/bomb.ogg"));
+            let pock = Self::sfx_new(include_bytes!("../../assets/sfx/pock.ogg"));
+            let tock = Self::sfx_new(include_bytes!("../../assets/sfx/tock.ogg"));
+
+            let f = move |_: &Reactor<Message>, msg: Message| {
+                if let Message::SfxPlay {
+                    pos: emitter_pos,
+                    volume,
+                    sfx,
+                } = msg
+                {
+                    let sfx = match sfx {
+                        SfxId::Jump => jump.borrow(),
+                        SfxId::HookFire => hook_fire.borrow(),
+                        SfxId::Ungh => ungh.borrow(),
+                        SfxId::Step => step.borrow(),
+                        SfxId::Stomp => stomp.borrow(),
+                        SfxId::Bomb => bomb.borrow(),
+                        SfxId::Pock => pock.borrow(),
+                        SfxId::Tock => tock.borrow(),
+                        _ => return,
+                    };
+                    Self::play_spatial_sound(
+                        &stream.borrow().1,
+                        &sfx,
+                        volume,
+                        &state.borrow(),
+                        emitter_pos,
+                    )
+                }
+            };
+            s.reactor.add_sink(
+                Message::SfxPlay {
+                    pos: Vec3::ZERO,
+                    volume: 0.0,
+                    sfx: SfxId::Jump,
+                },
+                Box::new(f),
+            );
+        }
     }
 }

@@ -65,7 +65,7 @@ impl Grenade {
                     e.set_pos(player.pos());
                     e.set_vel(player.direction() * 0.4);
                     grenades.borrow_mut().push(e);
-                    reactor.dispatch(Message::CharacterShoot(player.pos()));
+                    reactor.dispatch(Message::CharacterShoot { pos: player.pos() });
                 }
             };
             reactor.add_sink(Message::PlayerShoot, Box::new(f));
@@ -82,7 +82,7 @@ impl Grenade {
                     let bounce = g.tick(&world);
 
                     if bounce {
-                        reactor.defer(Message::EntityCollision(g.pos()))
+                        reactor.defer(Message::EntityCollision { pos: g.pos() })
                     }
 
                     let dist = g.pos() - player_pos;
@@ -90,16 +90,16 @@ impl Grenade {
                     !bounce && (dd < (256.0 * 256.0))
                 });
             };
-            reactor.add_sink(Message::GameTick(0), Box::new(f));
+            reactor.add_sink(Message::GameTick { ticks: 0 }, Box::new(f));
         }
         {
             let world = game.world_ref();
             let f = move |_reactor: &Reactor<Message>, msg: Message| {
-                if let Message::EntityCollision(pos) = msg {
+                if let Message::EntityCollision { pos, .. } = msg {
                     world.borrow_mut().add_explosion(pos, 7.0);
                 }
             };
-            reactor.add_sink(Message::EntityCollision(Vec3::ZERO), Box::new(f));
+            reactor.add_sink(Message::EntityCollision { pos: Vec3::ZERO }, Box::new(f));
         }
     }
 }
