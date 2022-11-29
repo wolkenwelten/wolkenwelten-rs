@@ -285,7 +285,6 @@ impl ParticleMesh {
         {
             let particles = self.particles.clone();
             let rng = self.rng.clone();
-            let blocks = blocks.clone();
             let f = move |_: &Reactor<Message>, msg: Message| {
                 if let Message::BlockPlace(pos, b) = msg {
                     if let Some(bt) = blocks.borrow().get(b as usize) {

@@ -70,12 +70,12 @@ impl WorldgenAssetList {
         ))?
         .with_palette(vec![0, 5, 11])];
 
-        return Ok(Self {
+        Ok(Self {
             trees,
             bushes,
             rocks,
             spruce_trees,
-        });
+        })
     }
 }
 
@@ -170,11 +170,12 @@ impl WorldgenAsset {
                 palette,
                 size,
             };
-            ret.fill_with_model(&model);
+            ret.fill_with_model(model);
 
-            return Ok(ret);
+            Ok(ret)
+        } else {
+            Err(anyhow!("Couldn't create mesh from .vox"))
         }
-        Err(anyhow!("Couldn't create mesh from .vox"))
     }
 
     pub fn with_palette(mut self, palette: Vec<u8>) -> Self {

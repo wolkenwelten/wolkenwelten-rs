@@ -50,6 +50,7 @@ const snek = (pos, dir, b, food=128) => {
 	sneks.push({pos, dir, b, food});
 };
 
+/*
 (() => {
 	let pos = {x:-64, y:-16, z:360};
 	let dir = {x:0, y:-1, z:0};
@@ -59,5 +60,6 @@ const snek = (pos, dir, b, food=128) => {
 		const oldSneks = sneks;
 		sneks = [];
 		oldSneks.forEach(s => snek_tick(s));
-	}, 50);
+	}, 200);
 })();
+*/

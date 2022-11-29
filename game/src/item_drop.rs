@@ -91,6 +91,11 @@ impl ItemDropList {
         self.drops.len()
     }
 
+    #[inline]
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
+
     pub fn tick_all(&mut self, reactor: &Reactor<Message>, player_pos: Vec3, world: &Chungus) {
         for index in (0..self.drops.len()).rev() {
             self.drops[index].tick(world);

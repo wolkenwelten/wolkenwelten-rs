@@ -5,10 +5,22 @@ use std::collections::HashMap;
 use std::mem;
 use std::mem::Discriminant;
 
+type ReactorHandler<T> = Box<dyn Fn(&Reactor<T>, T)>;
+type ReactorHandlerMap<T> = HashMap<Discriminant<T>, Vec<ReactorHandler<T>>>;
+
 pub struct Reactor<T> {
-    handler: HashMap<Discriminant<T>, Vec<Box<dyn Fn(&Self, T)>>>,
+    handler: ReactorHandlerMap<T>,
     defer_queue: RefCell<Vec<T>>,
     defer_active: RefCell<bool>,
+}
+
+impl<T> Default for Reactor<T>
+where
+    T: Clone + Copy,
+{
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl<T> Reactor<T>
@@ -51,9 +63,9 @@ where
     pub fn dispatch(&self, msg: T) {
         let defer_active = *self.defer_active.borrow();
         if defer_active {
-            return self.dispatch_raw(msg);
+            self.dispatch_raw(msg)
         } else {
-            return self.dispatch_defer(msg);
+            self.dispatch_defer(msg)
         }
     }
 
@@ -61,19 +73,18 @@ where
     pub fn defer(&self, msg: T) {
         let defer_active = *self.defer_active.borrow();
         if defer_active {
-            self.defer_queue.borrow_mut().push(msg);
+            self.defer_queue.borrow_mut().push(msg)
         } else {
             // If we are not currently dispatching a msg then we can safely dispatch the message immediatly
-            return self.dispatch(msg);
+            self.dispatch(msg)
         }
     }
 
-    pub fn add_sink(&mut self, msg: T, f: Box<dyn Fn(&Self, T)>) {
+    pub fn add_sink(&mut self, msg: T, f: ReactorHandler<T>) {
         if let Some(handler) = self.handler.get_mut(&mem::discriminant(&msg)) {
             handler.push(f);
         } else {
-            let mut handler: Vec<Box<dyn Fn(&Self, T)>> = vec![];
-            handler.push(f);
+            let handler: Vec<ReactorHandler<T>> = vec![f];
             self.handler.insert(mem::discriminant(&msg), handler);
         }
     }

@@ -106,13 +106,13 @@ impl InputState {
                     state: ElementState::Pressed,
                     virtual_keycode: Some(VirtualKeyCode::N),
                     ..
-                } => reactor.dispatch(Message::PlayerNoClip(true).into()),
+                } => reactor.dispatch(Message::PlayerNoClip(true)),
 
                 KeyboardInput {
                     state: ElementState::Pressed,
                     virtual_keycode: Some(VirtualKeyCode::M),
                     ..
-                } => reactor.dispatch(Message::PlayerNoClip(false).into()),
+                } => reactor.dispatch(Message::PlayerNoClip(false)),
 
                 KeyboardInput {
                     state: ElementState::Pressed,
@@ -202,7 +202,7 @@ impl InputState {
                     state: ElementState::Pressed,
                     virtual_keycode: Some(VirtualKeyCode::Escape),
                     ..
-                } => reactor.dispatch(Message::GameQuit.into()),
+                } => reactor.dispatch(Message::GameQuit),
 
                 KeyboardInput {
                     state,

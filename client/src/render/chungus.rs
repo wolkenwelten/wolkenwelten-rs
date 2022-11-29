@@ -28,11 +28,11 @@ pub fn handle_requests(
     let mut block_reqs: HashSet<IVec3> = HashSet::new();
     request.get_mesh_mut().iter().for_each(|pos| {
         let world = game.world_mut();
-        if let Some(lights) = world.get_tri_complex_light(&pos, &mut light_reqs) {
-            if let Some(chunks) = world.get_tri_chunk(&pos, &mut block_reqs) {
+        if let Some(lights) = world.get_tri_complex_light(pos, &mut light_reqs) {
+            if let Some(chunks) = world.get_tri_chunk(pos, &mut block_reqs) {
                 let block_types = world.blocks.borrow();
-                if let Some(mesh) = fe.world_mesh.get_mut(&pos) {
-                    if lights[1 * 3 * 3 + 1 * 3 + 1].get_last_updated() >= mesh.get_last_updated()
+                if let Some(mesh) = fe.world_mesh.get_mut(pos) {
+                    if lights[13].get_last_updated() >= mesh.get_last_updated()
                         || should_update(mesh, &chunks)
                     {
                         let _ = mesh.update(&fe.display, &chunks, &lights, &block_types, now);

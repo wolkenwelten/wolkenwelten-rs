@@ -82,7 +82,7 @@ impl BlockMiningMap {
                             }
                         }
                         if (ticks_elapsed & 0x7F) == 0 {
-                            reactor.defer(Message::BlockMine(pos, block).into());
+                            reactor.defer(Message::BlockMine(pos, block));
                         }
                     }
                 }

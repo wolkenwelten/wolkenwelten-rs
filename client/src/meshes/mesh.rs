@@ -251,7 +251,7 @@ impl Mesh {
                 }
             })
             .collect();
-        Ok(Self::from_vec_static(display, &vertices)?)
+        Self::from_vec_static(display, &vertices)
     }
 
     pub fn draw(

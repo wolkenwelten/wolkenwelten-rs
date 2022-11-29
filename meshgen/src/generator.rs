@@ -698,13 +698,13 @@ fn calc_chunk_data(
     let (y_start, y_end) = calc_chunk_data_stand_end(off[1]);
     let (z_start, z_end) = calc_chunk_data_stand_end(off[2]);
 
-    for x in x_start..x_end {
+    for (x, block_data) in block_data.iter_mut().enumerate().take(x_end).skip(x_start) {
         let cx = (x as isize - off[0]) as usize;
-        for y in y_start..y_end {
+        for (y, block_data) in block_data.iter_mut().enumerate().take(y_end).skip(y_start) {
             let cy = (y as isize - off[1]) as usize;
-            for z in z_start..z_end {
+            for (z, block_data) in block_data.iter_mut().enumerate().take(z_end).skip(z_start) {
                 let cz = (z as isize - off[2]) as usize;
-                block_data[x][y][z] = chunk[cx][cy][cz];
+                *block_data = chunk[cx][cy][cz];
             }
         }
     }

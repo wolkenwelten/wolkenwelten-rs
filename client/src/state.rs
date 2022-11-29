@@ -22,7 +22,7 @@ use std::rc::Rc;
 pub struct ClientState {
     instant: Instant,
 
-    block_index_buffer: glium::IndexBuffer<u16>,
+    block_index_buffer: glium::IndexBuffer<u32>,
     pub world_mesh: HashMap<IVec3, BlockMesh>,
 
     window_width: u32,
@@ -50,7 +50,8 @@ impl ClientState {
         let shaders = ShaderList::new(&display)?;
         let ui_mesh = TextMesh::new(&display)?;
         let textures = TextureList::new(&display, world)?;
-        let block_index_buffer = BlockMesh::gen_index_buffer(&display, 65536 / 4)?;
+        const MAX_SQUARE: usize = CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE * 6;
+        let block_index_buffer = BlockMesh::gen_index_buffer(&display, MAX_SQUARE / 4)?;
         let particles = Rc::new(RefCell::new(ParticleMesh::new()));
 
         Ok(Self {
@@ -97,7 +98,7 @@ impl ClientState {
     }
 
     #[inline]
-    pub fn block_indeces(&self) -> &glium::IndexBuffer<u16> {
+    pub fn block_indeces(&self) -> &glium::IndexBuffer<u32> {
         &self.block_index_buffer
     }
 

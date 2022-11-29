@@ -45,16 +45,13 @@ fn fun_get_block(
         let x = args.get(0).int32_value(scope);
         let y = args.get(1).int32_value(scope);
         let z = args.get(2).int32_value(scope);
-        match (x, y, z) {
-            (Some(x), Some(y), Some(z)) => {
-                let pos = IVec3::new(x, y, z);
-                let world = world.borrow_mut().get_block(pos);
-                if let Some(b) = world {
-                    retval.set_int32(b as i32);
-                    return;
-                }
+        if let (Some(x), Some(y), Some(z)) = (x, y, z) {
+            let pos = IVec3::new(x, y, z);
+            let world = world.borrow_mut().get_block(pos);
+            if let Some(b) = world {
+                retval.set_int32(b as i32);
+                return;
             }
-            _ => (),
         }
         retval.set_null();
     });
@@ -72,12 +69,9 @@ fn fun_set_block(
         let y = args.get(1).int32_value(scope);
         let z = args.get(2).int32_value(scope);
         let b = args.get(3).int32_value(scope);
-        match (x, y, z, b) {
-            (Some(x), Some(y), Some(z), Some(block)) => {
-                let pos = IVec3::new(x, y, z);
-                world.borrow_mut().set_block(pos, block as u8);
-            }
-            _ => (),
+        if let (Some(x), Some(y), Some(z), Some(block)) = (x, y, z, b) {
+            let pos = IVec3::new(x, y, z);
+            world.borrow_mut().set_block(pos, block as u8);
         }
     });
 }

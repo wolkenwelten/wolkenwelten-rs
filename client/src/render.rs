@@ -40,7 +40,7 @@ pub fn prepare_frame(
     fe.set_fov(calc_fov(fe.fov(), &game.player()));
     fe.calc_fps();
     fe.gc(&game.player());
-    super::ui::prepare(fe, game, &request);
+    super::ui::prepare(fe, game, request);
     chungus::handle_requests(fe, game, request)?;
     Ok(())
 }
@@ -66,17 +66,14 @@ fn render_game(
     }
 
     for entity in game.grenades().iter() {
-        grenade::draw(frame, fe, entity, &view, &projection)?;
+        grenade::draw(frame, fe, entity, &view, projection)?;
     }
     for entity in game.drops().iter() {
-        item_drop::draw(frame, fe, entity, &view, &projection)?;
+        item_drop::draw(frame, fe, entity, &view, projection)?;
     }
     chungus::draw(frame, fe, game, &mvp, request)?;
-
     shadow::draw(frame, fe, game, &mvp)?;
-
     block_mining::draw(frame, fe, game, &mvp)?;
-
     Ok(())
 }
 

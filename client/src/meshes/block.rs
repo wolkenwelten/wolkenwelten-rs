@@ -23,16 +23,16 @@ impl BlockMesh {
     pub fn gen_index_buffer(
         display: &glium::Display,
         square_count: usize,
-    ) -> Result<glium::IndexBuffer<u16>, glium::index::BufferCreationError> {
-        let mut v: Vec<u16> = Vec::with_capacity(square_count * 6);
+    ) -> Result<glium::IndexBuffer<u32>, glium::index::BufferCreationError> {
+        let mut v: Vec<u32> = Vec::with_capacity(square_count * 6);
         for i in 0..square_count {
-            v.push((i * 4) as u16);
-            v.push((i * 4 + 1) as u16);
-            v.push((i * 4 + 2) as u16);
+            v.push((i * 4) as u32);
+            v.push((i * 4 + 1) as u32);
+            v.push((i * 4 + 2) as u32);
 
-            v.push((i * 4 + 2) as u16);
-            v.push((i * 4 + 3) as u16);
-            v.push((i * 4) as u16);
+            v.push((i * 4 + 2) as u32);
+            v.push((i * 4 + 3) as u32);
+            v.push((i * 4) as u32);
         }
         glium::IndexBuffer::new(
             display,

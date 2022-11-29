@@ -22,33 +22,30 @@ fn prepare_slot(
     let rgba = [0xFF, 0xFF, 0xFF, 0xFF];
     fe.ui_mesh.push_box(p, tex, rgba);
 
-    match item {
-        Item::Block(bi) => {
-            let p = (
-                (pos.x + size.x / 16) as i16,
-                (pos.y + size.x / 16) as i16,
-                (size.x - size.x / 8) as i16,
-                (size.y - size.y / 8) as i16,
-            );
-            let tex = (
-                ((bi.block % 32) * 4) as i16,
-                ((bi.block / 32) * 4) as i16,
-                4,
-                4,
-            );
-            let rgba = [0xFF, 0xFF, 0xFF, 0xFF];
-            fe.ui_mesh.push_box(p, tex, rgba);
+    if let Item::Block(bi) = item {
+        let p = (
+            (pos.x + size.x / 16) as i16,
+            (pos.y + size.x / 16) as i16,
+            (size.x - size.x / 8) as i16,
+            (size.y - size.y / 8) as i16,
+        );
+        let tex = (
+            ((bi.block % 32) * 4) as i16,
+            ((bi.block / 32) * 4) as i16,
+            4,
+            4,
+        );
+        let rgba = [0xFF, 0xFF, 0xFF, 0xFF];
+        fe.ui_mesh.push_box(p, tex, rgba);
 
-            let text = format!("{}x", bi.amount);
-            fe.ui_mesh.push_string(
-                (pos.x + 4) as i16,
-                (pos.y + size.y - 12) as i16,
-                1,
-                rgba,
-                text.as_str(),
-            );
-        }
-        _ => (),
+        let text = format!("{}x", bi.amount);
+        fe.ui_mesh.push_string(
+            (pos.x + 4) as i16,
+            (pos.y + size.y - 12) as i16,
+            1,
+            rgba,
+            text.as_str(),
+        );
     }
 }
 

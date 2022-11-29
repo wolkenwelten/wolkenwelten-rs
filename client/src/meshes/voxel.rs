@@ -20,7 +20,7 @@ impl VoxelMesh {
     pub fn draw(
         &self,
         frame: &mut glium::Frame,
-        indeces: &glium::IndexBuffer<u16>,
+        indeces: &glium::IndexBuffer<u32>,
         program: &glium::Program,
         mat_mvp: &glam::Mat4,
         color_alpha: f32,

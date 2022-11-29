@@ -131,20 +131,16 @@ impl<'a> SfxList<'a> {
         let tock = Self::sfx_new(include_bytes!("../../assets/sfx/tock.ogg"));
 
         s.add_fun(pock.clone(), Message::BlockPlace(IVec3::ZERO, 0), 0.3);
-        s.add_fun(jump.clone(), Message::CharacterJump(Vec3::ZERO), 0.1);
-        s.add_fun(hook_fire.clone(), Message::CharacterShoot(Vec3::ZERO), 0.4);
+        s.add_fun(jump, Message::CharacterJump(Vec3::ZERO), 0.1);
+        s.add_fun(hook_fire, Message::CharacterShoot(Vec3::ZERO), 0.4);
         s.add_fun(ungh.clone(), Message::CharacterDamage(Vec3::ZERO, 0), 0.3);
-        s.add_fun(ungh.clone(), Message::CharacterDeath(Vec3::ZERO), 0.3);
-        s.add_fun(step.clone(), Message::CharacterStep(Vec3::ZERO), 0.2);
-        s.add_fun(stomp.clone(), Message::CharacterStomp(Vec3::ZERO), 0.2);
-        s.add_fun(bomb.clone(), Message::EntityCollision(Vec3::ZERO), 0.2);
+        s.add_fun(ungh, Message::CharacterDeath(Vec3::ZERO), 0.3);
+        s.add_fun(step, Message::CharacterStep(Vec3::ZERO), 0.2);
+        s.add_fun(stomp, Message::CharacterStomp(Vec3::ZERO), 0.2);
+        s.add_fun(bomb, Message::EntityCollision(Vec3::ZERO), 0.2);
         s.add_fun(pock.clone(), Message::BlockPlace(IVec3::ZERO, 0), 0.3);
-        s.add_fun(
-            pock.clone(),
-            Message::ItemDropPickup(Vec3::ZERO, Item::None),
-            0.1,
-        );
+        s.add_fun(pock, Message::ItemDropPickup(Vec3::ZERO, Item::None), 0.1);
         s.add_fun(tock.clone(), Message::BlockBreak(IVec3::ZERO, 0), 0.3);
-        s.add_fun(tock.clone(), Message::BlockMine(IVec3::ZERO, 0), 0.1);
+        s.add_fun(tock, Message::BlockMine(IVec3::ZERO, 0), 0.1);
     }
 }

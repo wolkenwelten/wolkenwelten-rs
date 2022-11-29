@@ -111,8 +111,8 @@ impl Chungus {
         let mut block_reqs: HashSet<IVec3> = HashSet::new();
 
         request.get_complex_light_mut().retain(|pos| {
-            if let Some(neighbors) = self.get_tri_simple_light(&pos, &mut simple_light_reqs) {
-                if let Some(chunk) = self.get(&pos) {
+            if let Some(neighbors) = self.get_tri_simple_light(pos, &mut simple_light_reqs) {
+                if let Some(chunk) = self.get(pos) {
                     let mut light = ChunkLightData::new();
                     light.calculate_complex(chunk, &neighbors);
                     self.chunks_complex_light.insert(*pos, light);
@@ -326,11 +326,7 @@ impl Chungus {
 
     pub fn get_block(&mut self, pos: IVec3) -> Option<u8> {
         let cp = pos >> CHUNK_BITS;
-        if let Some(chnk) = self.get(&cp) {
-            Some(chnk.get_block(pos & CHUNK_MASK))
-        } else {
-            None
-        }
+        self.get(&cp).map(|chnk| chnk.get_block(pos & CHUNK_MASK))
     }
 
     pub fn add_explosion(&mut self, pos: Vec3, power: f32) {

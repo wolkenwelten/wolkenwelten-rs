@@ -29,7 +29,7 @@ pub fn draw(
     let r = get_animation_r(game.player().animation());
     let model = Mat4::from_scale(Vec3::new(1.0 / 16.0, 1.0 / 16.0, 1.0 / 16.0));
     let model = Mat4::from_rotation_x((t * 3.0 - r * 20.0).to_radians()) * model;
-    let model = Mat4::from_rotation_y((-10.0_ + t * 1.0).to_radians()) * model;
+    let model = Mat4::from_rotation_y((-10.0 + t * 1.0).to_radians()) * model;
     let pos = Vec3::new(1.35, -0.9 + t * 0.05, -1.0 - r * 0.5);
     let model = Mat4::from_translation(pos) * model;
     let mvp = projection.mul_mat4(&model);

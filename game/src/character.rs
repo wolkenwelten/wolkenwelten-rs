@@ -239,7 +239,7 @@ impl Character {
                     continue;
                 }
                 bi.amount -= 1;
-                if bi.amount <= 0 {
+                if bi.amount == 0 {
                     *item = Item::None;
                 }
                 return;
@@ -270,15 +270,12 @@ impl Character {
 
     pub fn drop_item(&mut self, pos: usize) -> Item {
         let item = self.item_at(pos);
-        match item {
-            Item::Block(bi) => {
-                if bi.amount > 1 {
-                    let item = BlockItem::new(bi.block, 1).into();
-                    self.inventory[pos] = BlockItem::new(bi.block, bi.amount - 1).into();
-                    return item;
-                }
+        if let Item::Block(bi) = item {
+            if bi.amount > 1 {
+                let item = BlockItem::new(bi.block, 1).into();
+                self.inventory[pos] = BlockItem::new(bi.block, bi.amount - 1).into();
+                return item;
             }
-            _ => (),
         }
         self.inventory[pos] = Item::None;
         item
@@ -376,12 +373,10 @@ impl Character {
             self.vel *= 1.0 - (len - 0.2).clamp(0.0001, 1.0);
         }
 
-        if self.may_jump(world) {
-            if len > 0.025 && cur_tick & 0x3F == 0 {
-                reactor.dispatch(Message::CharacterStep(self.pos));
-            } else if len > 0.01 && cur_tick & 0x7F == 0 {
-                reactor.dispatch(Message::CharacterStep(self.pos));
-            }
+        if self.may_jump(world)
+            && ((len > 0.025 && cur_tick & 0x3F == 0) || (len > 0.01 && cur_tick & 0x7F == 0))
+        {
+            reactor.dispatch(Message::CharacterStep(self.pos));
         }
 
         self.pos += self.vel;
@@ -465,10 +460,8 @@ impl Character {
         {
             let player = game.player_ref();
             let f = move |_reactor: &Reactor<Message>, msg: Message| {
-                if let Message::ItemDropPickup(_, item) = msg {
-                    if let Item::Block(bi) = item {
-                        player.borrow_mut().add_block_to_inventory(bi.block);
-                    }
+                if let Message::ItemDropPickup(_, Item::Block(bi)) = msg {
+                    player.borrow_mut().add_block_to_inventory(bi.block);
                 }
             };
             reactor.add_sink(Message::ItemDropPickup(Vec3::ZERO, Item::None), Box::new(f));
@@ -489,7 +482,7 @@ impl Character {
                     player.set_movement(v);
                     if v.y > 0.0 && player.may_jump(&world.borrow()) {
                         player.jump();
-                        reactor.dispatch(Message::CharacterJump(player.pos).into())
+                        reactor.dispatch(Message::CharacterJump(player.pos))
                     }
                 }
             };
@@ -506,17 +499,13 @@ impl Character {
                     if player.may_act(now) {
                         let mut world = world.borrow_mut();
                         if world.get_block(pos).unwrap_or(0) == 0 {
-                            let item = player.item();
-                            match item {
-                                Item::Block(bi) => {
-                                    player.set_animation_hit();
-                                    player.set_cooldown(now + 300);
-                                    let b = bi.block;
-                                    world.set_block(pos, b);
-                                    player.remove_block_from_inventory(b);
-                                    reactor.dispatch(Message::BlockPlace(pos, b).into());
-                                }
-                                _ => (),
+                            if let Item::Block(bi) = player.item() {
+                                player.set_animation_hit();
+                                player.set_cooldown(now + 300);
+                                let b = bi.block;
+                                world.set_block(pos, b);
+                                player.remove_block_from_inventory(b);
+                                reactor.dispatch(Message::BlockPlace(pos, b));
                             }
                         }
                     }

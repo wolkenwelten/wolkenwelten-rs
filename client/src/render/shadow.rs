@@ -16,7 +16,7 @@ fn add_vert(
     let pos = [pos.x + pos_off[0], pos.y, pos.z + pos_off[1]];
     vertices.push(MeshVertex {
         pos,
-        tex: tex,
+        tex,
         lightness,
     })
 }

@@ -62,7 +62,7 @@ impl ops::Add<i16> for Health {
 
     fn add(self, rhs: i16) -> Health {
         Self {
-            hp: (self.hp - rhs).clamp(0, self.max_hp),
+            hp: (self.hp + rhs).clamp(0, self.max_hp),
             max_hp: self.max_hp,
         }
     }

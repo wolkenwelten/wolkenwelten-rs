@@ -11,3 +11,5 @@ perf.data
 perf.data.old
 /replay.json
 flamegraph.svg
+/*/Cargo.lock
+/*/target/
