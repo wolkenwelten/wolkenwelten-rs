@@ -1,6 +1,6 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
-use std::cell::RefCell;
+use std::cell::{Ref, RefCell, RefMut};
 use std::collections::HashMap;
 use std::mem;
 use std::mem::Discriminant;
@@ -92,14 +92,11 @@ where
         }
     }
 
-    pub fn clear_log(&self) {
-        self.msg_log.borrow_mut().clear();
+    pub fn log_mut(&self) -> RefMut<Vec<T>> {
+        self.msg_log.borrow_mut()
     }
 
-    pub fn log_for_each<F>(&self, λ: F)
-    where
-        F: Fn(&T),
-    {
-        self.msg_log.borrow().iter().for_each(λ);
+    pub fn log(&self) -> Ref<Vec<T>> {
+        self.msg_log.borrow()
     }
 }

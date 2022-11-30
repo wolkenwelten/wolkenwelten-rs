@@ -1,0 +1,15 @@
+{
+    "compilerOptions": {
+      "lib": ["ESNext"],
+      "strict": true,
+      "module": "None",
+      "noImplicitAny": true,
+      "removeComments": true,
+      "outDir": "./target/dist/",
+      "rootDir": "./stdlib/",
+      "preserveConstEnums": true
+    },
+    "files": [
+      "stdlib/lib.ts",
+    ],
+}

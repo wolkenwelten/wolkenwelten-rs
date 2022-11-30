@@ -1,5 +1,6 @@
 [package]
 name = "wolkenwelten"
+build = "build.rs"
 version = "0.0.4"
 edition = "2021"
 license = "AGPL-3.0-or-later"
@@ -8,8 +9,6 @@ authors = ["Benjamin Vincent Schulenburg <ben@wolkenwelten.net>"]
 description = """
 An open voxel sandbox
 """
-# The general section with crate name, license, etc.
-build = "build.rs"
 
 [target.'cfg(windows)'.build-dependencies]
 embed-resource = "1.6"

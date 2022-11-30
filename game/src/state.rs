@@ -1,6 +1,6 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
-use super::{Character, Chungus, Grenade};
+use super::{Character, Chungus, GameLog, Grenade};
 use crate::{BlockMiningMap, ItemDropList};
 use anyhow::Result;
 use glam::IVec3;
@@ -27,6 +27,7 @@ pub struct GameState {
 
     player: Rc<RefCell<Character>>,
     running: Rc<RefCell<bool>>,
+    log: Rc<RefCell<GameLog>>,
 }
 
 impl GameState {
@@ -37,6 +38,7 @@ impl GameState {
             clock: Rc::new(RefCell::new(Instant::now())),
             running: Rc::new(RefCell::new(true)),
             player,
+            log: Rc::new(RefCell::new(GameLog::new())),
             grenades: Rc::new(RefCell::new(Vec::new())),
             ticks_elapsed: 0,
             drops: Rc::new(RefCell::new(ItemDropList::new())),
@@ -78,6 +80,15 @@ impl GameState {
     #[inline]
     pub fn player_ref(&self) -> Rc<RefCell<Character>> {
         self.player.clone()
+    }
+
+    #[inline]
+    pub fn log_ref(&self) -> Rc<RefCell<GameLog>> {
+        self.log.clone()
+    }
+    #[inline]
+    pub fn log(&self) -> Ref<GameLog> {
+        self.log.borrow()
     }
 
     #[inline]

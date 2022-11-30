@@ -7,10 +7,11 @@ use std::time::Instant;
 use v8::{ContextScope, HandleScope};
 use wolkenwelten_client_winit::start_app;
 use wolkenwelten_common::{Message, Reactor, SfxId};
-use wolkenwelten_game::{Chungus, GameState};
+use wolkenwelten_game::{Chungus, GameLog, GameState};
 
 thread_local! {
     static WORLD: RefCell<Option<Rc<RefCell<Chungus>>>> = RefCell::new(None);
+    static GAME_LOG: RefCell<Option<Rc<RefCell<GameLog>>>> = RefCell::new(None);
     static MSG_QUEUE: RefCell<Vec<Message>> = RefCell::new(vec![]);
 }
 
@@ -18,6 +19,24 @@ fn eval(scope: &mut ContextScope<HandleScope>, source: &str) {
     let code = v8::String::new(scope, source).unwrap();
     let script = v8::Script::compile(scope, code, None).unwrap();
     let _result = script.run(scope).unwrap();
+}
+
+fn fun_log(
+    scope: &mut v8::HandleScope,
+    args: v8::FunctionCallbackArguments,
+    mut _retval: v8::ReturnValue,
+) {
+    let message = args
+        .get(0)
+        .to_string(scope)
+        .unwrap()
+        .to_rust_string_lossy(scope);
+    GAME_LOG.with(|log| {
+        if let Some(log) = &*log.borrow() {
+            let mut log = log.borrow_mut();
+            log.push(message);
+        }
+    });
 }
 
 fn fun_print(
@@ -139,6 +158,12 @@ pub fn start_runtime(game_state: GameState, mut reactor: Reactor<Message>) {
             f.replace(Some(world));
         });
     }
+    {
+        let game_log = game_state.log_ref();
+        GAME_LOG.with(move |f| {
+            f.replace(Some(game_log));
+        });
+    }
 
     let mut isolate = v8::Isolate::new(v8::CreateParams::default());
     {
@@ -152,26 +177,27 @@ pub fn start_runtime(game_state: GameState, mut reactor: Reactor<Message>) {
             unsafe { &mut *(&mut handle_scope as *mut HandleScope<()>) },
             context,
         )));
-        eval(&mut scope.borrow_mut(), include_str!("./preamble.js"));
+        eval(
+            &mut scope.borrow_mut(),
+            include_str!("../target/dist/stdlib.js"),
+        );
 
         {
             let clock = Instant::now();
             let scope = scope.clone();
             let f = move |reactor: &Reactor<Message>, _msg: Message| {
-                let millis = clock.elapsed().as_millis() as u64;
-                let code = format!("WolkenWelten.tick({});", millis);
-                eval(&mut scope.borrow_mut(), code.as_str());
+                let mut log = reactor.log_mut();
+                let msgs: Vec<Message> = log.iter().copied().collect();
+                let json = serde_json::to_string(&msgs);
+                log.clear();
+                if let Ok(json) = json {
+                    let millis = clock.elapsed().as_millis() as u64;
+                    let code = format!("WolkenWelten.tick({}, {});", millis, json);
+                    eval(&mut scope.borrow_mut(), code.as_str());
+                }
                 MSG_QUEUE.with(move |f| {
                     f.borrow_mut().drain(0..).for_each(|m| reactor.defer(m));
                 });
-
-                reactor.log_for_each(move |m| {
-                    let v = serde_json::to_string_pretty(m);
-                    if let Ok(v) = v {
-                        println!("{}", v);
-                    }
-                });
-                reactor.clear_log();
             };
             reactor.add_sink(Message::GameTick { ticks: 0 }, Box::new(f));
         }
@@ -180,9 +206,10 @@ pub fn start_runtime(game_state: GameState, mut reactor: Reactor<Message>) {
             let wwc = v8::ObjectTemplate::new(&mut scope.borrow_mut());
             add_fun(&mut scope.borrow_mut(), &wwc, "eprint", fun_eprint);
             add_fun(&mut scope.borrow_mut(), &wwc, "print", fun_print);
-            add_fun(&mut scope.borrow_mut(), &wwc, "get_block", fun_get_block);
-            add_fun(&mut scope.borrow_mut(), &wwc, "set_block", fun_set_block);
-            add_fun(&mut scope.borrow_mut(), &wwc, "sfx_play", fun_sfx_play);
+            add_fun(&mut scope.borrow_mut(), &wwc, "getBlock", fun_get_block);
+            add_fun(&mut scope.borrow_mut(), &wwc, "setBlock", fun_set_block);
+            add_fun(&mut scope.borrow_mut(), &wwc, "sfxPlay", fun_sfx_play);
+            add_fun(&mut scope.borrow_mut(), &wwc, "game_log", fun_log);
             {
                 let key = v8::String::new(&mut scope.borrow_mut(), "WWC").unwrap();
                 let global = context.global(&mut scope.borrow_mut());

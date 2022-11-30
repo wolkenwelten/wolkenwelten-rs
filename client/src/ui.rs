@@ -5,6 +5,7 @@ use wolkenwelten_common::ChunkRequestQueue;
 use wolkenwelten_game::GameState;
 
 mod inventory;
+mod log;
 
 fn prepare_healthbar(fe: &mut ClientState, game: &GameState, x: i16, y: i16, heart_beat: bool) {
     let health = game.player().health();
@@ -129,6 +130,7 @@ pub fn prepare(fe: &mut ClientState, game: &GameState, request: &ChunkRequestQue
 
     prepare_debug_text(fe, game, request);
     inventory::prepare(fe, game);
+    log::prepare(fe, game);
 
     fe.ui_mesh.prepare(&fe.display);
 }

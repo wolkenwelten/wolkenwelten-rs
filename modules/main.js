@@ -11,7 +11,7 @@ const vec_rot_shift = dir => ({
 	setInterval(() => {
 		const secs = String(++seconds);
 		const s = seconds > 1 ? "s" : "";
-		console.log(`${secs} second${s} have elapsed`);
+		console.log(`${secs} second${s} have elapsed in V8 land`);
 	}, 1000);
 })();
 
