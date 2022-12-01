@@ -11,6 +11,7 @@ use rodio::{
 use std::cell::RefCell;
 use std::io::Cursor;
 use std::rc::Rc;
+use wolkenwelten_client::RenderInitArgs;
 use wolkenwelten_common::{Item, Message, Reactor, SfxId};
 
 struct Sfx {
@@ -38,7 +39,7 @@ struct State {
     pub player_rot: glam::Vec3,
 }
 
-pub struct SfxList<'a> {
+struct SfxList<'a> {
     stream: Rc<RefCell<(OutputStream, OutputStreamHandle)>>,
     state: Rc<RefCell<State>>,
     reactor: &'a mut Reactor<Message>,
@@ -244,4 +245,9 @@ impl<'a> SfxList<'a> {
             );
         }
     }
+}
+
+pub fn init(args: RenderInitArgs) -> RenderInitArgs {
+    SfxList::add_handler(args.reactor);
+    args
 }

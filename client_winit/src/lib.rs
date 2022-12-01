@@ -10,7 +10,9 @@ use winit::event::{Event, WindowEvent};
 use winit::event_loop::{ControlFlow, EventLoop};
 use winit::window::{CursorGrabMode, Fullscreen, Window, WindowBuilder};
 
-use wolkenwelten_client::{prepare_frame, render_frame, ClientState, RENDER_DISTANCE};
+use wolkenwelten_client::{
+    prepare_frame, render_frame, ClientState, RenderInit, RenderReactor, RENDER_DISTANCE,
+};
 use wolkenwelten_common::{ChunkRequestQueue, Message, Reactor};
 use wolkenwelten_game::GameState;
 
@@ -74,13 +76,19 @@ pub fn init() -> (EventLoop<()>, glium::Display) {
 }
 
 /// Run the actual game, this function only returns when the game quits
-pub fn run_event_loop(state: AppState, reactor: Reactor<Message>) {
+pub fn run_event_loop(
+    state: AppState,
+    mut reactor: Reactor<Message>,
+    render_init_fun: Vec<RenderInit>,
+) {
     let mut render = state.render_state;
     let mut game = state.game_state;
     let mut input = state.input;
     let event_loop = state.event_loop;
-
     let mut request = ChunkRequestQueue::new();
+    let mut render_reactor = RenderReactor::new();
+
+    render_reactor.init(&mut reactor, &render, &game, render_init_fun);
 
     event_loop.run(move |event, _, control_flow| {
         match event {
@@ -158,8 +166,8 @@ pub fn run_event_loop(state: AppState, reactor: Reactor<Message>) {
                 let mut frame = render.display.draw();
                 prepare_frame(&mut render, &game, &mut request)
                     .expect("Error during frame preparation");
-                render_frame(&mut frame, &render, &game, &mut request)
-                    .expect("Error during rendering");
+                render_reactor.run(&mut frame, &render, &game, &mut request, RENDER_DISTANCE);
+                render_frame(&mut frame, &render, &game).expect("Error during rendering");
                 frame.finish().expect("Error during frame finish");
 
                 reactor.dispatch(Message::FinishedFrame {
@@ -184,14 +192,13 @@ pub fn run_event_loop(state: AppState, reactor: Reactor<Message>) {
     });
 }
 
-pub fn start_app(game_state: GameState, mut reactor: Reactor<Message>) {
+pub fn start_app(
+    game_state: GameState,
+    reactor: Reactor<Message>,
+    render_init_fun: Vec<RenderInit>,
+) {
     let (event_loop, display) = init();
     let render_state = ClientState::new(display, &game_state).expect("Can't create ClientState");
-
-    render_state
-        .particles()
-        .borrow()
-        .add_handler(&mut reactor, game_state.world().blocks.clone());
 
     run_event_loop(
         AppState {
@@ -201,5 +208,6 @@ pub fn start_app(game_state: GameState, mut reactor: Reactor<Message>) {
             input: InputState::new(),
         },
         reactor,
+        render_init_fun,
     )
 }

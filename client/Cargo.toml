@@ -16,4 +16,3 @@ image = { version = "0.24", default-features = false, features = ["png"]}
 wolkenwelten-common = { path = "../common" }
 wolkenwelten-game = { path = "../game" }
 wolkenwelten-meshgen = { path = "../meshgen" }
-wolkenwelten-particles = { path = "../particles" }

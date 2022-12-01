@@ -576,8 +576,8 @@ impl Character {
         {
             let player = game.player_ref();
             let clock = game.clock_ref();
-            let drops = game.drops_ref();
-            let f = move |_reactor: &Reactor<Message>, _msg: Message| {
+            //let drops = game.drops_ref();
+            let f = move |reactor: &Reactor<Message>, _msg: Message| {
                 let mut player = player.borrow_mut();
                 let now = clock.borrow().elapsed().as_millis() as u64;
                 if player.may_act(now) {
@@ -589,8 +589,9 @@ impl Character {
                         let vel = player.direction();
                         let pos = player.pos() + vel * 2.0;
                         let vel = vel * 0.03;
-                        let mut drops = drops.borrow_mut();
-                        drops.add(pos, vel, item);
+                        reactor.defer(Message::CharacterDropItem { pos, vel, item });
+                        //let mut drops = drops.borrow_mut();
+                        //drops.add(pos, vel, item);
                     }
                 }
             };

@@ -10,7 +10,8 @@ use rand_xorshift::XorShiftRng;
 use rgb::RGBA8;
 use std::cell::RefCell;
 use std::rc::Rc;
-use wolkenwelten_common::{BlockType, Message, Reactor};
+use wolkenwelten_client::{RenderInitArgs, ShaderList};
+use wolkenwelten_common::{Message, Reactor};
 
 /// The single particle, will be sent as is to the shader as is.
 #[derive(Copy, Clone, Debug)]
@@ -23,15 +24,15 @@ implement_vertex!(ParticleVertex, pos normalize(false), color normalize(true));
 
 #[derive(Clone, Debug)]
 pub struct ParticleMesh {
-    particles: Rc<RefCell<Vec<ParticleVertex>>>,
-    rng: Rc<RefCell<XorShiftRng>>,
+    particles: Vec<ParticleVertex>,
+    rng: XorShiftRng,
 }
 
 impl Default for ParticleMesh {
     fn default() -> Self {
         Self {
-            particles: Rc::new(RefCell::new(vec![])),
-            rng: Rc::new(RefCell::new(XorShiftRng::from_entropy())),
+            particles: vec![],
+            rng: XorShiftRng::from_entropy(),
         }
     }
 }
@@ -44,25 +45,10 @@ impl ParticleMesh {
         Default::default()
     }
 
-    /// Return whether there are any particles currently active
-    pub fn is_empty(&self) -> bool {
-        self.particles.borrow().is_empty()
-    }
-
-    /// Return the amount of particles currently active
-    pub fn len(&self) -> usize {
-        self.particles.borrow().len()
-    }
-
     /// Here we do the actual particle updates, as soon as a particle's size goes below 1,
     /// or it is far away it will be removed from the list.
-    fn update(
-        particles: &mut Vec<ParticleVertex>,
-        player_pos: Vec3,
-        delta: f32,
-        render_distance: f32,
-    ) {
-        particles.retain_mut(|p| {
+    fn update(&mut self, player_pos: Vec3, delta: f32, render_distance: f32) {
+        self.particles.retain_mut(|p| {
             p.vel[1] -= 0.001 * delta;
             p.pos[0] += p.vel[0] * delta;
             p.pos[1] += p.vel[1] * delta;
@@ -79,20 +65,15 @@ impl ParticleMesh {
     }
 
     /// Return a new color with the saturation/lightness shifted by +-shift
-    fn hsv_shift(
-        rng: &mut XorShiftRng,
-        color: Srgb,
-        saturation_shift: f32,
-        lightness_shift: f32,
-    ) -> Srgb {
+    fn hsv_shift(&mut self, color: Srgb, saturation_shift: f32, lightness_shift: f32) -> Srgb {
         let sr = saturation_shift;
         let ls = lightness_shift;
         let color: Hsv = Hsv::from_color(color);
         let color = color.into_components();
         let color = (
             color.0,
-            color.1 * rng.gen_range(1.0 - sr..1.0 + sr),
-            color.2 * rng.gen_range(1.0 - ls..1.0 + ls),
+            color.1 * self.rng.gen_range(1.0 - sr..1.0 + sr),
+            color.2 * self.rng.gen_range(1.0 - ls..1.0 + ls),
         );
         let color = Hsv::from_components(color);
         Srgb::from_color(color)
@@ -100,91 +81,80 @@ impl ParticleMesh {
 
     /// Create a new effect that should resemble an explosion, power determines the
     /// overall size of the fireball.
-    fn fx_explosion(
-        particles: &mut Vec<ParticleVertex>,
-        rng: &mut XorShiftRng,
-        pos: Vec3,
-        power: f32,
-    ) {
+    fn fx_explosion(&mut self, pos: Vec3, power: f32) {
         let power = power * 0.66;
         for _ in 1..512 {
             let pos = [
-                pos.x + rng.gen_range(-power..power),
-                pos.y + rng.gen_range(-power..power),
-                pos.z + rng.gen_range(-power..power),
+                pos.x + self.rng.gen_range(-power..power),
+                pos.y + self.rng.gen_range(-power..power),
+                pos.z + self.rng.gen_range(-power..power),
                 192.0,
             ];
             let vel = [
-                rng.gen_range(-0.3..0.3),
-                rng.gen_range(-0.2..0.4),
-                rng.gen_range(-0.3..0.3),
+                self.rng.gen_range(-0.3..0.3),
+                self.rng.gen_range(-0.2..0.4),
+                self.rng.gen_range(-0.3..0.3),
                 -7.0,
             ];
             let color = [
-                rng.gen_range(0xf0..0xff),
-                rng.gen_range(0x30..0x50),
-                rng.gen_range(0x18..0x28),
+                self.rng.gen_range(0xf0..0xff),
+                self.rng.gen_range(0x30..0x50),
+                self.rng.gen_range(0x18..0x28),
                 0xFF,
             ];
-            particles.push(ParticleVertex { pos, vel, color });
+            self.particles.push(ParticleVertex { pos, vel, color });
         }
 
         let power = power * 0.66;
         for _ in 1..256 {
             let pos = [
-                pos.x + rng.gen_range(-power..power),
-                pos.y + rng.gen_range(-power..power),
-                pos.z + rng.gen_range(-power..power),
+                pos.x + self.rng.gen_range(-power..power),
+                pos.y + self.rng.gen_range(-power..power),
+                pos.z + self.rng.gen_range(-power..power),
                 256.0,
             ];
             let vel = [
-                rng.gen_range(-0.3..0.3),
-                rng.gen_range(-0.2..0.4),
-                rng.gen_range(-0.3..0.3),
+                self.rng.gen_range(-0.3..0.3),
+                self.rng.gen_range(-0.2..0.4),
+                self.rng.gen_range(-0.3..0.3),
                 -10.0,
             ];
             let color = [
-                rng.gen_range(0xc0..0xe0),
-                rng.gen_range(0x10..0x18),
-                rng.gen_range(0x04..0x0a),
+                self.rng.gen_range(0xc0..0xe0),
+                self.rng.gen_range(0x10..0x18),
+                self.rng.gen_range(0x04..0x0a),
                 0xFF,
             ];
-            particles.push(ParticleVertex { pos, vel, color });
+            self.particles.push(ParticleVertex { pos, vel, color });
         }
 
         let power = power * 0.66;
         for _ in 1..128 {
             let pos = [
-                pos.x + rng.gen_range(-power..power),
-                pos.y + rng.gen_range(-power..power),
-                pos.z + rng.gen_range(-power..power),
+                pos.x + self.rng.gen_range(-power..power),
+                pos.y + self.rng.gen_range(-power..power),
+                pos.z + self.rng.gen_range(-power..power),
                 320.0,
             ];
             let vel = [
-                rng.gen_range(-0.4..0.4),
-                rng.gen_range(-0.3..0.5),
-                rng.gen_range(-0.4..0.4),
+                self.rng.gen_range(-0.4..0.4),
+                self.rng.gen_range(-0.3..0.5),
+                self.rng.gen_range(-0.4..0.4),
                 -13.0,
             ];
             let color = [
-                rng.gen_range(0xa0..0xc0),
-                rng.gen_range(0x08..0x10),
-                rng.gen_range(0x04..0x0a),
+                self.rng.gen_range(0xa0..0xc0),
+                self.rng.gen_range(0x08..0x10),
+                self.rng.gen_range(0x04..0x0a),
                 0xFF,
             ];
-            particles.push(ParticleVertex { pos, vel, color });
+            self.particles.push(ParticleVertex { pos, vel, color });
         }
     }
 
     /// Create a breaking block effect, the color will be hsv shifted so that
     /// it doesn't look quite as boring/uniform.
-    fn fx_block_break(
-        particles: &mut Vec<ParticleVertex>,
-        rng: &mut XorShiftRng,
-        pos: IVec3,
-        color: [RGBA8; 2],
-        part_count: usize,
-    ) {
+    fn fx_block_break(&mut self, pos: IVec3, color: [RGBA8; 2], part_count: usize) {
         for color in color.iter() {
             let color: Srgb = Srgb::from_components((
                 color.r as f32 / 256.0,
@@ -193,159 +163,30 @@ impl ParticleMesh {
             ));
             for _ in 0..part_count {
                 let pos = [
-                    pos.x as f32 + rng.gen_range(0.0..1.0),
-                    pos.y as f32 + rng.gen_range(0.0..1.0),
-                    pos.z as f32 + rng.gen_range(0.0..1.0),
+                    pos.x as f32 + self.rng.gen_range(0.0..1.0),
+                    pos.y as f32 + self.rng.gen_range(0.0..1.0),
+                    pos.z as f32 + self.rng.gen_range(0.0..1.0),
                     200.0,
                 ];
                 let vel = [
-                    rng.gen_range(-0.02..0.02),
-                    rng.gen_range(0.00..0.04),
-                    rng.gen_range(-0.02..0.02),
+                    self.rng.gen_range(-0.02..0.02),
+                    self.rng.gen_range(0.00..0.04),
+                    self.rng.gen_range(-0.02..0.02),
                     -13.0,
                 ];
 
-                let color = Self::hsv_shift(rng, color, 0.1, 0.1);
+                let color = self.hsv_shift(color, 0.1, 0.1);
                 let color: [u8; 3] = color.into_format().into_raw();
                 let color = [color[0], color[1], color[2], 0xFF];
-                particles.push(ParticleVertex { pos, vel, color });
+                self.particles.push(ParticleVertex { pos, vel, color });
             }
         }
     }
 
     /// Create a new block placement effect, for now it just relays everything to the block break
     /// method.
-    fn fx_block_place(
-        particles: &mut Vec<ParticleVertex>,
-        rng: &mut XorShiftRng,
-        pos: IVec3,
-        color: [RGBA8; 2],
-    ) {
-        Self::fx_block_break(particles, rng, pos, color, 64)
-    }
-
-    pub fn add_handler(&self, reactor: &mut Reactor<Message>, blocks: Rc<RefCell<Vec<BlockType>>>) {
-        {
-            let particles = self.particles.clone();
-            let last_update = RefCell::new(0);
-            let f = move |_: &Reactor<Message>, msg: Message| {
-                if let Message::DrawFrame {
-                    player_pos,
-                    ticks,
-                    render_distance,
-                    ..
-                } = msg
-                {
-                    let delta = (ticks - *last_update.borrow()) as f32 / (1000.0 / 60.0);
-                    last_update.replace(ticks);
-                    Self::update(
-                        &mut particles.borrow_mut(),
-                        player_pos,
-                        delta,
-                        render_distance,
-                    )
-                }
-            };
-            reactor.add_sink(
-                Message::DrawFrame {
-                    player_pos: Vec3::ZERO,
-                    ticks: 0,
-                    render_distance: 0.0,
-                },
-                Box::new(f),
-            );
-        }
-        {
-            let particles = self.particles.clone();
-            let rng = self.rng.clone();
-            let blocks = blocks.clone();
-            let f = move |_: &Reactor<Message>, msg: Message| {
-                if let Message::BlockBreak { pos, block } = msg {
-                    if let Some(bt) = blocks.borrow().get(block as usize) {
-                        let color = bt.colors();
-                        Self::fx_block_break(
-                            &mut particles.borrow_mut(),
-                            &mut rng.borrow_mut(),
-                            pos,
-                            color,
-                            128,
-                        );
-                    }
-                }
-            };
-            reactor.add_sink(
-                Message::BlockBreak {
-                    pos: IVec3::ZERO,
-                    block: 0,
-                },
-                Box::new(f),
-            );
-        }
-        {
-            let particles = self.particles.clone();
-            let rng = self.rng.clone();
-            let blocks = blocks.clone();
-            let f = move |_: &Reactor<Message>, msg: Message| {
-                if let Message::BlockMine { pos, block } = msg {
-                    if let Some(bt) = blocks.borrow().get(block as usize) {
-                        let color = bt.colors();
-                        Self::fx_block_break(
-                            &mut particles.borrow_mut(),
-                            &mut rng.borrow_mut(),
-                            pos,
-                            color,
-                            2,
-                        );
-                    }
-                }
-            };
-            reactor.add_sink(
-                Message::BlockMine {
-                    pos: IVec3::ZERO,
-                    block: 0,
-                },
-                Box::new(f),
-            );
-        }
-        {
-            let particles = self.particles.clone();
-            let rng = self.rng.clone();
-            let f = move |_: &Reactor<Message>, msg: Message| {
-                if let Message::BlockPlace { pos, block } = msg {
-                    if let Some(bt) = blocks.borrow().get(block as usize) {
-                        let color = bt.colors();
-                        Self::fx_block_place(
-                            &mut particles.borrow_mut(),
-                            &mut rng.borrow_mut(),
-                            pos,
-                            color,
-                        );
-                    }
-                }
-            };
-            reactor.add_sink(
-                Message::BlockPlace {
-                    pos: IVec3::ZERO,
-                    block: 0,
-                },
-                Box::new(f),
-            );
-        }
-        {
-            let particles = self.particles.clone();
-            let rng = self.rng.clone();
-            let f = move |_: &Reactor<Message>, msg: Message| {
-                if let Message::EntityCollision { pos } = msg {
-                    Self::fx_explosion(
-                        &mut particles.borrow_mut(),
-                        &mut rng.borrow_mut(),
-                        pos,
-                        9.0,
-                    );
-                }
-            };
-            reactor.add_sink(Message::EntityCollision { pos: Vec3::ZERO }, Box::new(f));
-        }
+    fn fx_block_place(&mut self, pos: IVec3, color: [RGBA8; 2]) {
+        self.fx_block_break(pos, color, 64)
     }
 
     /// Draw all the active particles
@@ -356,12 +197,11 @@ impl ParticleMesh {
         program: &glium::Program,
         mvp: &Mat4,
     ) -> Result<(), glium::DrawError> {
-        let particles = self.particles.borrow();
-        if particles.is_empty() {
+        if self.particles.is_empty() {
             return Ok(());
         }
 
-        let data = particles.as_slice();
+        let data = self.particles.as_slice();
         let buffer: glium::VertexBuffer<ParticleVertex> =
             glium::VertexBuffer::dynamic(display, data).unwrap();
         let mat_mvp = mvp.to_cols_array_2d();
@@ -385,4 +225,121 @@ impl ParticleMesh {
             },
         )
     }
+}
+
+pub fn init(args: RenderInitArgs) -> RenderInitArgs {
+    let particles: Rc<RefCell<ParticleMesh>> = Rc::new(RefCell::new(ParticleMesh::new()));
+    {
+        let program = ShaderList::new_point_program(
+            &args.fe.display,
+            include_str!("./particle.vert"),
+            include_str!("./particle.frag"),
+        )
+        .expect("Error while compiling particle shader");
+        let particles = particles.clone();
+        args.render_reactor
+            .post_world_render
+            .push(Box::new(move |args| {
+                let mvp = args.projection * args.view;
+                {
+                    let particles = particles.borrow();
+                    let _ = particles.draw(args.frame, &args.fe.display, &program, &mvp);
+                }
+                args
+            }));
+    }
+    {
+        let particles = particles.clone();
+        let last_update = RefCell::new(0);
+        let f = move |_: &Reactor<Message>, msg: Message| {
+            if let Message::DrawFrame {
+                player_pos,
+                ticks,
+                render_distance,
+                ..
+            } = msg
+            {
+                let delta = (ticks - *last_update.borrow()) as f32 / (1000.0 / 60.0);
+                last_update.replace(ticks);
+                particles
+                    .borrow_mut()
+                    .update(player_pos, delta, render_distance)
+            }
+        };
+        args.reactor.add_sink(
+            Message::DrawFrame {
+                player_pos: Vec3::ZERO,
+                ticks: 0,
+                render_distance: 0.0,
+            },
+            Box::new(f),
+        );
+    }
+    {
+        let particles = particles.clone();
+        let blocks = args.game.world().blocks.clone();
+        let f = move |_: &Reactor<Message>, msg: Message| {
+            if let Message::BlockBreak { pos, block } = msg {
+                if let Some(bt) = blocks.borrow().get(block as usize) {
+                    let color = bt.colors();
+                    particles.borrow_mut().fx_block_break(pos, color, 128);
+                }
+            }
+        };
+        args.reactor.add_sink(
+            Message::BlockBreak {
+                pos: IVec3::ZERO,
+                block: 0,
+            },
+            Box::new(f),
+        );
+    }
+    {
+        let particles = particles.clone();
+        let blocks = args.game.world().blocks.clone();
+        let f = move |_: &Reactor<Message>, msg: Message| {
+            if let Message::BlockMine { pos, block } = msg {
+                if let Some(bt) = blocks.borrow().get(block as usize) {
+                    let color = bt.colors();
+                    particles.borrow_mut().fx_block_break(pos, color, 2);
+                }
+            }
+        };
+        args.reactor.add_sink(
+            Message::BlockMine {
+                pos: IVec3::ZERO,
+                block: 0,
+            },
+            Box::new(f),
+        );
+    }
+    {
+        let particles = particles.clone();
+        let blocks = args.game.world().blocks.clone();
+        let f = move |_: &Reactor<Message>, msg: Message| {
+            if let Message::BlockPlace { pos, block } = msg {
+                if let Some(bt) = blocks.borrow().get(block as usize) {
+                    let color = bt.colors();
+                    particles.borrow_mut().fx_block_place(pos, color);
+                }
+            }
+        };
+        args.reactor.add_sink(
+            Message::BlockPlace {
+                pos: IVec3::ZERO,
+                block: 0,
+            },
+            Box::new(f),
+        );
+    }
+    {
+        let f = move |_: &Reactor<Message>, msg: Message| {
+            if let Message::EntityCollision { pos } = msg {
+                particles.borrow_mut().fx_explosion(pos, 9.0);
+            }
+        };
+        args.reactor
+            .add_sink(Message::EntityCollision { pos: Vec3::ZERO }, Box::new(f));
+    }
+    args
 }

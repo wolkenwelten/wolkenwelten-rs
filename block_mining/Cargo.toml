@@ -1,12 +1,14 @@
 [package]
-name = "wolkenwelten-sound"
+name = "wolkenwelten-block-mining"
 version = "0.0.4"
 edition = "2021"
 license = "AGPL-3.0-or-later"
 homepage = "https://wolkenwelten.net"
 
 [dependencies]
-rodio = {version = "0.16", default-features = false, features = ["vorbis"]}
+anyhow = "1.0"
+glium = "0.32"
+glam = "0.22"
 wolkenwelten-client = { path = "../client" }
 wolkenwelten-common = { path = "../common" }
-glam = "0.22"
+wolkenwelten-game = { path = "../game" }

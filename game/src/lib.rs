@@ -2,14 +2,11 @@
 // All rights reserved. AGPL-3.0+ license.
 extern crate glam;
 
-pub use self::block_mining::BlockMiningMap;
 pub use self::character::{Character, CharacterAnimation, RaycastReturn};
 pub use self::chungus::Chungus;
 pub use self::entity::Entity;
 pub use self::game_log::GameLog;
-pub use self::grenade::Grenade;
 pub use self::health::Health;
-pub use self::item_drop::{ItemDrop, ItemDropList};
 pub use self::state::GameState;
 
 mod block_mining;
@@ -18,8 +15,6 @@ mod character;
 mod chungus;
 mod entity;
 mod game_log;
-mod grenade;
 mod health;
-mod item_drop;
 mod state;
 mod worldgen;

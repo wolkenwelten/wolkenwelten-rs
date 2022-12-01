@@ -1,0 +1,192 @@
+// Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
+// All rights reserved. AGPL-3.0+ license.
+use anyhow::Result;
+use glam::{IVec3, Mat4, Vec3};
+use std::cell::RefCell;
+use std::rc::Rc;
+use wolkenwelten_client::{ClientState, RenderInitArgs, RenderPassArgs};
+use wolkenwelten_common::{BlockItem, Item, Message, Reactor};
+use wolkenwelten_game::{Chungus, Entity};
+
+const ITEM_DROP_PICKUP_RANGE: f32 = 1.5;
+
+#[derive(Clone, Default, Debug)]
+struct ItemDrop {
+    item: Item,
+    ent: Entity,
+}
+
+fn item_drop_draw(
+    frame: &mut glium::Frame,
+    fe: &ClientState,
+    entity: &ItemDrop,
+    view: &Mat4,
+    projection: &Mat4,
+) -> Result<()> {
+    let rot = entity.rot();
+    let pos = entity.pos();
+    let model = Mat4::from_scale(Vec3::new(1.0 / 32.0, 1.0 / 32.0, 1.0 / 32.0));
+    let model = Mat4::from_rotation_x(rot.x.to_radians()) * model;
+    let model = Mat4::from_rotation_y(rot.y.to_radians()) * model;
+    let model = Mat4::from_translation(pos) * model;
+    let vp = projection.mul_mat4(view);
+    let mvp = vp.mul_mat4(&model);
+
+    match entity.item() {
+        Item::Block(bi) => fe.meshes.blocks[bi.block as usize].draw(
+            frame,
+            &fe.textures.blocks_raw,
+            &fe.shaders.mesh,
+            &mvp,
+        ),
+        Item::None => Ok(()),
+        /*
+        _ => fe.meshes
+            .bag
+            .draw(frame, fe.block_indeces(), &fe.shaders.block, &mvp, 1.0)
+        */
+    }
+}
+
+impl ItemDrop {
+    pub fn new(pos: Vec3, item: Item) -> Self {
+        let mut ent = Entity::new();
+        ent.set_pos(pos);
+        Self { item, ent }
+    }
+    #[inline]
+    pub fn pos(&self) -> Vec3 {
+        self.ent.pos()
+    }
+    #[inline]
+    pub fn rot(&self) -> Vec3 {
+        self.ent.rot()
+    }
+    #[inline]
+    pub fn item(&self) -> Item {
+        self.item
+    }
+
+    #[inline]
+    pub fn set_vel(&mut self, vel: Vec3) {
+        self.ent.set_vel(vel);
+    }
+
+    #[inline]
+    pub fn tick(&mut self, world: &Chungus) -> bool {
+        self.ent.tick(world)
+    }
+}
+
+#[derive(Clone, Default, Debug)]
+struct ItemDropList {
+    drops: Vec<ItemDrop>,
+}
+
+impl ItemDropList {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn add_from_block_break(&mut self, pos: IVec3, block: u8) {
+        let pos = pos.as_vec3() + Vec3::new(0.5, 0.5, 0.5);
+        let item = BlockItem::new(block, 1).into();
+        self.drops.push(ItemDrop::new(pos, item));
+    }
+
+    pub fn add(&mut self, pos: Vec3, vel: Vec3, item: Item) {
+        let mut drop = ItemDrop::new(pos, item);
+        drop.set_vel(vel);
+        self.drops.push(drop);
+    }
+
+    #[inline]
+    pub fn iter(&self) -> std::slice::Iter<ItemDrop> {
+        self.drops.iter()
+    }
+
+    pub fn tick_all(&mut self, reactor: &Reactor<Message>, player_pos: Vec3, world: &Chungus) {
+        for index in (0..self.drops.len()).rev() {
+            self.drops[index].tick(world);
+            let dist = self.drops[index].pos() - player_pos;
+            let dd = dist.x * dist.x + dist.y * dist.y + dist.z * dist.z;
+            if dd > (256.0 * 256.0) {
+                self.drops.swap_remove(index); // Remove when far enough away
+            } else if dd < ITEM_DROP_PICKUP_RANGE * ITEM_DROP_PICKUP_RANGE {
+                reactor.dispatch(Message::ItemDropPickup {
+                    pos: self.drops[index].pos(),
+                    item: self.drops[index].item(),
+                });
+                self.drops.swap_remove(index);
+            }
+        }
+    }
+}
+
+pub fn init(args: RenderInitArgs) -> RenderInitArgs {
+    let drops: Rc<RefCell<ItemDropList>> = Rc::new(RefCell::new(ItemDropList::new()));
+    {
+        let player = args.game.player_ref();
+        let drops = drops.clone();
+        let world = args.game.world_ref();
+        let f = move |reactor: &Reactor<Message>, _msg: Message| {
+            let player_pos = player.borrow().pos();
+            drops
+                .borrow_mut()
+                .tick_all(reactor, player_pos, &world.borrow());
+        };
+        args.reactor
+            .add_sink(Message::GameTick { ticks: 0 }, Box::new(f));
+    }
+    {
+        let drops = drops.clone();
+        let f = move |_reactor: &Reactor<Message>, msg: Message| {
+            if let Message::BlockBreak { pos, block } = msg {
+                drops.borrow_mut().add_from_block_break(pos, block)
+            }
+        };
+        args.reactor.add_sink(
+            Message::BlockBreak {
+                pos: IVec3::ZERO,
+                block: 0,
+            },
+            Box::new(f),
+        );
+    }
+    {
+        let drops = drops.clone();
+        let f = move |_reactor: &Reactor<Message>, msg: Message| {
+            if let Message::CharacterDropItem { pos, vel, item } = msg {
+                drops.borrow_mut().add(pos, vel, item);
+            }
+        };
+        args.reactor.add_sink(
+            Message::CharacterDropItem {
+                pos: Vec3::ZERO,
+                vel: Vec3::ZERO,
+                item: Item::None,
+            },
+            Box::new(f),
+        );
+    }
+    {
+        let drops = drops.clone();
+        args.render_reactor.entity_provider.push(Box::new(move |v| {
+            for e in drops.borrow().iter() {
+                v.push(e.pos());
+            }
+        }));
+    }
+    {
+        args.render_reactor
+            .post_world_render
+            .push(Box::new(move |args: RenderPassArgs| {
+                for entity in drops.borrow().iter() {
+                    let _ =
+                        item_drop_draw(args.frame, args.fe, entity, &args.view, &args.projection);
+                }
+                args
+            }));
+    }
+    args
+}

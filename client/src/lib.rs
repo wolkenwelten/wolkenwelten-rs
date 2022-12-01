@@ -7,13 +7,15 @@ pub use self::frustum::Frustum;
 pub use self::meshes::{BlockMesh, Mesh, MeshVertex, VoxelMesh};
 pub use self::queue::QueueEntry;
 pub use self::render::{prepare_frame, render_frame, FADE_DISTANCE, RENDER_DISTANCE};
-pub use self::state::ClientState;
+pub use self::render_reactor::{RenderInit, RenderInitArgs, RenderPassArgs, RenderReactor};
+pub use self::state::{ClientState, ShaderList};
 pub use self::texture::{Texture, TextureArray};
 
 mod frustum;
 mod meshes;
 mod queue;
 mod render;
+mod render_reactor;
 mod state;
 mod texture;
 

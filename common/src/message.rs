@@ -49,6 +49,11 @@ pub enum Message {
     CharacterStep {
         pos: Vec3,
     },
+    CharacterDropItem {
+        pos: Vec3,
+        vel: Vec3,
+        item: Item,
+    },
     BlockMine {
         pos: IVec3,
         block: u8,

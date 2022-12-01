@@ -8,8 +8,6 @@ pub struct ShaderList {
     pub block: glium::Program,
     pub mesh: glium::Program,
     pub text: glium::Program,
-    pub particle: glium::Program,
-    pub shadow: glium::Program,
 }
 
 /// This is the prefix that has to be prepended to all vertex shaders,
@@ -59,7 +57,7 @@ precision mediump sampler2DArray;
 impl ShaderList {
     /// Create a new shader program from 2 vert/frag source slices where the appropriate #version prefix
     /// will be automatically prepended
-    fn new_program(display: &glium::Display, vert: &str, frag: &str) -> Result<glium::Program> {
+    pub fn new_program(display: &glium::Display, vert: &str, frag: &str) -> Result<glium::Program> {
         let vert = format!("{}\n{}", VERT_PREFIX, vert);
         let frag = format!("{}\n{}", FRAG_PREFIX, frag);
         Ok(glium::Program::from_source(display, &vert, &frag, None)?)
@@ -70,7 +68,7 @@ impl ShaderList {
     ///
     /// This also sets the uses_point_size boolean so that GL_VERTEX_PROGRAM_POINT_SIZE is enabled before
     /// doing the actual draw calls.
-    fn new_point_program(
+    pub fn new_point_program(
         display: &glium::Display,
         vert: &str,
         frag: &str,
@@ -109,23 +107,7 @@ impl ShaderList {
             include_str!("../shaders/block.vert"),
             include_str!("../shaders/block.frag"),
         )?;
-        let particle = Self::new_point_program(
-            display,
-            include_str!("../shaders/particle.vert"),
-            include_str!("../shaders/particle.frag"),
-        )?;
-        let shadow = Self::new_point_program(
-            display,
-            include_str!("../shaders/shadow.vert"),
-            include_str!("../shaders/shadow.frag"),
-        )?;
 
-        Ok(Self {
-            block,
-            mesh,
-            particle,
-            shadow,
-            text,
-        })
+        Ok(Self { block, mesh, text })
     }
 }

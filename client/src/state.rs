@@ -7,7 +7,6 @@ use glam::{f32::Vec3, i32::IVec3};
 use std::{collections::HashMap, time::Instant};
 use wolkenwelten_common::CHUNK_SIZE;
 use wolkenwelten_game::{Character, GameState};
-use wolkenwelten_particles::ParticleMesh;
 
 pub mod static_meshes;
 pub mod static_shaders;
@@ -15,8 +14,6 @@ pub mod static_textures;
 pub use self::static_meshes::MeshList;
 pub use self::static_shaders::ShaderList;
 pub use self::static_textures::TextureList;
-use std::cell::RefCell;
-use std::rc::Rc;
 
 #[derive(Debug)]
 pub struct ClientState {
@@ -34,7 +31,6 @@ pub struct ClientState {
     pub textures: TextureList,
 
     pub ui_mesh: TextMesh,
-    particles: Rc<RefCell<ParticleMesh>>,
     show_debug_info: bool,
 
     ticks: u64,
@@ -52,7 +48,6 @@ impl ClientState {
         let textures = TextureList::new(&display, world)?;
         const MAX_SQUARE: usize = CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE * 6;
         let block_index_buffer = BlockMesh::gen_index_buffer(&display, MAX_SQUARE / 4)?;
-        let particles = Rc::new(RefCell::new(ParticleMesh::new()));
 
         Ok(Self {
             instant: Instant::now(),
@@ -67,7 +62,6 @@ impl ClientState {
             shaders,
             textures,
             ui_mesh,
-            particles,
 
             show_debug_info: cfg!(debug_assertions),
             cur_fov: 90.0,
@@ -100,11 +94,6 @@ impl ClientState {
     #[inline]
     pub fn block_indeces(&self) -> &glium::IndexBuffer<u32> {
         &self.block_index_buffer
-    }
-
-    #[inline]
-    pub fn particles(&self) -> Rc<RefCell<ParticleMesh>> {
-        self.particles.clone()
     }
 
     #[inline]

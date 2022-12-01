@@ -1,6 +1,6 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
-use crate::{meshes::BlockMesh, ClientState, Frustum, QueueEntry};
+use crate::{meshes::BlockMesh, ClientState, Frustum, QueueEntry, RenderPassArgs};
 use anyhow::Result;
 use glam::{IVec3, Mat4};
 use glium::{uniform, Surface};
@@ -58,7 +58,7 @@ pub fn handle_requests(
     Ok(())
 }
 
-pub fn draw(
+fn chungus_draw(
     frame: &mut glium::Frame,
     fe: &ClientState,
     game: &GameState,
@@ -148,4 +148,11 @@ pub fn draw(
         }
     }
     Ok(())
+}
+
+pub fn chungus_pass(args: RenderPassArgs) -> RenderPassArgs {
+    let mvp = args.projection * args.view;
+    chungus_draw(args.frame, args.fe, args.game, &mvp, args.request)
+        .expect("Error while drawing voxel chunks");
+    args
 }

@@ -7,13 +7,8 @@ use glium::{uniform, Surface};
 use wolkenwelten_common::{ChunkRequestQueue, CHUNK_SIZE};
 use wolkenwelten_game::{Character, GameState};
 
-mod block_mining;
-mod chungus;
-mod grenade;
+pub mod chungus;
 mod held_item;
-mod item_drop;
-mod shadow;
-mod sky;
 
 pub const RENDER_DISTANCE: f32 = if cfg!(target_arch = "arm") || cfg!(target_arch = "aarch64") {
     156.0
@@ -45,49 +40,21 @@ pub fn prepare_frame(
     Ok(())
 }
 
-/// Render the game view to `frame`
-fn render_game(
-    frame: &mut glium::Frame,
-    fe: &ClientState,
-    game: &GameState,
-    projection: &Mat4,
-    request: &mut ChunkRequestQueue,
-) -> Result<()> {
-    let view = Mat4::from_rotation_x(game.player().rot[1].to_radians());
-    let view = view * Mat4::from_rotation_y(game.player().rot[0].to_radians());
-    sky::draw(frame, fe, &view, projection)?;
-
-    let view = view * Mat4::from_translation(-game.player().pos);
-    let mvp = *projection * view;
-    {
-        let particles = fe.particles();
-        let particles = particles.borrow();
-        particles.draw(frame, &fe.display, &fe.shaders.particle, &mvp)?;
-    }
-
-    for entity in game.grenades().iter() {
-        grenade::draw(frame, fe, entity, &view, projection)?;
-    }
-    for entity in game.drops().iter() {
-        item_drop::draw(frame, fe, entity, &view, projection)?;
-    }
-    chungus::draw(frame, fe, game, &mvp, request)?;
-    shadow::draw(frame, fe, game, &mvp)?;
-    block_mining::draw(frame, fe, game, &mvp)?;
-    Ok(())
-}
-
-/// Render the UI layered on top of the game view
-fn render_ui(
-    frame: &mut glium::Frame,
-    fe: &ClientState,
-    game: &GameState,
-    projection: &Mat4,
-) -> Result<()> {
-    frame.clear_depth(4095.0);
-    held_item::draw(frame, fe, game, projection)?;
-
+/// Render an entire frame, including the game view, as well as the UI.
+/// Everything needs to be prepared beforehand, since only the frame itself is mutable.
+/// If you need to build a persistent buffer somewhere, you need to do so during the `prepare_frame` call.
+pub fn render_frame(frame: &mut glium::Frame, fe: &ClientState, game: &GameState) -> Result<()> {
     let (window_width, window_height) = fe.window_size();
+    let projection = Mat4::perspective_rh_gl(
+        fe.fov().to_radians(),
+        (window_width as f32) / (window_height as f32),
+        0.1,
+        RENDER_DISTANCE + CHUNK_SIZE as f32 * 2.0,
+    );
+
+    frame.clear_depth(4095.0);
+    held_item::draw(frame, fe, game, &projection)?;
+
     let projection = Mat4::orthographic_rh_gl(
         0.0,
         window_width as f32,
@@ -122,34 +89,5 @@ fn render_ui(
             ..Default::default()
         },
     )?;
-    Ok(())
-}
-
-/// Render an entire frame, including the game view, as well as the UI.
-/// Everything needs to be prepared beforehand, since only the frame itself is mutable.
-/// If you need to build a persistent buffer somewhere, you need to do so during the `prepare_frame` call.
-pub fn render_frame(
-    frame: &mut glium::Frame,
-    fe: &ClientState,
-    game: &GameState,
-    request: &mut ChunkRequestQueue,
-) -> Result<()> {
-    let (window_width, window_height) = fe.window_size();
-    let projection = Mat4::perspective_rh_gl(
-        fe.fov().to_radians(),
-        (window_width as f32) / (window_height as f32),
-        0.1,
-        RENDER_DISTANCE + CHUNK_SIZE as f32 * 2.0,
-    );
-
-    frame.clear(
-        None,
-        Some((0.32, 0.63, 0.96, 1.0)),
-        true,
-        Some(65535.0),
-        None,
-    );
-    render_game(frame, fe, game, &projection, request)?;
-    render_ui(frame, fe, game, &projection)?;
     Ok(())
 }

@@ -1,7 +1,6 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
-use super::{Character, Chungus, GameLog, Grenade};
-use crate::{BlockMiningMap, ItemDropList};
+use super::{Character, Chungus, GameLog};
 use anyhow::Result;
 use glam::IVec3;
 use std::{
@@ -20,11 +19,6 @@ pub struct GameState {
     clock: Rc<RefCell<Instant>>,
     pub ticks_elapsed: u64,
     world: Rc<RefCell<Chungus>>,
-
-    grenades: Rc<RefCell<Vec<Grenade>>>,
-    drops: Rc<RefCell<ItemDropList>>,
-    mining: Rc<RefCell<BlockMiningMap>>,
-
     player: Rc<RefCell<Character>>,
     running: Rc<RefCell<bool>>,
     log: Rc<RefCell<GameLog>>,
@@ -39,10 +33,7 @@ impl GameState {
             running: Rc::new(RefCell::new(true)),
             player,
             log: Rc::new(RefCell::new(GameLog::new())),
-            grenades: Rc::new(RefCell::new(Vec::new())),
             ticks_elapsed: 0,
-            drops: Rc::new(RefCell::new(ItemDropList::new())),
-            mining: Rc::new(RefCell::new(BlockMiningMap::new())),
             world: Rc::new(RefCell::new(Chungus::new()?)),
         })
     }
@@ -55,16 +46,6 @@ impl GameState {
             .as_millis()
             .try_into()
             .unwrap()
-    }
-
-    #[inline]
-    pub fn get_entity_count(&self) -> usize {
-        self.grenades.borrow().len()
-    }
-
-    #[inline]
-    pub fn push_entity(&mut self, e: Grenade) {
-        self.grenades.borrow_mut().push(e);
     }
 
     #[inline]
@@ -89,36 +70,6 @@ impl GameState {
     #[inline]
     pub fn log(&self) -> Ref<GameLog> {
         self.log.borrow()
-    }
-
-    #[inline]
-    pub fn drops(&self) -> Ref<ItemDropList> {
-        self.drops.borrow()
-    }
-
-    #[inline]
-    pub fn drops_mut(&self) -> RefMut<ItemDropList> {
-        self.drops.borrow_mut()
-    }
-
-    #[inline]
-    pub fn drops_ref(&self) -> Rc<RefCell<ItemDropList>> {
-        self.drops.clone()
-    }
-
-    #[inline]
-    pub fn mining(&self) -> Ref<BlockMiningMap> {
-        self.mining.borrow()
-    }
-
-    #[inline]
-    pub fn mining_mut(&self) -> RefMut<BlockMiningMap> {
-        self.mining.borrow_mut()
-    }
-
-    #[inline]
-    pub fn mining_ref(&self) -> Rc<RefCell<BlockMiningMap>> {
-        self.mining.clone()
     }
 
     #[inline]
@@ -151,22 +102,9 @@ impl GameState {
         self.clock.clone()
     }
 
-    #[inline]
-    pub fn grenades(&self) -> Ref<Vec<Grenade>> {
-        self.grenades.borrow()
-    }
-
-    #[inline]
-    pub fn grenades_ref(&self) -> Rc<RefCell<Vec<Grenade>>> {
-        self.grenades.clone()
-    }
-
     pub fn add_handler(&self, reactor: &mut Reactor<Message>) {
-        Grenade::add_handler(reactor, self);
         Character::add_handler(reactor, self);
-        BlockMiningMap::add_handler(reactor, self);
         Chungus::add_handler(reactor, self);
-        ItemDropList::add_handler(reactor, self);
 
         {
             let running = self.running.clone();

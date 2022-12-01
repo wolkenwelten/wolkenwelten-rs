@@ -42,6 +42,10 @@ impl GameLog {
         self.entries.len()
     }
     #[inline]
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
+    #[inline]
     pub fn entries(&self) -> &VecDeque<String> {
         &self.entries
     }
