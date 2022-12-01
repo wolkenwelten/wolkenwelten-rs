@@ -25,12 +25,12 @@ pub fn draw(
     game: &GameState,
     projection: &Mat4,
 ) -> Result<()> {
-    let t = (fe.ticks() as f32 / 512.0).sin();
+    let t = (fe.ticks() as f32 / 384.0).sin();
     let r = get_animation_r(game.player().animation());
     let model = Mat4::from_scale(Vec3::new(1.0 / 16.0, 1.0 / 16.0, 1.0 / 16.0));
-    let model = Mat4::from_rotation_x((t * 3.0 - r * 20.0).to_radians()) * model;
-    let model = Mat4::from_rotation_y((-10.0 + t * 1.0).to_radians()) * model;
-    let pos = Vec3::new(1.35, -0.9 + t * 0.05, -1.0 - r * 0.5);
+    let model = Mat4::from_rotation_x((t * 3.0 - r * 60.0 + 20.0).to_radians()) * model;
+    let model = Mat4::from_rotation_y((-10.0 + t * 2.0).to_radians()) * model;
+    let pos = Vec3::new(1.35, -0.9 + t * 0.05, -0.7 - r * 0.5);
     let model = Mat4::from_translation(pos) * model;
     let mvp = projection.mul_mat4(&model);
     let item = game.player().item();
