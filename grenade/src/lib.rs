@@ -132,7 +132,7 @@ pub fn init(args: RenderInitArgs) -> RenderInitArgs {
         let grenades = grenades.clone();
         args.render_reactor.entity_provider.push(Box::new(move |v| {
             for e in grenades.borrow().iter() {
-                v.push(e.pos());
+                v.push(e.ent.clone());
             }
         }));
     }

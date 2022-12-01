@@ -2,10 +2,10 @@
 // All rights reserved. AGPL-3.0+ license.
 use super::render::chungus::chungus_pass;
 use crate::ClientState;
-use glam::{Mat4, Vec3};
+use glam::Mat4;
 use glium::Surface;
 use wolkenwelten_common::{ChunkRequestQueue, Message, Reactor, CHUNK_SIZE};
-use wolkenwelten_game::GameState;
+use wolkenwelten_game::{Entity, GameState};
 
 pub struct RenderPassArgs<'a> {
     pub frame: &'a mut glium::Frame,
@@ -27,7 +27,7 @@ pub struct RenderInitArgs<'a> {
 
 pub type RenderPass = Box<dyn Fn(RenderPassArgs) -> RenderPassArgs>;
 pub type RenderInit = Box<dyn Fn(RenderInitArgs) -> RenderInitArgs>;
-pub type EntityProvider = Box<dyn Fn(&mut Vec<Vec3>)>;
+pub type EntityProvider = Box<dyn Fn(&mut Vec<Entity>)>;
 pub struct RenderReactor {
     pub pre_world_render: Vec<RenderPass>,
     pub world_render: Vec<RenderPass>,
@@ -85,7 +85,7 @@ impl RenderReactor {
         Default::default()
     }
 
-    pub fn entity_pos(&self) -> Vec<Vec3> {
+    pub fn entity_pos(&self) -> Vec<Entity> {
         let mut r = vec![];
         for p in self.entity_provider.iter() {
             p(&mut r);

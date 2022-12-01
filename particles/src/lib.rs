@@ -189,6 +189,34 @@ impl ParticleMesh {
         self.fx_block_break(pos, color, 64)
     }
 
+    fn fx_hurt(&mut self, pos: Vec3, color: [RGBA8; 2], part_count: usize) {
+        for color in color.iter() {
+            let color: Srgb = Srgb::from_components((
+                color.r as f32 / 256.0,
+                color.g as f32 / 256.0,
+                color.b as f32 / 256.0,
+            ));
+            for _ in 0..part_count {
+                let vel = [
+                    self.rng.gen_range(-0.06..0.06),
+                    self.rng.gen_range(0.00..0.1),
+                    self.rng.gen_range(-0.06..0.06),
+                    -4.0,
+                ];
+
+                let color = self.hsv_shift(color, 0.1, 0.1);
+                let color: [u8; 3] = color.into_format().into_raw();
+                let color = [color[0], color[1], color[2], 0xFF];
+
+                self.particles.push(ParticleVertex {
+                    pos: pos.extend(80.0).to_array(),
+                    vel,
+                    color,
+                });
+            }
+        }
+    }
+
     /// Draw all the active particles
     pub fn draw(
         &self,
@@ -331,6 +359,33 @@ pub fn init(args: RenderInitArgs) -> RenderInitArgs {
             },
             Box::new(f),
         );
+    }
+    {
+        let particles = particles.clone();
+        let f = move |_: &Reactor<Message>, msg: Message| {
+            if let Message::MobHurt { pos, .. } = msg {
+                let color = [RGBA8::new(255, 30, 5, 192), RGBA8::new(225, 15, 3, 192)];
+                particles.borrow_mut().fx_hurt(pos, color, 48);
+            }
+        };
+        args.reactor.add_sink(
+            Message::MobHurt {
+                pos: Vec3::ZERO,
+                damage: 0,
+            },
+            Box::new(f),
+        );
+    }
+    {
+        let particles = particles.clone();
+        let f = move |_: &Reactor<Message>, msg: Message| {
+            if let Message::MobHurt { pos, .. } = msg {
+                let color = [RGBA8::new(255, 10, 3, 192), RGBA8::new(225, 5, 1, 192)];
+                particles.borrow_mut().fx_hurt(pos, color, 256);
+            }
+        };
+        args.reactor
+            .add_sink(Message::MobDied { pos: Vec3::ZERO }, Box::new(f));
     }
     {
         let f = move |_: &Reactor<Message>, msg: Message| {

@@ -1,18 +1,14 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
-extern crate wolkenwelten_client;
 extern crate wolkenwelten_game;
 
-mod input;
-pub use input::InputState;
+pub use super::input::InputState;
 
 use winit::event::{Event, WindowEvent};
 use winit::event_loop::{ControlFlow, EventLoop};
 use winit::window::{CursorGrabMode, Fullscreen, Window, WindowBuilder};
 
-use wolkenwelten_client::{
-    prepare_frame, render_frame, ClientState, RenderInit, RenderReactor, RENDER_DISTANCE,
-};
+use crate::{prepare_frame, render_frame, ClientState, RenderInit, RenderReactor, RENDER_DISTANCE};
 use wolkenwelten_common::{ChunkRequestQueue, Message, Reactor};
 use wolkenwelten_game::GameState;
 
@@ -45,7 +41,7 @@ fn ungrab_cursor(window: &Window) {
 }
 
 /// Create a new winit EventLoop and associated glium Display
-pub fn init() -> (EventLoop<()>, glium::Display) {
+fn init() -> (EventLoop<()>, glium::Display) {
     let title = format!("WolkenWelten - {}", env!("CARGO_PKG_VERSION"));
     let event_loop = EventLoop::new();
     let wb = WindowBuilder::new()
@@ -76,7 +72,7 @@ pub fn init() -> (EventLoop<()>, glium::Display) {
 }
 
 /// Run the actual game, this function only returns when the game quits
-pub fn run_event_loop(
+fn run_event_loop(
     state: AppState,
     mut reactor: Reactor<Message>,
     render_init_fun: Vec<RenderInit>,
@@ -180,7 +176,7 @@ pub fn run_event_loop(
             Event::MainEventsCleared => {
                 input.tick(&game, &reactor);
                 game.tick(&reactor, &mut request);
-                game.world_mut().handle_requests(&mut request);
+                game.world_mut().handle_requests(&mut request, &reactor);
                 render.request_redraw();
                 if !game.running() {
                     *control_flow = ControlFlow::Exit;
@@ -192,7 +188,7 @@ pub fn run_event_loop(
     });
 }
 
-pub fn start_app(
+pub fn start_client(
     game_state: GameState,
     reactor: Reactor<Message>,
     render_init_fun: Vec<RenderInit>,

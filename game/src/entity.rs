@@ -2,6 +2,7 @@
 // All rights reserved. AGPL-3.0+ license.
 use super::Chungus;
 use glam::Vec3;
+use std::f32::consts::PI;
 
 const ENTITY_SIZE: f32 = 0.4;
 const ENTITY_BOUNCE_RATE: f32 = 0.4;
@@ -12,6 +13,7 @@ pub struct Entity {
     pub pos: Vec3,
     pub rot: Vec3,
     pub vel: Vec3,
+    pub size: f32,
 }
 
 impl Entity {
@@ -19,7 +21,12 @@ impl Entity {
         let pos = Vec3::ZERO;
         let rot = Vec3::ZERO;
         let vel = Vec3::ZERO;
-        Self { pos, rot, vel }
+        Self {
+            pos,
+            rot,
+            vel,
+            size: 1.0,
+        }
     }
     #[inline]
     pub fn pos(&self) -> Vec3 {
@@ -32,6 +39,10 @@ impl Entity {
     #[inline]
     pub fn vel(&self) -> Vec3 {
         self.vel
+    }
+    #[inline]
+    pub fn size(&self) -> f32 {
+        self.size
     }
 
     #[inline]
@@ -46,38 +57,66 @@ impl Entity {
     pub fn set_pos(&mut self, pos: Vec3) {
         self.pos = pos;
     }
+    #[inline]
+    pub fn set_size(&mut self, size: f32) {
+        self.size = size;
+    }
+
+    pub fn direction(&self) -> Vec3 {
+        let a = self.rot;
+        Vec3::new(
+            ((a.x - 90.0) * PI / 180.0).cos() * (-a.y * PI / 180.0).cos(),
+            (-a.y * PI / 180.0).sin(),
+            ((a.x - 90.0) * PI / 180.0).sin() * (-a.y * PI / 180.0).cos(),
+        )
+    }
+
+    pub fn walk_direction(&self) -> Vec3 {
+        let a = self.rot;
+        Vec3::new(
+            ((-a.y - 90.0) * PI / 180.0).cos(),
+            0.0,
+            ((-a.y - 90.0) * PI / 180.0).sin(),
+        )
+    }
 
     pub fn is_colliding(&self, world: &Chungus) -> bool {
         let pos = self.pos();
-        world.is_solid(pos + Vec3::new(-ENTITY_SIZE, 0.0, 0.0))
-            | world.is_solid(pos + Vec3::new(ENTITY_SIZE, 0.0, 0.0))
-            | world.is_solid(pos + Vec3::new(0.0, -ENTITY_SIZE, 0.0))
-            | world.is_solid(pos + Vec3::new(0.0, ENTITY_SIZE, 0.0))
-            | world.is_solid(pos + Vec3::new(0.0, 0.0, -ENTITY_SIZE))
-            | world.is_solid(pos + Vec3::new(0.0, 0.0, ENTITY_SIZE))
+        world.is_solid(pos + Vec3::new(-ENTITY_SIZE * self.size, 0.0, 0.0))
+            | world.is_solid(pos + Vec3::new(ENTITY_SIZE * self.size, 0.0, 0.0))
+            | world.is_solid(pos + Vec3::new(0.0, -ENTITY_SIZE * self.size, 0.0))
+            | world.is_solid(pos + Vec3::new(0.0, ENTITY_SIZE * self.size, 0.0))
+            | world.is_solid(pos + Vec3::new(0.0, 0.0, -ENTITY_SIZE * self.size))
+            | world.is_solid(pos + Vec3::new(0.0, 0.0, ENTITY_SIZE * self.size))
     }
 
     pub fn tick(&mut self, world: &Chungus) -> bool {
         let mut bounce = false;
+        let s = ENTITY_SIZE * self.size;
+        let sy = ENTITY_SIZE;
 
-        if world.is_solid(self.pos + Vec3::new(ENTITY_SIZE, 0.0, 0.0))
-            | world.is_solid(self.pos + Vec3::new(-ENTITY_SIZE, 0.0, 0.0))
+        if world.is_solid(self.pos + Vec3::new(s, 0.0, 0.0))
+            | world.is_solid(self.pos + Vec3::new(-s, 0.0, 0.0))
         {
             self.vel *= ENTITY_SLIDE_RATE;
             self.vel.x *= -ENTITY_BOUNCE_RATE;
             self.pos.x += self.vel.x;
             bounce = true;
         }
-        if world.is_solid(self.pos + Vec3::new(0.0, ENTITY_SIZE, 0.0))
-            | world.is_solid(self.pos + Vec3::new(0.0, -ENTITY_SIZE, 0.0))
+        if world.is_solid(self.pos + Vec3::new(0.0, sy, 0.0))
+            | world.is_solid(self.pos + Vec3::new(0.0, -sy, 0.0))
+            | world.is_solid(self.pos + Vec3::new(s, -sy, 0.0))
+            | world.is_solid(self.pos + Vec3::new(-s, -sy, 0.0))
+            | world.is_solid(self.pos + Vec3::new(0.0, -sy, s))
+            | world.is_solid(self.pos + Vec3::new(0.0, -sy, -s))
         {
             self.vel *= ENTITY_SLIDE_RATE;
             self.vel.y *= -ENTITY_BOUNCE_RATE;
             self.pos.y += self.vel.y;
             bounce = true;
         }
-        if world.is_solid(self.pos + Vec3::new(0.0, 0.0, ENTITY_SIZE))
-            | world.is_solid(self.pos + Vec3::new(0.0, 0.0, -ENTITY_SIZE))
+        if world.is_solid(self.pos + Vec3::new(0.0, 0.0, s))
+            | world.is_solid(self.pos + Vec3::new(0.0, 0.0, -s))
         {
             self.vel *= ENTITY_SLIDE_RATE;
             self.vel.z *= -ENTITY_BOUNCE_RATE;
@@ -87,7 +126,6 @@ impl Entity {
         let v = self.vel;
         self.pos += v;
         self.vel.y -= 0.0005;
-        self.rot.y += 0.2;
 
         bounce
     }

@@ -4154,11 +4154,11 @@ dependencies = [
  "embed-resource",
  "wolkenwelten-block-mining",
  "wolkenwelten-client",
- "wolkenwelten-client-winit",
  "wolkenwelten-common",
  "wolkenwelten-game",
  "wolkenwelten-grenade",
  "wolkenwelten-item-drop",
+ "wolkenwelten-mob",
  "wolkenwelten-particles",
  "wolkenwelten-scripting",
  "wolkenwelten-shadow",
@@ -4183,28 +4183,17 @@ name = "wolkenwelten-client"
 version = "0.0.4"
 dependencies = [
  "anyhow",
+ "enum-map",
  "glam",
  "glium",
  "image",
  "rand 0.8.5",
  "tobj",
  "vox-format",
+ "winit",
  "wolkenwelten-common",
  "wolkenwelten-game",
  "wolkenwelten-meshgen",
-]
-
-[[package]]
-name = "wolkenwelten-client-winit"
-version = "0.0.4"
-dependencies = [
- "enum-map",
- "glam",
- "glium",
- "winit",
- "wolkenwelten-client",
- "wolkenwelten-common",
- "wolkenwelten-game",
 ]
 
 [[package]]
@@ -4264,6 +4253,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "wolkenwelten-mob"
+version = "0.0.4"
+dependencies = [
+ "anyhow",
+ "glam",
+ "glium",
+ "rand 0.8.5",
+ "rand_xorshift 0.3.0",
+ "wolkenwelten-client",
+ "wolkenwelten-common",
+ "wolkenwelten-game",
+]
+
+[[package]]
 name = "wolkenwelten-particles"
 version = "0.0.4"
 dependencies = [
@@ -4290,7 +4293,6 @@ dependencies = [
  "swc_ecma_parser",
  "v8",
  "wolkenwelten-client",
- "wolkenwelten-client-winit",
  "wolkenwelten-common",
  "wolkenwelten-game",
 ]

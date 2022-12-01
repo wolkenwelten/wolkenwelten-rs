@@ -1,6 +1,13 @@
 # WolkenWelten DevLog / Screenshots
 Here you can read about what I've been working on including screenshots.
 
+### 2022-12-02 - Crabs!
+![Some crabs](https://github.com/wolkenwelten/wolkenwelten-screenshots/raw/main/2022_12_02.jpg)
+Greatly improved the overall structure and made separated out most features into distinct, optional, crates.
+Also added a first mob, a simple crab, you can't really interact with it for now, but that will follow soon enough. I
+was mainly experimenting with ways on how to animate mobs. Here I tried just using sprite sheets, which I think turned out
+rather well.
+
 ### 2022-11-29 - V8 / JS
 ![Intriguing shapes](https://github.com/wolkenwelten/wolkenwelten-screenshots/raw/main/2022_11_29.jpg)
 Not much new to see for the last couple of days since I've mostly been improving the overall architecture of the code.

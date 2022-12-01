@@ -10,6 +10,7 @@ pub use self::render::{prepare_frame, render_frame, FADE_DISTANCE, RENDER_DISTAN
 pub use self::render_reactor::{RenderInit, RenderInitArgs, RenderPassArgs, RenderReactor};
 pub use self::state::{ClientState, ShaderList};
 pub use self::texture::{Texture, TextureArray};
+pub use self::winit::start_client;
 
 mod frustum;
 mod meshes;
@@ -18,5 +19,7 @@ mod render;
 mod render_reactor;
 mod state;
 mod texture;
+mod winit;
 
+pub mod input;
 pub mod ui;

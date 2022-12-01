@@ -1,15 +1,16 @@
 [package]
-name = "wolkenwelten-client-winit"
+name = "wolkenwelten-mob"
 version = "0.0.4"
 edition = "2021"
 license = "AGPL-3.0-or-later"
 homepage = "https://wolkenwelten.net"
 
 [dependencies]
-enum-map = "2.4"
-winit = "0.27"
-glam = "0.22"
+anyhow = "1.0"
 glium = "0.32"
+glam = "0.22"
+rand = "0.8"
+rand_xorshift = "0.3"
 wolkenwelten-client = { path = "../client" }
 wolkenwelten-common = { path = "../common" }
 wolkenwelten-game = { path = "../game" }

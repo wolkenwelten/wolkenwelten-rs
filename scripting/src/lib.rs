@@ -5,8 +5,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use std::time::Instant;
 use v8::{ContextScope, HandleScope};
-use wolkenwelten_client::RenderInit;
-use wolkenwelten_client_winit::start_app;
+use wolkenwelten_client::{start_client, RenderInit};
 use wolkenwelten_common::{Message, Reactor, SfxId};
 use wolkenwelten_game::{Chungus, GameLog, GameState};
 
@@ -227,6 +226,6 @@ pub fn start_runtime(
             &mut scope.borrow_mut(),
             include_str!("../../modules/main.js"),
         );
-        start_app(game_state, reactor, render_init_fun);
+        start_client(game_state, reactor, render_init_fun);
     }
 }

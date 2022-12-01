@@ -15,13 +15,13 @@ embed-resource = "1.6"
 
 [dependencies]
 wolkenwelten-client = { path = "client" }
-wolkenwelten-client-winit = { path = "client_winit" }
 wolkenwelten-common = { path = "common" }
 wolkenwelten-game = { path = "game" }
 wolkenwelten-scripting = { path = "scripting" }
 
 wolkenwelten-block-mining = { path = "block_mining", optional = true }
 wolkenwelten-particles = { path = "particles", optional = true }
+wolkenwelten-mob = { path = "mob", optional = true }
 wolkenwelten-shadow = { path = "shadow", optional = true }
 wolkenwelten-item-drop = { path = "item_drop", optional = true }
 wolkenwelten-grenade = { path = "grenade", optional = true }
@@ -40,9 +40,10 @@ strip = true
 panic = "abort"
 
 [features]
-default = ["block-mining", "item-drop", "grenade", "particles", "sky", "shadow", "sound"]
+default = ["block-mining", "item-drop", "grenade", "mob", "particles", "sky", "shadow", "sound"]
 block-mining = ["dep:wolkenwelten-block-mining"]
 grenade = ["dep:wolkenwelten-grenade"]
+mob = ["dep:wolkenwelten-mob"]
 sound = ["dep:wolkenwelten-sound"]
 sky = ["dep:wolkenwelten-sky"]
 shadow = ["dep:wolkenwelten-shadow"]
@@ -50,4 +51,4 @@ particles = ["dep:wolkenwelten-particles"]
 item-drop = ["dep:wolkenwelten-item-drop"]
 
 [workspace]
-members = ["block_mining","client","client_winit","common","game","grenade","item_drop","meshgen","particles","scripting","shadow","sky","sound"]
+members = ["block_mining","client","common","game","grenade","item_drop","meshgen","mob","particles","scripting","shadow","sky","sound"]

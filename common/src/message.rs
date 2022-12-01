@@ -43,6 +43,11 @@ pub enum Message {
         pos: Vec3,
         damage: i16,
     },
+    CharacterAttack {
+        char_pos: Vec3,
+        attack_pos: Vec3,
+        damage: i16,
+    },
     CharacterDeath {
         pos: Vec3,
     },
@@ -73,6 +78,10 @@ pub enum Message {
         pos: Vec3,
         item: Item,
     },
+    ItemDropNew {
+        pos: Vec3,
+        item: Item,
+    },
 
     PlayerShoot,
     PlayerDropItem,
@@ -100,11 +109,24 @@ pub enum Message {
     PlayerNoClip {
         no_clip: bool,
     },
+    PlayerStrike,
+
+    MobHurt {
+        pos: Vec3,
+        damage: i16,
+    },
+    MobDied {
+        pos: Vec3,
+    },
 
     SfxPlay {
         pos: Vec3,
         volume: f32,
         sfx: SfxId,
+    },
+
+    WorldgenSpawnMob {
+        pos: Vec3,
     },
 }
 
@@ -129,6 +151,7 @@ impl Message {
     /// used for positioning sound effects.
     pub fn pos(&self) -> Option<Vec3> {
         match self {
+            Message::CharacterAttack { attack_pos, .. } => Some(*attack_pos),
             Message::BlockPlace { pos, .. }
             | Message::BlockBreak { pos, .. }
             | Message::BlockMine { pos, .. } => Some(pos.as_vec3()),
@@ -140,6 +163,7 @@ impl Message {
             | Message::CharacterDamage { pos, .. }
             | Message::CharacterShoot { pos, .. }
             | Message::CharacterStomp { pos, .. }
+            | Message::MobDied { pos, .. }
             | Message::CharacterJump { pos, .. } => Some(*pos),
             _ => None,
         }

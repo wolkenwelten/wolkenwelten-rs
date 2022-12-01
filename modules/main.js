@@ -6,6 +6,7 @@ const vec_rot_shift = dir => ({
 	z: dir.y,
 });
 
+/*
 (() => {
 	let seconds = 0;
 	setInterval(() => {
@@ -14,6 +15,7 @@ const vec_rot_shift = dir => ({
 		console.log(`${secs} second${s} passed in V8 land`);
 	}, 1000);
 })();
+*/
 
 let sneks = [];
 const snek_tick = ({pos, dir, b, food}) => {

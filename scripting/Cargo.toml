@@ -12,7 +12,6 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 v8 = "0.58"
 wolkenwelten-client = { path = "../client" }
-wolkenwelten-client-winit = { path = "../client_winit" }
 wolkenwelten-common = { path = "../common" }
 wolkenwelten-game = { path = "../game" }
 

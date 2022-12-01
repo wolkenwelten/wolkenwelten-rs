@@ -34,6 +34,10 @@ impl Health {
     pub fn is_dead(self) -> bool {
         self.hp <= 0
     }
+    #[inline]
+    pub fn is_alive(self) -> bool {
+        !self.is_dead()
+    }
 
     #[inline]
     pub fn damage(&mut self, amount: i16) {
@@ -73,5 +77,17 @@ impl ops::Sub<i16> for Health {
 
     fn sub(self, rhs: i16) -> Health {
         self + (-rhs)
+    }
+}
+
+impl ops::AddAssign<i16> for Health {
+    fn add_assign(&mut self, rhs: i16) {
+        self.hp = (self.hp + rhs).clamp(0, self.max_hp);
+    }
+}
+
+impl ops::SubAssign<i16> for Health {
+    fn sub_assign(&mut self, rhs: i16) {
+        self.hp = (self.hp - rhs).clamp(0, self.max_hp);
     }
 }

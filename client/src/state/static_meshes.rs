@@ -8,8 +8,6 @@ use wolkenwelten_game::GameState;
 /// all static meshes included with WW.
 #[derive(Debug)]
 pub struct MeshList {
-    pub bag: VoxelMesh,
-    pub crab: VoxelMesh,
     pub fist: VoxelMesh,
     pub blocks: Vec<Mesh>,
 }
@@ -34,14 +32,6 @@ impl MeshList {
     pub fn new(display: &glium::Display, game: &GameState) -> Result<Self> {
         Ok(Self {
             blocks: Self::gen_block_meshes(display, game)?,
-            bag: VoxelMesh::from_vox_data(
-                display,
-                include_bytes!("../../../assets/voxel_meshes/bag.vox"),
-            )?,
-            crab: VoxelMesh::from_vox_data(
-                display,
-                include_bytes!("../../../assets/voxel_meshes/crab.vox"),
-            )?,
             fist: VoxelMesh::from_vox_data(
                 display,
                 include_bytes!("../../../assets/voxel_meshes/fist.vox"),

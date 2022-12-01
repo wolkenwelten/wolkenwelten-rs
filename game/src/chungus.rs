@@ -118,7 +118,7 @@ impl Chungus {
         }
     }
 
-    pub fn handle_requests(&mut self, request: &mut ChunkRequestQueue) {
+    pub fn handle_requests(&mut self, request: &mut ChunkRequestQueue, reactor: &Reactor<Message>) {
         let mut simple_light_reqs: HashSet<IVec3> = HashSet::new();
         let mut block_reqs: HashSet<IVec3> = HashSet::new();
 
@@ -162,7 +162,8 @@ impl Chungus {
         for pos in request.get_block_mut().drain() {
             let chunk = self.chunks_block.get(&pos);
             if chunk.is_none() {
-                self.chunks_block.insert(pos, worldgen::chunk(self, pos));
+                self.chunks_block
+                    .insert(pos, worldgen::chunk(self, pos, reactor));
             }
         }
     }

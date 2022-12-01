@@ -5,12 +5,12 @@ use glam::IVec3;
 use rand::prelude::*;
 use rand::Rng;
 use rand_xorshift::XorShiftRng;
-use wolkenwelten_common::{ChunkBlockData, CHUNK_SIZE};
+use wolkenwelten_common::{ChunkBlockData, Message, Reactor, CHUNK_SIZE};
 
 mod asset;
 pub use asset::*;
 
-pub fn chunk(world: &Chungus, pos: IVec3) -> ChunkBlockData {
+pub fn chunk(world: &Chungus, pos: IVec3, reactor: &Reactor<Message>) -> ChunkBlockData {
     let ele = world.elevation();
     let dis = world.displacement();
     let noi = world.noise_map();
@@ -74,6 +74,10 @@ pub fn chunk(world: &Chungus, pos: IVec3) -> ChunkBlockData {
                     if assets.bushes[i].fits(pos) {
                         r.blit(&assets.bushes[i], pos);
                     }
+                } else if rng.gen_range(1..10000) == 1 {
+                    let mut pos = ((pos * CHUNK_SIZE as i32) + IVec3::new(x, 0, z)).as_vec3();
+                    pos.y = grass_y as f32 + 1.0;
+                    reactor.dispatch(Message::WorldgenSpawnMob { pos });
                 } else if rng.gen_range(1..1000) == 1 {
                     let i = rng.gen_range(0..assets.rocks.len());
                     let pos = IVec3::new(

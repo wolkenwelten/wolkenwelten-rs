@@ -74,6 +74,7 @@ impl ItemDrop {
 
     #[inline]
     pub fn tick(&mut self, world: &Chungus) -> bool {
+        self.ent.set_rot(self.ent.rot() + Vec3::new(0.0, 0.2, 0.0));
         self.ent.tick(world)
     }
 }
@@ -106,20 +107,22 @@ impl ItemDropList {
     }
 
     pub fn tick_all(&mut self, reactor: &Reactor<Message>, player_pos: Vec3, world: &Chungus) {
-        for index in (0..self.drops.len()).rev() {
-            self.drops[index].tick(world);
-            let dist = self.drops[index].pos() - player_pos;
+        self.drops.retain_mut(|d| {
+            d.tick(world);
+            let dist = d.pos() - player_pos;
             let dd = dist.x * dist.x + dist.y * dist.y + dist.z * dist.z;
             if dd > (256.0 * 256.0) {
-                self.drops.swap_remove(index); // Remove when far enough away
+                false
             } else if dd < ITEM_DROP_PICKUP_RANGE * ITEM_DROP_PICKUP_RANGE {
                 reactor.dispatch(Message::ItemDropPickup {
-                    pos: self.drops[index].pos(),
-                    item: self.drops[index].item(),
+                    pos: d.pos(),
+                    item: d.item(),
                 });
-                self.drops.swap_remove(index);
+                false
+            } else {
+                true
             }
-        }
+        });
     }
 }
 
@@ -156,6 +159,21 @@ pub fn init(args: RenderInitArgs) -> RenderInitArgs {
     {
         let drops = drops.clone();
         let f = move |_reactor: &Reactor<Message>, msg: Message| {
+            if let Message::ItemDropNew { pos, item } = msg {
+                drops.borrow_mut().add(pos, Vec3::ZERO, item);
+            }
+        };
+        args.reactor.add_sink(
+            Message::ItemDropNew {
+                pos: Vec3::ZERO,
+                item: Item::None,
+            },
+            Box::new(f),
+        );
+    }
+    {
+        let drops = drops.clone();
+        let f = move |_reactor: &Reactor<Message>, msg: Message| {
             if let Message::CharacterDropItem { pos, vel, item } = msg {
                 drops.borrow_mut().add(pos, vel, item);
             }
@@ -173,7 +191,7 @@ pub fn init(args: RenderInitArgs) -> RenderInitArgs {
         let drops = drops.clone();
         args.render_reactor.entity_provider.push(Box::new(move |v| {
             for e in drops.borrow().iter() {
-                v.push(e.pos());
+                v.push(e.ent.clone());
             }
         }));
     }

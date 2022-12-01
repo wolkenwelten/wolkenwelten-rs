@@ -414,6 +414,25 @@ impl Character {
     pub fn add_handler(reactor: &mut Reactor<Message>, game: &GameState) {
         {
             let player = game.player_ref();
+            let clock = game.clock_ref();
+            let f = move |reactor: &Reactor<Message>, _: Message| {
+                let mut player = player.borrow_mut();
+                let now = clock.borrow().elapsed().as_millis() as u64;
+                if player.may_act(now) {
+                    let attack_pos = player.pos() + player.direction();
+                    reactor.defer(Message::CharacterAttack {
+                        char_pos: player.pos(),
+                        attack_pos,
+                        damage: 1,
+                    });
+                    player.set_animation_hit();
+                    player.set_cooldown(now + 400)
+                }
+            };
+            reactor.add_sink(Message::PlayerStrike, Box::new(f));
+        }
+        {
+            let player = game.player_ref();
             let f = move |_: &Reactor<Message>, msg: Message| {
                 if let Message::PlayerSwitchSelection { delta, .. } = msg {
                     player.borrow_mut().switch_selection(delta);
@@ -479,7 +498,9 @@ impl Character {
                     ..
                 } = msg
                 {
-                    player.borrow_mut().add_block_to_inventory(bi.block);
+                    for _ in 0..bi.amount {
+                        player.borrow_mut().add_block_to_inventory(bi.block);
+                    }
                 }
             };
             reactor.add_sink(

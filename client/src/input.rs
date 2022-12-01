@@ -309,6 +309,7 @@ impl InputState {
         };
 
         if self.button_states[Key::Primary] {
+            reactor.dispatch(Message::PlayerStrike);
             let o = game.player().raycast(&game.world(), RaycastReturn::Within);
             if let Some(pos) = o {
                 reactor.dispatch(Message::PlayerBlockMine { pos: Some(pos) });

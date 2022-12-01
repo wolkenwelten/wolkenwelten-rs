@@ -23,7 +23,7 @@ fn main() {
                 ..Default::default()
             },
             |handler| {
-                println!("cargo:rerun-if-changed=../stdlib/");
+                println!("cargo:rerun-if-changed=./stdlib/");
                 let fm = cm
                     .load_file(Path::new("./stdlib/lib.ts"))
                     .expect("failed to load file");

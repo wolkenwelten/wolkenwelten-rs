@@ -31,6 +31,12 @@ pub fn main() {
         render_init_fun.push(Box::new(wolkenwelten_sky::init));
     }
 
+    #[cfg(feature = "mob")]
+    {
+        extern crate wolkenwelten_mob;
+        render_init_fun.push(Box::new(wolkenwelten_mob::init));
+    }
+
     #[cfg(feature = "grenade")]
     {
         extern crate wolkenwelten_grenade;

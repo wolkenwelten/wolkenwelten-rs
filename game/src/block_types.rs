@@ -131,7 +131,7 @@ pub fn load_all() -> Vec<BlockType> {
             .with_mining_cat(MiningCategory::Pickaxe(1))
             .with_block_health(1000),
         BlockType::new("Acacia leaves")
-            .with_texture(24)
+            .with_texture(15)
             .with_colors(
                 RGBA8::new(0x02, 0x30, 0x00, 0xFF),
                 RGBA8::new(0x32, 0x6F, 0x1C, 0xFF),
