@@ -273,7 +273,7 @@ impl MobList {
             if m.health.is_dead() {
                 let item = Item::Block(BlockItem::new(18, rng.gen_range(1..=3)));
                 let pos = m.pos();
-                reactor.defer(Message::ItemDropNew { pos: pos, item });
+                reactor.defer(Message::ItemDropNew { pos, item });
                 reactor.defer(Message::MobDied { pos });
             }
             m.health.is_alive() && dd < (256.0 * 256.0)
@@ -333,6 +333,42 @@ pub fn init(args: RenderInitArgs) -> RenderInitArgs {
                 char_pos: Vec3::ZERO,
                 attack_pos: Vec3::ZERO,
                 damage: 0,
+            },
+            Box::new(f),
+        );
+    }
+    {
+        let mobs = mobs.clone();
+        let f = move |reactor: &Reactor<Message>, msg: Message| {
+            if let Message::Explosion { pos, power } = msg {
+                let p = power * power;
+                mobs.borrow_mut()
+                    .iter_mut()
+                    .filter(|m| (pos - m.pos()).length_squared() < p)
+                    .for_each(|m| {
+                        let d = pos - m.pos();
+                        let p = d.length() * 0.2;
+                        let mut dir = d.normalize() * d * 0.2;
+                        dir.y = -0.5;
+                        m.set_vel(dir * -0.04);
+                        let damage = p.ceil() as i16;
+                        m.health -= damage;
+                        reactor.defer(Message::MobHurt {
+                            pos: m.pos(),
+                            damage,
+                        });
+                        reactor.defer(Message::SfxPlay {
+                            pos: m.pos(),
+                            volume: 0.4,
+                            sfx: SfxId::Stomp,
+                        });
+                    });
+            }
+        };
+        args.reactor.add_sink(
+            Message::Explosion {
+                pos: Vec3::ZERO,
+                power: 0.0,
             },
             Box::new(f),
         );

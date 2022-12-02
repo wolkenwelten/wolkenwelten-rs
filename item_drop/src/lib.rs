@@ -106,6 +106,11 @@ impl ItemDropList {
         self.drops.iter()
     }
 
+    #[inline]
+    pub fn iter_mut(&mut self) -> std::slice::IterMut<ItemDrop> {
+        self.drops.iter_mut()
+    }
+
     pub fn tick_all(&mut self, reactor: &Reactor<Message>, player_pos: Vec3, world: &Chungus) {
         self.drops.retain_mut(|d| {
             d.tick(world);
@@ -167,6 +172,31 @@ pub fn init(args: RenderInitArgs) -> RenderInitArgs {
             Message::ItemDropNew {
                 pos: Vec3::ZERO,
                 item: Item::None,
+            },
+            Box::new(f),
+        );
+    }
+    {
+        let drops = drops.clone();
+        let f = move |_reactor: &Reactor<Message>, msg: Message| {
+            if let Message::Explosion { pos, power } = msg {
+                let p = power * power;
+                drops
+                    .borrow_mut()
+                    .iter_mut()
+                    .filter(|m| (pos - m.pos()).length_squared() < p)
+                    .for_each(|m| {
+                        let d = pos - m.pos();
+                        let mut dir = d.normalize() * d * 0.2;
+                        dir.y = -0.5;
+                        m.set_vel(dir * -0.04);
+                    });
+            }
+        };
+        args.reactor.add_sink(
+            Message::Explosion {
+                pos: Vec3::ZERO,
+                power: 0.0,
             },
             Box::new(f),
         );

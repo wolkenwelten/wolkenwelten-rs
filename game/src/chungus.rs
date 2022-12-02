@@ -9,6 +9,8 @@ use glam::f32::Vec3;
 use glam::i32::IVec3;
 use noise::utils::{NoiseMap, NoiseMapBuilder, PlaneMapBuilder};
 use noise::{Perlin, Seedable};
+use rand::Rng;
+use rand_xorshift::XorShiftRng;
 use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
@@ -342,7 +344,13 @@ impl Chungus {
         self.get(&cp).map(|chnk| chnk.get_block(pos & CHUNK_MASK))
     }
 
-    pub fn add_explosion(&mut self, pos: Vec3, power: f32) {
+    pub fn add_explosion(
+        &mut self,
+        pos: Vec3,
+        power: f32,
+        rng: &mut XorShiftRng,
+        reactor: &Reactor<Message>,
+    ) {
         let pos = pos.floor().as_ivec3();
         let p = power.round() as i32;
         let pp = p * p;
@@ -351,7 +359,15 @@ impl Chungus {
                 for z in -p..=p {
                     let cp = x * x + y * y + z * z;
                     if cp < pp {
-                        self.set_block(pos + IVec3::new(x, y, z), 0);
+                        let pos = pos + IVec3::new(x, y, z);
+                        if let Some(block) = self.get_block(pos) {
+                            if block != 0 {
+                                if rng.gen_ratio(1, 100) {
+                                    reactor.defer(Message::BlockBreak { pos, block });
+                                }
+                                self.set_block(pos, 0);
+                            }
+                        };
                     }
                 }
             }

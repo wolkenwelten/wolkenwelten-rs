@@ -82,6 +82,10 @@ pub enum Message {
         pos: Vec3,
         item: Item,
     },
+    Explosion {
+        pos: Vec3,
+        power: f32,
+    },
 
     PlayerShoot,
     PlayerDropItem,
@@ -164,6 +168,7 @@ impl Message {
             | Message::CharacterShoot { pos, .. }
             | Message::CharacterStomp { pos, .. }
             | Message::MobDied { pos, .. }
+            | Message::Explosion { pos, .. }
             | Message::CharacterJump { pos, .. } => Some(*pos),
             _ => None,
         }

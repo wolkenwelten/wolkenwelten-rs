@@ -160,7 +160,10 @@ impl<'a> SfxList<'a> {
         );
         s.add_relay(
             SfxId::Bomb,
-            Message::EntityCollision { pos: Vec3::ZERO },
+            Message::Explosion {
+                pos: Vec3::ZERO,
+                power: 0.0,
+            },
             1.0,
         );
         s.add_relay(
