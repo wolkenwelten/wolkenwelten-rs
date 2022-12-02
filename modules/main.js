@@ -1,4 +1,15 @@
-console.log("V8 Ready!");
+const msgs = [
+	"Welcome to WolkenWelten!",
+	"Use WASD to move, Space to jump and Shift to sprint",
+	"Use your mouse to mine/place blocks or punch crabs",
+	"You can also throw grenades by pressing E"
+].reverse();
+const PopMsg = () => {
+	if(!msgs.length){return;}
+	console.log(msgs.pop());
+	setTimeout(PopMsg,3000);
+}
+PopMsg();
 
 const vec_rot_shift = dir => ({
 	x: -dir.z,

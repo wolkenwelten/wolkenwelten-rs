@@ -43,7 +43,9 @@ const WolkenWelten = (() => {
 	let timeoutQueue:Array<TimeoutQueueEntry> = [];
 
 	const runQueue = () => {
-		timeoutQueue = timeoutQueue.filter(e => {
+		const old = timeoutQueue;
+		timeoutQueue = [];
+		const n = old.filter(e => {
 			if (curMillis >= e.waitUntil) {
 				e.cont();
 				if(e.interval){
@@ -54,12 +56,13 @@ const WolkenWelten = (() => {
 			}
 			return true;
 		});
+		timeoutQueue = n.concat(timeoutQueue);
 	};
 
 	const getTimeoutId = ():TimeoutQueueId => String(++timeoutIds);
 	const setTimeout = (cont:() => void, waitUntil: number) => {
 		const id = getTimeoutId();
-		timeoutQueue.push({id, cont, interval:0, waitUntil});
+		timeoutQueue.push({id, cont, interval:0, waitUntil: waitUntil + curMillis});
 	};
 
 	const clearTimeout = (id:TimeoutQueueId) => timeoutQueue = timeoutQueue.filter(v => v.id !== id);

@@ -1,10 +1,10 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
-use std::collections::VecDeque;
+use std::{collections::VecDeque, time::Instant};
 
 #[derive(Clone, Debug)]
 pub struct GameLog {
-    entries: VecDeque<String>,
+    entries: VecDeque<(String, Instant)>,
     max_len: u8,
 }
 
@@ -23,7 +23,7 @@ impl GameLog {
     }
 
     pub fn push(&mut self, s: String) {
-        self.entries.push_back(s);
+        self.entries.push_back((s, Instant::now()));
         while self.entries.len() > self.max_len as usize {
             self.entries.pop_front();
         }
@@ -46,11 +46,11 @@ impl GameLog {
         self.len() == 0
     }
     #[inline]
-    pub fn entries(&self) -> &VecDeque<String> {
+    pub fn entries(&self) -> &VecDeque<(String, Instant)> {
         &self.entries
     }
     #[inline]
-    pub fn entries_mut(&mut self) -> &mut VecDeque<String> {
+    pub fn entries_mut(&mut self) -> &mut VecDeque<(String, Instant)> {
         &mut self.entries
     }
 }
