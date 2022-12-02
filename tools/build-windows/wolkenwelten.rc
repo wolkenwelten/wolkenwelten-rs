@@ -8,12 +8,12 @@ BEGIN
     BEGIN
       VALUE "CompanyName",      "Moon Computing"
       VALUE "FileDescription",  "WolkenWelten"
-      VALUE "FileVersion",      "0.0.4"
+      VALUE "FileVersion",      "0.1.0"
       VALUE "InternalName",     "wolkenWelten"
       VALUE "LegalCopyright",   "WolkenWelten"
       VALUE "OriginalFilename", "wolkenwelten.exe"
       VALUE "ProductName",      "WolkenWelten"
-      VALUE "ProductVersion",   "0.0.4"
+      VALUE "ProductVersion",   "0.1.0"
     END
   END
   BLOCK "VarFileInfo"

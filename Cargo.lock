@@ -4149,7 +4149,7 @@ dependencies = [
 
 [[package]]
 name = "wolkenwelten"
-version = "0.0.4"
+version = "0.1.0"
 dependencies = [
  "embed-resource",
  "wolkenwelten-block-mining",
@@ -4168,7 +4168,7 @@ dependencies = [
 
 [[package]]
 name = "wolkenwelten-block-mining"
-version = "0.0.4"
+version = "0.1.0"
 dependencies = [
  "anyhow",
  "glam",
@@ -4180,7 +4180,7 @@ dependencies = [
 
 [[package]]
 name = "wolkenwelten-client"
-version = "0.0.4"
+version = "0.1.0"
 dependencies = [
  "anyhow",
  "enum-map",
@@ -4198,7 +4198,7 @@ dependencies = [
 
 [[package]]
 name = "wolkenwelten-common"
-version = "0.0.4"
+version = "0.1.0"
 dependencies = [
  "glam",
  "rgb",
@@ -4208,7 +4208,7 @@ dependencies = [
 
 [[package]]
 name = "wolkenwelten-game"
-version = "0.0.4"
+version = "0.1.0"
 dependencies = [
  "anyhow",
  "glam",
@@ -4222,7 +4222,7 @@ dependencies = [
 
 [[package]]
 name = "wolkenwelten-grenade"
-version = "0.0.4"
+version = "0.1.0"
 dependencies = [
  "anyhow",
  "glam",
@@ -4236,7 +4236,7 @@ dependencies = [
 
 [[package]]
 name = "wolkenwelten-item-drop"
-version = "0.0.4"
+version = "0.1.0"
 dependencies = [
  "anyhow",
  "glam",
@@ -4248,7 +4248,7 @@ dependencies = [
 
 [[package]]
 name = "wolkenwelten-meshgen"
-version = "0.0.4"
+version = "0.1.0"
 dependencies = [
  "glium",
  "wolkenwelten-common",
@@ -4256,7 +4256,7 @@ dependencies = [
 
 [[package]]
 name = "wolkenwelten-mob"
-version = "0.0.4"
+version = "0.1.0"
 dependencies = [
  "anyhow",
  "glam",
@@ -4270,7 +4270,7 @@ dependencies = [
 
 [[package]]
 name = "wolkenwelten-particles"
-version = "0.0.4"
+version = "0.1.0"
 dependencies = [
  "glam",
  "glium",
@@ -4284,7 +4284,7 @@ dependencies = [
 
 [[package]]
 name = "wolkenwelten-scripting"
-version = "0.0.4"
+version = "0.1.0"
 dependencies = [
  "anyhow",
  "glam",
@@ -4301,7 +4301,7 @@ dependencies = [
 
 [[package]]
 name = "wolkenwelten-shadow"
-version = "0.0.4"
+version = "0.1.0"
 dependencies = [
  "anyhow",
  "glam",
@@ -4313,7 +4313,7 @@ dependencies = [
 
 [[package]]
 name = "wolkenwelten-sky"
-version = "0.0.4"
+version = "0.1.0"
 dependencies = [
  "anyhow",
  "glam",
@@ -4324,7 +4324,7 @@ dependencies = [
 
 [[package]]
 name = "wolkenwelten-sound"
-version = "0.0.4"
+version = "0.1.0"
 dependencies = [
  "glam",
  "rodio",
