@@ -13,5 +13,5 @@ glam = "0.22"
 rand = "0.8"
 rand_xorshift = "0.3"
 wolkenwelten-client = { path = "../client" }
-wolkenwelten-common = { path = "../common" }
+wolkenwelten-core = { path = "../core" }
 

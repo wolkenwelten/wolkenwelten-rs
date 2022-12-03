@@ -5,8 +5,7 @@ use glam::{IVec3, Mat4, Vec3};
 use std::cell::RefCell;
 use std::rc::Rc;
 use wolkenwelten_client::{ClientState, RenderInitArgs, RenderPassArgs};
-use wolkenwelten_common::{BlockItem, Item, Message, Reactor};
-use wolkenwelten_game::{Chungus, Entity};
+use wolkenwelten_core::{BlockItem, Chungus, Entity, Item, Message, Reactor};
 
 const ITEM_DROP_PICKUP_RANGE: f32 = 1.5;
 

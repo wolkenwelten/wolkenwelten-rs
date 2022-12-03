@@ -3,7 +3,7 @@
 use glam::{Mat4, Vec3};
 use glium::{uniform, Surface};
 use wolkenwelten_client::{Mesh, RenderInitArgs, Texture};
-use wolkenwelten_common::CHUNK_SIZE;
+use wolkenwelten_core::CHUNK_SIZE;
 
 pub fn init(args: RenderInitArgs) -> RenderInitArgs {
     let dome_mesh = Mesh::from_obj_string(

@@ -4165,8 +4165,7 @@ dependencies = [
  "embed-resource",
  "wolkenwelten-block-mining",
  "wolkenwelten-client",
- "wolkenwelten-common",
- "wolkenwelten-game",
+ "wolkenwelten-core",
  "wolkenwelten-grenade",
  "wolkenwelten-item-drop",
  "wolkenwelten-mob",
@@ -4185,8 +4184,7 @@ dependencies = [
  "glam",
  "glium",
  "wolkenwelten-client",
- "wolkenwelten-common",
- "wolkenwelten-game",
+ "wolkenwelten-core",
 ]
 
 [[package]]
@@ -4202,23 +4200,12 @@ dependencies = [
  "tobj",
  "vox-format",
  "winit",
- "wolkenwelten-common",
- "wolkenwelten-game",
+ "wolkenwelten-core",
  "wolkenwelten-meshgen",
 ]
 
 [[package]]
-name = "wolkenwelten-common"
-version = "0.1.0"
-dependencies = [
- "glam",
- "rgb",
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "wolkenwelten-game"
+name = "wolkenwelten-core"
 version = "0.1.0"
 dependencies = [
  "anyhow",
@@ -4227,8 +4214,9 @@ dependencies = [
  "rand 0.8.5",
  "rand_xorshift 0.3.0",
  "rgb",
+ "serde",
+ "serde_json",
  "vox-format",
- "wolkenwelten-common",
 ]
 
 [[package]]
@@ -4241,8 +4229,7 @@ dependencies = [
  "rand 0.8.5",
  "rand_xorshift 0.3.0",
  "wolkenwelten-client",
- "wolkenwelten-common",
- "wolkenwelten-game",
+ "wolkenwelten-core",
 ]
 
 [[package]]
@@ -4253,8 +4240,7 @@ dependencies = [
  "glam",
  "glium",
  "wolkenwelten-client",
- "wolkenwelten-common",
- "wolkenwelten-game",
+ "wolkenwelten-core",
 ]
 
 [[package]]
@@ -4262,7 +4248,7 @@ name = "wolkenwelten-meshgen"
 version = "0.1.0"
 dependencies = [
  "glium",
- "wolkenwelten-common",
+ "wolkenwelten-core",
 ]
 
 [[package]]
@@ -4275,8 +4261,7 @@ dependencies = [
  "rand 0.8.5",
  "rand_xorshift 0.3.0",
  "wolkenwelten-client",
- "wolkenwelten-common",
- "wolkenwelten-game",
+ "wolkenwelten-core",
 ]
 
 [[package]]
@@ -4290,7 +4275,7 @@ dependencies = [
  "rand_xorshift 0.3.0",
  "rgb",
  "wolkenwelten-client",
- "wolkenwelten-common",
+ "wolkenwelten-core",
 ]
 
 [[package]]
@@ -4306,8 +4291,7 @@ dependencies = [
  "swc_ecma_parser",
  "v8",
  "wolkenwelten-client",
- "wolkenwelten-common",
- "wolkenwelten-game",
+ "wolkenwelten-core",
 ]
 
 [[package]]
@@ -4318,8 +4302,7 @@ dependencies = [
  "glam",
  "glium",
  "wolkenwelten-client",
- "wolkenwelten-common",
- "wolkenwelten-game",
+ "wolkenwelten-core",
 ]
 
 [[package]]
@@ -4330,7 +4313,7 @@ dependencies = [
  "glam",
  "glium",
  "wolkenwelten-client",
- "wolkenwelten-common",
+ "wolkenwelten-core",
 ]
 
 [[package]]
@@ -4340,7 +4323,7 @@ dependencies = [
  "glam",
  "rodio",
  "wolkenwelten-client",
- "wolkenwelten-common",
+ "wolkenwelten-core",
 ]
 
 [[package]]

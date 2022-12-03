@@ -7,8 +7,7 @@ use rand_xorshift::XorShiftRng;
 use std::cell::RefCell;
 use std::rc::Rc;
 use wolkenwelten_client::{ClientState, RenderInitArgs, RenderPassArgs, VoxelMesh};
-use wolkenwelten_common::{Message, Reactor};
-use wolkenwelten_game::{Chungus, Entity};
+use wolkenwelten_core::{Chungus, Entity, Message, Reactor};
 
 #[derive(Clone, Debug, Default)]
 struct Grenade {

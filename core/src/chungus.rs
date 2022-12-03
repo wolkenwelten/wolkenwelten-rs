@@ -1,9 +1,9 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
-use super::block_types;
-use crate::worldgen;
-use crate::worldgen::WorldgenAssetList;
-use crate::GameState;
+use crate::{
+    worldgen, worldgen::WorldgenAssetList, BlockType, ChunkBlockData, ChunkLightData,
+    ChunkRequestQueue, GameState, Message, Reactor, CHUNK_BITS, CHUNK_MASK, CHUNK_SIZE,
+};
 use anyhow::Result;
 use glam::f32::Vec3;
 use glam::i32::IVec3;
@@ -14,10 +14,6 @@ use rand_xorshift::XorShiftRng;
 use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
-use wolkenwelten_common::{
-    BlockType, ChunkBlockData, ChunkLightData, ChunkRequestQueue, Message, Reactor, CHUNK_BITS,
-    CHUNK_MASK, CHUNK_SIZE,
-};
 
 pub struct Chungus {
     pub blocks: Rc<RefCell<Vec<BlockType>>>,
@@ -400,7 +396,7 @@ impl Chungus {
         let assets = WorldgenAssetList::new()?;
 
         Ok(Self {
-            blocks: Rc::new(RefCell::new(block_types::load_all())),
+            blocks: Rc::new(RefCell::new(BlockType::new_default())),
             chunks_simple_light: HashMap::with_capacity(1024),
             chunks_complex_light: HashMap::with_capacity(1024),
             chunks_block: HashMap::with_capacity(1024),

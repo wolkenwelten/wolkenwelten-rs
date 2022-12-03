@@ -7,5 +7,5 @@ homepage = "https://wolkenwelten.net"
 
 [dependencies]
 glium = "0.32"
-wolkenwelten-common = { path = "../common" }
+wolkenwelten-core = { path = "../core" }
 

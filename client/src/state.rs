@@ -5,8 +5,7 @@ use crate::RENDER_DISTANCE;
 use anyhow::Result;
 use glam::{f32::Vec3, i32::IVec3};
 use std::{collections::HashMap, time::Instant};
-use wolkenwelten_common::CHUNK_SIZE;
-use wolkenwelten_game::{Character, GameState};
+use wolkenwelten_core::{Character, GameState, CHUNK_SIZE};
 
 pub mod static_meshes;
 pub mod static_shaders;

@@ -1,6 +1,5 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
-use super::{Character, Chungus, GameLog};
 use anyhow::Result;
 use glam::IVec3;
 use std::{
@@ -9,8 +8,9 @@ use std::{
     time::Instant,
 };
 
-use wolkenwelten_common::{
-    ChunkRequestQueue, Message, Reactor, CHUNK_BITS, CHUNK_MASK, CHUNK_SIZE,
+use crate::{
+    Character, Chungus, ChunkRequestQueue, GameLog, Message, Reactor, CHUNK_BITS, CHUNK_MASK,
+    CHUNK_SIZE,
 };
 
 const MS_PER_TICK: u64 = 4;

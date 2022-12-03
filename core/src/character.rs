@@ -1,9 +1,8 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
-use super::{Chungus, GameState, Health};
+use crate::{BlockItem, Chungus, GameState, Health, Item, Message, Reactor};
 use glam::{IVec3, Vec3, Vec3Swizzles};
 use std::{f32::consts::PI, time::Instant};
-use wolkenwelten_common::{BlockItem, Item, Message, Reactor};
 
 #[derive(Copy, Clone, Debug, Default, Eq, PartialEq)]
 pub enum CharacterAnimation {

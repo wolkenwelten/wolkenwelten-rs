@@ -10,7 +10,7 @@ use std::collections::HashMap;
 use std::rc::Rc;
 use wolkenwelten_client::RenderInitArgs;
 use wolkenwelten_client::{ClientState, Mesh, MeshVertex, Texture};
-use wolkenwelten_common::{Message, Reactor};
+use wolkenwelten_core::{Message, Reactor};
 
 #[derive(Clone, Copy, Debug, Default)]
 struct BlockMining {

@@ -4,8 +4,7 @@ use crate::ClientState;
 use anyhow::Result;
 use glam::Mat4;
 use glium::{uniform, Surface};
-use wolkenwelten_common::{ChunkRequestQueue, CHUNK_SIZE};
-use wolkenwelten_game::{Character, GameState};
+use wolkenwelten_core::{Character, ChunkRequestQueue, GameState, CHUNK_SIZE};
 
 pub mod chungus;
 mod held_item;

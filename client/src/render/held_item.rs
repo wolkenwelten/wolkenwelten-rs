@@ -3,8 +3,7 @@
 use crate::ClientState;
 use anyhow::Result;
 use glam::{Mat4, Vec3};
-use wolkenwelten_common::Item;
-use wolkenwelten_game::{CharacterAnimation, GameState};
+use wolkenwelten_core::{CharacterAnimation, GameState, Item};
 
 const ANIMATION_DUR: u128 = 250;
 

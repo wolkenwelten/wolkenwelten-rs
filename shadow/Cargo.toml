@@ -10,5 +10,4 @@ anyhow = "1.0"
 glium = "0.32"
 glam = "0.22"
 wolkenwelten-client = { path = "../client" }
-wolkenwelten-common = { path = "../common" }
-wolkenwelten-game = { path = "../game" }
+wolkenwelten-core = { path = "../core" }

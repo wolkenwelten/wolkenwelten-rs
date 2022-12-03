@@ -5,8 +5,7 @@ use anyhow::Result;
 use glam::{IVec3, Mat4};
 use glium::{uniform, Surface};
 use std::{collections::HashSet, time::Instant};
-use wolkenwelten_common::{ChunkBlockData, ChunkRequestQueue};
-use wolkenwelten_game::GameState;
+use wolkenwelten_core::{ChunkBlockData, ChunkRequestQueue, GameState};
 
 pub fn should_update(mesh: &BlockMesh, chunks: &[&ChunkBlockData; 27]) -> bool {
     for chunk in chunks.iter() {

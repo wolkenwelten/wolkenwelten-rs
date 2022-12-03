@@ -1,7 +1,7 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
 use super::BlockVertex;
-use wolkenwelten_common::{
+use wolkenwelten_core::{
     BlockType, ChunkBlockData, ChunkLightData, ChunkPosIter, Side, CHUNK_SIZE,
 };
 

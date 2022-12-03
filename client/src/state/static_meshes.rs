@@ -2,7 +2,7 @@
 // All rights reserved. AGPL-3.0+ license.
 use crate::{Mesh, MeshVertex, VoxelMesh};
 use anyhow::Result;
-use wolkenwelten_game::GameState;
+use wolkenwelten_core::GameState;
 
 /// This struct is meant to be a simple way to store
 /// all static meshes included with WW.

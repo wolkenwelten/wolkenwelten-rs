@@ -1,7 +1,5 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
-extern crate wolkenwelten_game;
-
 pub use super::input::InputState;
 
 use winit::event::{Event, WindowEvent};
@@ -9,8 +7,7 @@ use winit::event_loop::{ControlFlow, EventLoop};
 use winit::window::{CursorGrabMode, Fullscreen, Window, WindowBuilder};
 
 use crate::{prepare_frame, render_frame, ClientState, RenderInit, RenderReactor, RENDER_DISTANCE};
-use wolkenwelten_common::{ChunkRequestQueue, Message, Reactor};
-use wolkenwelten_game::GameState;
+use wolkenwelten_core::{ChunkRequestQueue, GameState, Message, Reactor};
 
 /// Stores everything necessary to run a WolkenWelten instance
 pub struct AppState {

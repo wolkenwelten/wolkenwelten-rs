@@ -1,8 +1,7 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
 use crate::ClientState;
-use wolkenwelten_common::ChunkRequestQueue;
-use wolkenwelten_game::GameState;
+use wolkenwelten_core::{ChunkRequestQueue, GameState};
 
 mod inventory;
 mod log;

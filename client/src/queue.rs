@@ -5,7 +5,7 @@ use crate::{BlockMesh, FADE_DISTANCE, RENDER_DISTANCE};
 use glam::{IVec3, Vec3};
 use std::cmp::Ordering;
 use std::collections::BinaryHeap;
-use wolkenwelten_common::{CHUNK_BITS, CHUNK_SIZE};
+use wolkenwelten_core::{CHUNK_BITS, CHUNK_SIZE};
 
 /// An entry in our chunk draw queue. This is mainly used for
 /// sorting all chunks back-to-front so that the alpha blending

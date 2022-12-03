@@ -2,8 +2,7 @@
 // All rights reserved. AGPL-3.0+ license.
 use crate::ClientState;
 use glam::IVec2;
-use wolkenwelten_common::Item;
-use wolkenwelten_game::GameState;
+use wolkenwelten_core::{GameState, Item};
 
 fn prepare_slot(
     fe: &mut ClientState,

@@ -11,7 +11,7 @@ use rgb::RGBA8;
 use std::cell::RefCell;
 use std::rc::Rc;
 use wolkenwelten_client::{RenderInitArgs, ShaderList};
-use wolkenwelten_common::{Message, Reactor};
+use wolkenwelten_core::{Message, Reactor};
 
 /// The single particle, will be sent as is to the shader as is.
 #[derive(Copy, Clone, Debug)]

@@ -15,6 +15,5 @@ winit = "0.27"
 tobj = "3.2"
 rand = "0.8"
 image = { version = "0.24", default-features = false, features = ["png"]}
-wolkenwelten-common = { path = "../common" }
-wolkenwelten-game = { path = "../game" }
+wolkenwelten-core = { path = "../core" }
 wolkenwelten-meshgen = { path = "../meshgen" }

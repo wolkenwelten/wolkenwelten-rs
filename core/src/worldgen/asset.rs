@@ -1,9 +1,9 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
+use crate::{ChunkBlockData, CHUNK_SIZE};
 use anyhow::{anyhow, Result};
 use glam::IVec3;
 use vox_format::types::Model;
-use wolkenwelten_common::{ChunkBlockData, CHUNK_SIZE};
 
 #[derive(Debug)]
 pub struct WorldgenAsset {

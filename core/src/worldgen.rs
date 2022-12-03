@@ -1,11 +1,11 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
 use crate::Chungus;
+use crate::{ChunkBlockData, Message, Reactor, CHUNK_SIZE};
 use glam::IVec3;
 use rand::prelude::*;
 use rand::Rng;
 use rand_xorshift::XorShiftRng;
-use wolkenwelten_common::{ChunkBlockData, Message, Reactor, CHUNK_SIZE};
 
 mod asset;
 pub use asset::*;

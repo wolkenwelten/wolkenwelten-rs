@@ -9,12 +9,7 @@ use rand_xorshift::XorShiftRng;
 use std::rc::Rc;
 use std::{cell::RefCell, time::Instant};
 use wolkenwelten_client::{ClientState, Frustum, RenderInitArgs, RenderPassArgs, VoxelMesh};
-use wolkenwelten_common::BlockItem;
-use wolkenwelten_common::Item;
-use wolkenwelten_common::SfxId;
-use wolkenwelten_common::{Message, Reactor};
-use wolkenwelten_game::Health;
-use wolkenwelten_game::{Chungus, Entity};
+use wolkenwelten_core::{BlockItem, Chungus, Entity, Health, Item, Message, Reactor, SfxId};
 
 const MOB_ACCELERATION: f32 = 0.005;
 const MOB_STOP_RATE: f32 = MOB_ACCELERATION * 2.0;

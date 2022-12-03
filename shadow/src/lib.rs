@@ -4,7 +4,7 @@ use anyhow::Result;
 use glam::Vec3;
 use glium::{draw_parameters::PolygonOffset, uniform, Surface};
 use wolkenwelten_client::{Mesh, MeshVertex, RenderInitArgs, RenderPassArgs, ShaderList, Texture};
-use wolkenwelten_game::GameState;
+use wolkenwelten_core::GameState;
 
 fn add_vert(
     vertices: &mut Vec<MeshVertex>,

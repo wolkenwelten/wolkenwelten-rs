@@ -2,7 +2,7 @@
 // All rights reserved. AGPL-3.0+ license.
 use crate::{Texture, TextureArray};
 use anyhow::Result;
-use wolkenwelten_game::GameState;
+use wolkenwelten_core::GameState;
 
 /// A colleciton of all the textures included with WW
 #[derive(Debug)]

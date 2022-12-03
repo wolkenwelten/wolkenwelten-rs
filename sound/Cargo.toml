@@ -8,5 +8,5 @@ homepage = "https://wolkenwelten.net"
 [dependencies]
 rodio = {version = "0.16", default-features = false, features = ["vorbis"]}
 wolkenwelten-client = { path = "../client" }
-wolkenwelten-common = { path = "../common" }
+wolkenwelten-core = { path = "../core" }
 glam = "0.22"

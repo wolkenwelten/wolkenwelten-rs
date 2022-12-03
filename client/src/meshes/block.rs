@@ -2,7 +2,7 @@
 // All rights reserved. AGPL-3.0+ license.
 use anyhow::Result;
 use std::time::Instant;
-use wolkenwelten_common::{BlockType, ChunkBlockData, ChunkLightData};
+use wolkenwelten_core::{BlockType, ChunkBlockData, ChunkLightData};
 use wolkenwelten_meshgen;
 use wolkenwelten_meshgen::BlockVertex;
 

@@ -6,8 +6,7 @@ use std::rc::Rc;
 use std::time::Instant;
 use v8::{ContextScope, HandleScope};
 use wolkenwelten_client::{start_client, RenderInit};
-use wolkenwelten_common::{Message, Reactor, SfxId};
-use wolkenwelten_game::{Chungus, GameLog, GameState};
+use wolkenwelten_core::{Chungus, GameLog, GameState, Message, Reactor, SfxId};
 
 thread_local! {
     static WORLD: RefCell<Option<Rc<RefCell<Chungus>>>> = RefCell::new(None);

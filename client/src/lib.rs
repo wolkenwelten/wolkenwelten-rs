@@ -1,8 +1,5 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
-extern crate glam;
-extern crate wolkenwelten_game;
-
 pub use self::frustum::Frustum;
 pub use self::meshes::{BlockMesh, Mesh, MeshVertex, VoxelMesh};
 pub use self::queue::QueueEntry;

@@ -15,8 +15,7 @@ embed-resource = "1.6"
 
 [dependencies]
 wolkenwelten-client = { path = "client" }
-wolkenwelten-common = { path = "common" }
-wolkenwelten-game = { path = "game" }
+wolkenwelten-core = { path = "core" }
 wolkenwelten-scripting = { path = "scripting" }
 
 wolkenwelten-block-mining = { path = "block_mining", optional = true }
@@ -51,4 +50,4 @@ particles = ["dep:wolkenwelten-particles"]
 item-drop = ["dep:wolkenwelten-item-drop"]
 
 [workspace]
-members = ["block_mining","client","common","game","grenade","item_drop","meshgen","mob","particles","scripting","shadow","sky","sound"]
+members = ["block_mining","client","core","grenade","item_drop","meshgen","mob","particles","scripting","shadow","sky","sound"]

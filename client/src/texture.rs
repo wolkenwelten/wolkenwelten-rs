@@ -6,7 +6,7 @@ use glium::{
     uniforms::Sampler,
 };
 use image::{DynamicImage, Rgba};
-use wolkenwelten_game::GameState;
+use wolkenwelten_core::GameState;
 
 #[derive(Debug)]
 pub struct Texture {

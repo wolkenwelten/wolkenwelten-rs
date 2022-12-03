@@ -4,8 +4,7 @@ use super::render::chungus::chungus_pass;
 use crate::ClientState;
 use glam::Mat4;
 use glium::Surface;
-use wolkenwelten_common::{ChunkRequestQueue, Message, Reactor, CHUNK_SIZE};
-use wolkenwelten_game::{Entity, GameState};
+use wolkenwelten_core::{ChunkRequestQueue, Entity, GameState, Message, Reactor, CHUNK_SIZE};
 
 pub struct RenderPassArgs<'a> {
     pub frame: &'a mut glium::Frame,

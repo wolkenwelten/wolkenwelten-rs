@@ -1,7 +1,7 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
 use crate::ClientState;
-use wolkenwelten_game::GameState;
+use wolkenwelten_core::GameState;
 
 pub fn prepare(fe: &mut ClientState, game: &GameState) {
     let (_window_width, window_height) = fe.window_size();

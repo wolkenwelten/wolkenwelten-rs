@@ -5,7 +5,7 @@ use anyhow::{anyhow, Result};
 use glium::texture::SrgbTexture2dArray;
 use glium::{uniform, Surface};
 use std::time::Instant;
-use wolkenwelten_common::{BlockType, ChunkBlockData, ChunkLightData};
+use wolkenwelten_core::{BlockType, ChunkBlockData, ChunkLightData};
 use wolkenwelten_meshgen;
 use wolkenwelten_meshgen::BlockVertex;
 

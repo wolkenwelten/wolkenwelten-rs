@@ -12,7 +12,7 @@ use std::cell::RefCell;
 use std::io::Cursor;
 use std::rc::Rc;
 use wolkenwelten_client::RenderInitArgs;
-use wolkenwelten_common::{Item, Message, Reactor, SfxId};
+use wolkenwelten_core::{Item, Message, Reactor, SfxId};
 
 struct Sfx {
     buf: Buffered<SamplesBuffer<i16>>,

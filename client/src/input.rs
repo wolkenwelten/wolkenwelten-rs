@@ -8,8 +8,7 @@ use winit::event::{
     DeviceEvent, ElementState, Event, KeyboardInput, MouseButton, MouseScrollDelta, VirtualKeyCode,
     WindowEvent,
 };
-use wolkenwelten_common::{Message, Reactor};
-use wolkenwelten_game::{GameState, RaycastReturn};
+use wolkenwelten_core::{GameState, Message, RaycastReturn, Reactor};
 
 #[derive(Clone, Copy, Debug, Default, Enum)]
 pub enum Key {

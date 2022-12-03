@@ -4,7 +4,7 @@ use anyhow::Result;
 use glam::{Vec2, Vec3};
 use glium;
 use glium::{implement_vertex, uniform, Surface};
-use wolkenwelten_common::BlockType;
+use wolkenwelten_core::BlockType;
 
 use crate::Texture;
 
