@@ -70,11 +70,8 @@ pub fn init(args: RenderInitArgs) -> RenderInitArgs {
     let grenades: Rc<RefCell<Vec<Grenade>>> = Rc::new(RefCell::new(vec![]));
 
     let grenade_mesh: Rc<RefCell<VoxelMesh>> = Rc::new(RefCell::new(
-        VoxelMesh::from_vox_data(
-            &args.fe.display,
-            include_bytes!("../../assets/voxel_meshes/grenade.vox"),
-        )
-        .expect("Error while loading grenade.vox"),
+        VoxelMesh::from_vox_data(&args.fe.display, include_bytes!("../assets/grenade.vox"))
+            .expect("Error while loading grenade.vox"),
     ));
 
     {

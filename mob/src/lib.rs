@@ -41,56 +41,20 @@ struct Mob {
 fn mob_load_meshes(display: &Display) -> Result<Vec<Vec<VoxelMesh>>> {
     Ok(vec![
         vec![
-            VoxelMesh::from_vox_data(
-                display,
-                include_bytes!("../../assets/voxel_meshes/crab/idle_1.vox"),
-            )?,
-            VoxelMesh::from_vox_data(
-                display,
-                include_bytes!("../../assets/voxel_meshes/crab/idle_2.vox"),
-            )?,
-            VoxelMesh::from_vox_data(
-                display,
-                include_bytes!("../../assets/voxel_meshes/crab/walk_1.vox"),
-            )?,
-            VoxelMesh::from_vox_data(
-                display,
-                include_bytes!("../../assets/voxel_meshes/crab/idle_1.vox"),
-            )?,
-            VoxelMesh::from_vox_data(
-                display,
-                include_bytes!("../../assets/voxel_meshes/crab/walk_2.vox"),
-            )?,
-            VoxelMesh::from_vox_data(
-                display,
-                include_bytes!("../../assets/voxel_meshes/crab/idle_1.vox"),
-            )?,
+            VoxelMesh::from_vox_data(display, include_bytes!("../assets/crab/idle_1.vox"))?,
+            VoxelMesh::from_vox_data(display, include_bytes!("../assets/crab/idle_2.vox"))?,
+            VoxelMesh::from_vox_data(display, include_bytes!("../assets/crab/walk_1.vox"))?,
+            VoxelMesh::from_vox_data(display, include_bytes!("../assets/crab/idle_1.vox"))?,
+            VoxelMesh::from_vox_data(display, include_bytes!("../assets/crab/walk_2.vox"))?,
+            VoxelMesh::from_vox_data(display, include_bytes!("../assets/crab/idle_1.vox"))?,
         ],
         vec![
-            VoxelMesh::from_vox_data(
-                display,
-                include_bytes!("../../assets/voxel_meshes/king_crab/idle_1.vox"),
-            )?,
-            VoxelMesh::from_vox_data(
-                display,
-                include_bytes!("../../assets/voxel_meshes/king_crab/idle_2.vox"),
-            )?,
-            VoxelMesh::from_vox_data(
-                display,
-                include_bytes!("../../assets/voxel_meshes/king_crab/walk_1.vox"),
-            )?,
-            VoxelMesh::from_vox_data(
-                display,
-                include_bytes!("../../assets/voxel_meshes/king_crab/idle_1.vox"),
-            )?,
-            VoxelMesh::from_vox_data(
-                display,
-                include_bytes!("../../assets/voxel_meshes/king_crab/walk_2.vox"),
-            )?,
-            VoxelMesh::from_vox_data(
-                display,
-                include_bytes!("../../assets/voxel_meshes/king_crab/idle_1.vox"),
-            )?,
+            VoxelMesh::from_vox_data(display, include_bytes!("../assets/king_crab/idle_1.vox"))?,
+            VoxelMesh::from_vox_data(display, include_bytes!("../assets/king_crab/idle_2.vox"))?,
+            VoxelMesh::from_vox_data(display, include_bytes!("../assets/king_crab/walk_1.vox"))?,
+            VoxelMesh::from_vox_data(display, include_bytes!("../assets/king_crab/idle_1.vox"))?,
+            VoxelMesh::from_vox_data(display, include_bytes!("../assets/king_crab/walk_2.vox"))?,
+            VoxelMesh::from_vox_data(display, include_bytes!("../assets/king_crab/idle_1.vox"))?,
         ],
     ])
 }

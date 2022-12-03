@@ -15,12 +15,12 @@ pub struct TextureList {
 impl TextureList {
     /// Initialize a new TextureList with all the textures initialized/loaded
     pub fn new(display: &glium::Display, game: &GameState) -> Result<TextureList> {
-        let block_bytes = include_bytes!("../../../assets/textures/blocks.png");
+        let block_bytes = include_bytes!("../../assets/blocks.png");
         let blocks = TextureArray::from_bytes(display, block_bytes)?;
         let blocks_raw = Texture::from_bytes(display, block_bytes)?;
         let gui = Texture::gui_texture(
             display,
-            include_bytes!("../../../assets/textures/gui.png"),
+            include_bytes!("../../assets/gui.png"),
             block_bytes,
             game,
         )?;

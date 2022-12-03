@@ -32,10 +32,7 @@ impl MeshList {
     pub fn new(display: &glium::Display, game: &GameState) -> Result<Self> {
         Ok(Self {
             blocks: Self::gen_block_meshes(display, game)?,
-            fist: VoxelMesh::from_vox_data(
-                display,
-                include_bytes!("../../../assets/voxel_meshes/fist.vox"),
-            )?,
+            fist: VoxelMesh::from_vox_data(display, include_bytes!("../../assets/fist.vox"))?,
         })
     }
 }

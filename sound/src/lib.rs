@@ -202,14 +202,14 @@ impl<'a> SfxList<'a> {
         {
             let state = s.state.clone();
             let stream = s.stream.clone();
-            let jump = Self::sfx_new(include_bytes!("../../assets/sfx/jump.ogg"));
-            let hook_fire = Self::sfx_new(include_bytes!("../../assets/sfx/hookFire.ogg"));
-            let ungh = Self::sfx_new(include_bytes!("../../assets/sfx/ungh.ogg"));
-            let step = Self::sfx_new(include_bytes!("../../assets/sfx/step.ogg"));
-            let stomp = Self::sfx_new(include_bytes!("../../assets/sfx/stomp.ogg"));
-            let bomb = Self::sfx_new(include_bytes!("../../assets/sfx/bomb.ogg"));
-            let pock = Self::sfx_new(include_bytes!("../../assets/sfx/pock.ogg"));
-            let tock = Self::sfx_new(include_bytes!("../../assets/sfx/tock.ogg"));
+            let jump = Self::sfx_new(include_bytes!("../assets/jump.ogg"));
+            let hook_fire = Self::sfx_new(include_bytes!("../assets/hookFire.ogg"));
+            let ungh = Self::sfx_new(include_bytes!("../assets/ungh.ogg"));
+            let step = Self::sfx_new(include_bytes!("../assets/step.ogg"));
+            let stomp = Self::sfx_new(include_bytes!("../assets/stomp.ogg"));
+            let bomb = Self::sfx_new(include_bytes!("../assets/bomb.ogg"));
+            let pock = Self::sfx_new(include_bytes!("../assets/pock.ogg"));
+            let tock = Self::sfx_new(include_bytes!("../assets/tock.ogg"));
 
             let f = move |_: &Reactor<Message>, msg: Message| {
                 if let Message::SfxPlay {

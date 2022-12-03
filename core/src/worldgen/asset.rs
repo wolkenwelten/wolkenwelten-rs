@@ -23,52 +23,37 @@ pub struct WorldgenAssetList {
 impl WorldgenAssetList {
     pub fn new() -> Result<Self> {
         let trees = [
-            WorldgenAsset::from_vox_data(include_bytes!("../../../assets/voxel_meshes/tree.vox"))?
+            WorldgenAsset::from_vox_data(include_bytes!("../../assets/tree.vox"))?
                 .with_palette(vec![0, 5, 11]),
-            WorldgenAsset::from_vox_data(include_bytes!(
-                "../../../assets/voxel_meshes/tree_b.vox"
-            ))?
-            .with_palette(vec![0, 5, 11]),
-            WorldgenAsset::from_vox_data(include_bytes!(
-                "../../../assets/voxel_meshes/tree_c.vox"
-            ))?
-            .with_palette(vec![0, 5, 11]),
+            WorldgenAsset::from_vox_data(include_bytes!("../../assets/tree_b.vox"))?
+                .with_palette(vec![0, 5, 11]),
+            WorldgenAsset::from_vox_data(include_bytes!("../../assets/tree_c.vox"))?
+                .with_palette(vec![0, 5, 11]),
         ];
 
         let bushes = [
-            WorldgenAsset::from_vox_data(include_bytes!(
-                "../../../assets/voxel_meshes/bush_a.vox"
-            ))?
-            .with_palette(vec![0, 10, 6]),
-            WorldgenAsset::from_vox_data(include_bytes!(
-                "../../../assets/voxel_meshes/bush_b.vox"
-            ))?
-            .with_palette(vec![0, 6, 10]),
-            WorldgenAsset::from_vox_data(include_bytes!(
-                "../../../assets/voxel_meshes/bush_c.vox"
-            ))?
-            .with_palette(vec![0, 6, 10]),
+            WorldgenAsset::from_vox_data(include_bytes!("../../assets/bush_a.vox"))?
+                .with_palette(vec![0, 10, 6]),
+            WorldgenAsset::from_vox_data(include_bytes!("../../assets/bush_b.vox"))?
+                .with_palette(vec![0, 6, 10]),
+            WorldgenAsset::from_vox_data(include_bytes!("../../assets/bush_c.vox"))?
+                .with_palette(vec![0, 6, 10]),
         ];
 
         let rocks = [
-            WorldgenAsset::from_vox_data(include_bytes!(
-                "../../../assets/voxel_meshes/rock_a.vox"
-            ))?
-            .with_palette(vec![0, 3]),
-            WorldgenAsset::from_vox_data(include_bytes!(
-                "../../../assets/voxel_meshes/rock_b.vox"
-            ))?
-            .with_palette(vec![0, 3, 4]),
-            WorldgenAsset::from_vox_data(include_bytes!(
-                "../../../assets/voxel_meshes/rock_c.vox"
-            ))?
-            .with_palette(vec![0, 3, 12]),
+            WorldgenAsset::from_vox_data(include_bytes!("../../assets/rock_a.vox"))?
+                .with_palette(vec![0, 3]),
+            WorldgenAsset::from_vox_data(include_bytes!("../../assets/rock_b.vox"))?
+                .with_palette(vec![0, 3, 4]),
+            WorldgenAsset::from_vox_data(include_bytes!("../../assets/rock_c.vox"))?
+                .with_palette(vec![0, 3, 12]),
         ];
 
-        let spruce_trees = [WorldgenAsset::from_vox_data(include_bytes!(
-            "../../../assets/voxel_meshes/spruce_a.vox"
-        ))?
-        .with_palette(vec![0, 5, 11])];
+        let spruce_trees =
+            [
+                WorldgenAsset::from_vox_data(include_bytes!("../../assets/spruce_a.vox"))?
+                    .with_palette(vec![0, 5, 11]),
+            ];
 
         Ok(Self {
             trees,

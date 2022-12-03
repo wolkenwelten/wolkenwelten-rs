@@ -160,7 +160,7 @@ pub fn init(args: RenderInitArgs) -> RenderInitArgs {
     {
         let mining_texture = Texture::from_bytes(
             &args.fe.display,
-            include_bytes!("../../assets/textures/mining.png"),
+            include_bytes!("../assets/block_mining.png"),
         )
         .expect("Couldn't load block mining texture");
         args.render_reactor

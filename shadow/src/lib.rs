@@ -64,11 +64,8 @@ pub fn init(args: RenderInitArgs) -> RenderInitArgs {
     )
     .expect("Couldn't compile shadow shader");
 
-    let texture = Texture::from_bytes(
-        &args.fe.display,
-        include_bytes!("../../assets/textures/shadow.png"),
-    )
-    .expect("Couldn't load shadow texture");
+    let texture = Texture::from_bytes(&args.fe.display, include_bytes!("../assets/shadow.png"))
+        .expect("Couldn't load shadow texture");
 
     args.render_reactor
         .post_world_render

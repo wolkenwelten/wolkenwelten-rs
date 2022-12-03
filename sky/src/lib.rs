@@ -6,16 +6,10 @@ use wolkenwelten_client::{Mesh, RenderInitArgs, Texture};
 use wolkenwelten_core::CHUNK_SIZE;
 
 pub fn init(args: RenderInitArgs) -> RenderInitArgs {
-    let dome_mesh = Mesh::from_obj_string(
-        &args.fe.display,
-        include_str!("../../assets/meshes/skydome.obj"),
-    )
-    .expect("Couldn't load skydome mesh");
-    let sky_texture = Texture::from_bytes(
-        &args.fe.display,
-        include_bytes!("../../assets/textures/sky.png"),
-    )
-    .expect("Couldn't load sky texture");
+    let dome_mesh = Mesh::from_obj_string(&args.fe.display, include_str!("../assets/skydome.obj"))
+        .expect("Couldn't load skydome mesh");
+    let sky_texture = Texture::from_bytes(&args.fe.display, include_bytes!("../assets/sky.png"))
+        .expect("Couldn't load sky texture");
 
     args.render_reactor
         .pre_world_render
