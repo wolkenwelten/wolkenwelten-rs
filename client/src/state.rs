@@ -62,7 +62,7 @@ impl ClientState {
             textures,
             ui_mesh,
 
-            show_debug_info: cfg!(debug_assertions),
+            show_debug_info: false,
             cur_fov: 90.0,
             cur_fps: 0,
             frame_count: 0,

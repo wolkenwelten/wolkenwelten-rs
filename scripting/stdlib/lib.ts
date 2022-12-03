@@ -10,6 +10,8 @@ interface WWCInterface {
     print:(value:any) => void,
     eprint:(value:any) => void,
 	game_log:(value:any) => void,
+
+	VERSION:string,
 }
 declare const WWC:WWCInterface;
 

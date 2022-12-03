@@ -146,6 +146,17 @@ fn add_fun(
     obj.set(key.into(), value.into());
 }
 
+fn add_string(
+    scope: &mut ContextScope<HandleScope>,
+    obj: &v8::Local<v8::ObjectTemplate>,
+    key: &str,
+    val: &str,
+) {
+    let key = v8::String::new(scope, key).unwrap();
+    let value = v8::String::new(scope, val).unwrap();
+    obj.set(key.into(), value.into());
+}
+
 pub fn start_runtime(
     game_state: GameState,
     mut reactor: Reactor<Message>,
@@ -207,6 +218,12 @@ pub fn start_runtime(
 
         {
             let wwc = v8::ObjectTemplate::new(&mut scope.borrow_mut());
+            add_string(
+                &mut scope.borrow_mut(),
+                &wwc,
+                "VERSION",
+                env!("CARGO_PKG_VERSION"),
+            );
             add_fun(&mut scope.borrow_mut(), &wwc, "eprint", fun_eprint);
             add_fun(&mut scope.borrow_mut(), &wwc, "print", fun_print);
             add_fun(&mut scope.borrow_mut(), &wwc, "getBlock", fun_get_block);

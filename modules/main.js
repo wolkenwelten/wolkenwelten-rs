@@ -1,5 +1,5 @@
 const msgs = [
-	"Welcome to WolkenWelten!",
+	`Welcome to WolkenWelten ${WWC.VERSION}!`,
 	"Use WASD to move, Space to jump and Shift to sprint",
 	"Use your mouse to mine/place blocks or punch crabs",
 	"You can also throw grenades by pressing E"
