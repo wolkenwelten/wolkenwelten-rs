@@ -61,11 +61,6 @@ impl Character {
         let inv = self.inventory_mut();
         inv.clear();
         inv.resize(10, Item::None);
-        inv[0] = BlockItem::new(1, 32).into();
-        inv[1] = BlockItem::new(2, 24).into();
-        inv[2] = BlockItem::new(3, 16).into();
-        inv[3] = BlockItem::new(4, 12).into();
-        inv[4] = BlockItem::new(5, 8).into();
         self.set_inventory_active(0);
         self.health.set_max_health(16);
         self.health.set_full_health();
@@ -596,7 +591,6 @@ impl Character {
         {
             let player = game.player_ref();
             let clock = game.clock_ref();
-            //let drops = game.drops_ref();
             let f = move |reactor: &Reactor<Message>, _msg: Message| {
                 let mut player = player.borrow_mut();
                 let now = clock.borrow().elapsed().as_millis() as u64;
@@ -610,8 +604,6 @@ impl Character {
                         let pos = player.pos() + vel * 2.0;
                         let vel = vel * 0.03;
                         reactor.defer(Message::CharacterDropItem { pos, vel, item });
-                        //let mut drops = drops.borrow_mut();
-                        //drops.add(pos, vel, item);
                     }
                 }
             };
