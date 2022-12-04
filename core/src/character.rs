@@ -1,6 +1,6 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
-use crate::{BlockItem, Chungus, GameState, Health, Item, Message, Reactor};
+use crate::{BlockItem, Chungus, Experience, GameState, Health, Item, Message, Reactor};
 use glam::{IVec3, Vec3, Vec3Swizzles};
 use std::{f32::consts::PI, time::Instant};
 
@@ -23,6 +23,7 @@ pub struct Character {
     no_clip: bool,
     cooldown: u64,
     health: Health,
+    experience: Experience,
 
     inventory_active: usize,
     inventory: Vec<Item>,
@@ -82,11 +83,20 @@ impl Character {
     pub fn movement(&self) -> Vec3 {
         self.movement
     }
+
+    #[inline]
+    pub fn experience(&self) -> &Experience {
+        &self.experience
+    }
+    #[inline]
+    pub fn experience_mut(&mut self) -> &mut Experience {
+        &mut self.experience
+    }
+
     #[inline]
     pub fn mining(&self) -> Option<(IVec3, u8)> {
         self.mining
     }
-
     #[inline]
     pub fn set_mining(&mut self, m: Option<(IVec3, u8)>) {
         self.mining = m;
@@ -625,6 +635,30 @@ impl Character {
                 }
             };
             reactor.add_sink(Message::GameTick { ticks: 0 }, Box::new(f));
+        }
+        {
+            let player = game.player_ref();
+            let f = move |reactor: &Reactor<Message>, msg: Message| {
+                if let Message::CharacterGainExperience { xp, .. } = msg {
+                    let mut player = player.borrow_mut();
+                    let experience = player.experience_mut();
+                    experience.gain(xp);
+                    if experience.level_up() {
+                        let level = experience.level();
+                        reactor.defer(Message::CharacterLevelUp {
+                            pos: player.pos(),
+                            level,
+                        })
+                    }
+                }
+            };
+            reactor.add_sink(
+                Message::CharacterGainExperience {
+                    pos: Vec3::ZERO,
+                    xp: 0,
+                },
+                Box::new(f),
+            );
         }
     }
 }

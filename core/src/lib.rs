@@ -2,6 +2,7 @@
 // All rights reserved. AGPL-3.0+ license.
 mod block_type;
 mod chunk;
+mod experience;
 mod item;
 mod iter;
 mod message;
@@ -10,6 +11,7 @@ mod reactor;
 
 pub use block_type::*;
 pub use chunk::*;
+pub use experience::*;
 pub use item::*;
 pub use iter::*;
 pub use message::*;

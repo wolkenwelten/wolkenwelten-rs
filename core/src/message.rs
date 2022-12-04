@@ -43,6 +43,14 @@ pub enum Message {
         pos: Vec3,
         damage: i16,
     },
+    CharacterGainExperience {
+        pos: Vec3,
+        xp: u64,
+    },
+    CharacterLevelUp {
+        pos: Vec3,
+        level: u8,
+    },
     CharacterAttack {
         char_pos: Vec3,
         attack_pos: Vec3,
@@ -148,6 +156,7 @@ pub enum SfxId {
     Bomb,
     Pock,
     Tock,
+    LevelUp,
 }
 
 impl Message {
@@ -167,6 +176,8 @@ impl Message {
             | Message::CharacterDamage { pos, .. }
             | Message::CharacterShoot { pos, .. }
             | Message::CharacterStomp { pos, .. }
+            | Message::CharacterGainExperience { pos, .. }
+            | Message::CharacterLevelUp { pos, .. }
             | Message::MobDied { pos, .. }
             | Message::Explosion { pos, .. }
             | Message::CharacterJump { pos, .. } => Some(*pos),

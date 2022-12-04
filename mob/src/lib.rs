@@ -275,6 +275,12 @@ pub fn init(args: RenderInitArgs) -> RenderInitArgs {
                         dir.y = -0.5;
                         m.set_vel(dir * -0.04);
                         m.health -= damage;
+                        if m.health.is_dead() {
+                            reactor.defer(Message::CharacterGainExperience {
+                                pos: m.pos(),
+                                xp: 8,
+                            });
+                        }
                         reactor.defer(Message::MobHurt {
                             pos: m.pos(),
                             damage,

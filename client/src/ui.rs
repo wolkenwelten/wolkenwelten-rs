@@ -59,6 +59,47 @@ fn prepare_healthbar(fe: &mut ClientState, game: &GameState, x: i16, y: i16, hea
     }
 }
 
+fn prepare_experience(fe: &mut ClientState, game: &GameState, x: i16, y: i16, size: i16) {
+    {
+        let percent = game.player().experience().percent_till_level_up();
+        let off = (size as f32 * percent) as i16;
+        let p = (x, y+size-off, size, off);
+        let tex = (220, 252, 4, 4);
+        let rgba = [0xFF, 0xAF, 0x07, 0xAF];
+        fe.ui_mesh.push_box(p, tex, rgba);
+    }
+    let p = (x, y, size, size);
+    let tex = (208, 252, 4, 4);
+    let rgba = [0xFF, 0xFF, 0xFF, 0xFF];
+    fe.ui_mesh.push_box(p, tex, rgba);
+
+
+
+    let xp_text = format!("{}", game.player().experience().level());
+    fe.ui_mesh.push_string(
+        x + size / 2 - 8,
+        y + size / 2 - 8,
+        2,
+        [0xFF, 0xFF, 0xFF, 0xFF],
+        xp_text.as_str(),
+    );
+
+    let xp_text = format!(
+        "{}/{}",
+        game.player().experience().xp(),
+        game.player().experience().next_level()
+    );
+    if fe.show_debug_info() {
+        fe.ui_mesh.push_string(
+            x + 4,
+            y + size + 4,
+            1,
+            [0xFF, 0xFF, 0xFF, 0xFF],
+            xp_text.as_str(),
+        );
+    }
+}
+
 fn prepare_fps(fe: &mut ClientState) {
     let (window_width, _window_height) = fe.window_size();
     let fps_text = format!("{}", fe.fps());
@@ -80,16 +121,18 @@ fn prepare_debug_text(fe: &mut ClientState, game: &GameState, request: &ChunkReq
         "X:{:8.2} Y:{:8.2} Z:{:8.2}   Ticks:{}",
         pos[0], pos[1], pos[2], game.ticks_elapsed
     );
+    let y = 96;
     fe.ui_mesh
-        .push_string(8, 64, 2, [0xFF, 0xFF, 0xFF, 0xFF], pos_text.as_str());
+        .push_string(8, y, 2, [0xFF, 0xFF, 0xFF, 0xFF], pos_text.as_str());
 
     let col_text = format!(
         "Count: (Chunks:{}, BlockMeshes:{})",
         game.world().chunk_count(),
         fe.world_mesh.len(),
     );
+    let y = y + 20;
     fe.ui_mesh
-        .push_string(8, 88, 2, [0xFF, 0xFF, 0xFF, 0xFF], col_text.as_str());
+        .push_string(8, y, 2, [0xFF, 0xFF, 0xFF, 0xFF], col_text.as_str());
     let text = format!(
         "Requests: (Block:{}, Light:(Simple:{} / Complex:{}), Mesh:{})",
         request.block_len(),
@@ -97,8 +140,9 @@ fn prepare_debug_text(fe: &mut ClientState, game: &GameState, request: &ChunkReq
         request.complex_light_len(),
         request.mesh_len(),
     );
+    let y = y + 20;
     fe.ui_mesh
-        .push_string(8, 112, 2, [0xFF, 0xFF, 0xFF, 0xFF], text.as_str());
+        .push_string(8, y, 2, [0xFF, 0xFF, 0xFF, 0xFF], text.as_str());
 }
 
 fn prepare_crosshair(fe: &mut ClientState) {
@@ -117,7 +161,8 @@ fn prepare_crosshair(fe: &mut ClientState) {
 pub fn prepare(fe: &mut ClientState, game: &GameState, request: &ChunkRequestQueue) {
     prepare_fps(fe);
     prepare_crosshair(fe);
-    prepare_healthbar(fe, game, 16, 16, true);
+    prepare_healthbar(fe, game, 96, 16, true);
+    prepare_experience(fe, game, 16, 16, 64);
 
     prepare_debug_text(fe, game, request);
     inventory::prepare(fe, game);

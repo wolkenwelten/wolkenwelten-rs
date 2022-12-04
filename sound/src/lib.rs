@@ -127,6 +127,11 @@ impl<'a> SfxList<'a> {
 
         s.add_relay(SfxId::Jump, Message::CharacterJump { pos: Vec3::ZERO }, 0.1);
         s.add_relay(
+            SfxId::LevelUp,
+            Message::CharacterLevelUp { pos: Vec3::ZERO, level: 0},
+            0.5,
+        );
+        s.add_relay(
             SfxId::Pock,
             Message::BlockPlace {
                 pos: IVec3::ZERO,
@@ -210,6 +215,7 @@ impl<'a> SfxList<'a> {
             let bomb = Self::sfx_new(include_bytes!("../assets/bomb.ogg"));
             let pock = Self::sfx_new(include_bytes!("../assets/pock.ogg"));
             let tock = Self::sfx_new(include_bytes!("../assets/tock.ogg"));
+            let level_up = Self::sfx_new(include_bytes!("../assets/levelUp.ogg"));
 
             let f = move |_: &Reactor<Message>, msg: Message| {
                 if let Message::SfxPlay {
@@ -227,6 +233,7 @@ impl<'a> SfxList<'a> {
                         SfxId::Bomb => bomb.borrow(),
                         SfxId::Pock => pock.borrow(),
                         SfxId::Tock => tock.borrow(),
+                        SfxId::LevelUp => level_up.borrow(),
                         _ => return,
                     };
                     Self::play_spatial_sound(
