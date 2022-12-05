@@ -125,10 +125,12 @@ impl<'a> SfxList<'a> {
             );
         }
 
-        s.add_relay(SfxId::Jump, Message::CharacterJump { pos: Vec3::ZERO }, 0.1);
         s.add_relay(
             SfxId::LevelUp,
-            Message::CharacterLevelUp { pos: Vec3::ZERO, level: 0},
+            Message::CharacterLevelUp {
+                pos: Vec3::ZERO,
+                level: 0,
+            },
             0.5,
         );
         s.add_relay(
@@ -157,7 +159,16 @@ impl<'a> SfxList<'a> {
             Message::CharacterDeath { pos: Vec3::ZERO },
             0.3,
         );
-        s.add_relay(SfxId::Step, Message::CharacterStep { pos: Vec3::ZERO }, 0.2);
+        s.add_relay(SfxId::Step, Message::CharacterStep { pos: Vec3::ZERO }, 0.4);
+        s.add_relay(
+            SfxId::PunchMiss,
+            Message::CharacterAttack {
+                char_pos: Vec3::ZERO,
+                attack_pos: Vec3::ZERO,
+                damage: 0,
+            },
+            0.2,
+        );
         s.add_relay(
             SfxId::Stomp,
             Message::CharacterStomp { pos: Vec3::ZERO },
@@ -216,6 +227,8 @@ impl<'a> SfxList<'a> {
             let pock = Self::sfx_new(include_bytes!("../assets/pock.ogg"));
             let tock = Self::sfx_new(include_bytes!("../assets/tock.ogg"));
             let level_up = Self::sfx_new(include_bytes!("../assets/levelUp.ogg"));
+            let punch = Self::sfx_new(include_bytes!("../assets/punch.ogg"));
+            let punch_miss = Self::sfx_new(include_bytes!("../assets/punchMiss.ogg"));
 
             let f = move |_: &Reactor<Message>, msg: Message| {
                 if let Message::SfxPlay {
@@ -234,6 +247,8 @@ impl<'a> SfxList<'a> {
                         SfxId::Pock => pock.borrow(),
                         SfxId::Tock => tock.borrow(),
                         SfxId::LevelUp => level_up.borrow(),
+                        SfxId::Punch => punch.borrow(),
+                        SfxId::PunchMiss => punch_miss.borrow(),
                         _ => return,
                     };
                     Self::play_spatial_sound(

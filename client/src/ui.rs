@@ -63,7 +63,7 @@ fn prepare_experience(fe: &mut ClientState, game: &GameState, x: i16, y: i16, si
     {
         let percent = game.player().experience().percent_till_level_up();
         let off = (size as f32 * percent) as i16;
-        let p = (x, y+size-off, size, off);
+        let p = (x, y + size - off, size, off);
         let tex = (220, 252, 4, 4);
         let rgba = [0xFF, 0xAF, 0x07, 0xAF];
         fe.ui_mesh.push_box(p, tex, rgba);
@@ -72,8 +72,6 @@ fn prepare_experience(fe: &mut ClientState, game: &GameState, x: i16, y: i16, si
     let tex = (208, 252, 4, 4);
     let rgba = [0xFF, 0xFF, 0xFF, 0xFF];
     fe.ui_mesh.push_box(p, tex, rgba);
-
-
 
     let xp_text = format!("{}", game.player().experience().level());
     fe.ui_mesh.push_string(

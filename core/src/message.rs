@@ -157,6 +157,8 @@ pub enum SfxId {
     Pock,
     Tock,
     LevelUp,
+    Punch,
+    PunchMiss,
 }
 
 impl Message {

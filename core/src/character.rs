@@ -382,7 +382,7 @@ impl Character {
         }
 
         if self.may_jump(world)
-            && ((len > 0.025 && cur_tick & 0x3F == 0) || (len > 0.01 && cur_tick & 0x7F == 0))
+            && ((len > 0.025 && cur_tick & 0x7F == 0) || (len > 0.01 && cur_tick & 0x7F == 0))
         {
             reactor.dispatch(Message::CharacterStep { pos: self.pos });
         }
@@ -429,6 +429,7 @@ impl Character {
                         attack_pos,
                         damage: 1,
                     });
+
                     player.set_animation_hit();
                     player.set_cooldown(now + 400)
                 }

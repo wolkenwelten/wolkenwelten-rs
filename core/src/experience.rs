@@ -54,7 +54,7 @@ impl Experience {
     }
 
     #[inline]
-    pub fn set_xp(&mut self, xp:u64) {
+    pub fn set_xp(&mut self, xp: u64) {
         self.xp = xp;
     }
 

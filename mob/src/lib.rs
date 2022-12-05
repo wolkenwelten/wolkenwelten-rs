@@ -287,8 +287,8 @@ pub fn init(args: RenderInitArgs) -> RenderInitArgs {
                         });
                         reactor.defer(Message::SfxPlay {
                             pos: m.pos(),
-                            volume: 0.4,
-                            sfx: SfxId::Stomp,
+                            volume: 0.3,
+                            sfx: SfxId::Punch,
                         });
                     });
             }
@@ -321,11 +321,6 @@ pub fn init(args: RenderInitArgs) -> RenderInitArgs {
                         reactor.defer(Message::MobHurt {
                             pos: m.pos(),
                             damage,
-                        });
-                        reactor.defer(Message::SfxPlay {
-                            pos: m.pos(),
-                            volume: 0.4,
-                            sfx: SfxId::Stomp,
                         });
                     });
             }
