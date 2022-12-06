@@ -190,6 +190,9 @@ impl ParticleMesh {
     }
 
     fn fx_hurt(&mut self, pos: Vec3, color: [RGBA8; 2], part_count: usize) {
+        let pos = pos;
+        let pos = pos + Vec3::new(self.rng.gen_range(-0.5..=0.5), self.rng.gen_range(-0.5..=0.5), self.rng.gen_range(-0.5..=0.5));
+        let pos = pos.extend(80.0);
         for color in color.iter() {
             let color: Srgb = Srgb::from_components((
                 color.r as f32 / 256.0,
@@ -197,6 +200,7 @@ impl ParticleMesh {
                 color.b as f32 / 256.0,
             ));
             for _ in 0..part_count {
+                let pos = pos.to_array();
                 let vel = [
                     self.rng.gen_range(-0.06..0.06),
                     self.rng.gen_range(0.00..0.1),
@@ -209,7 +213,7 @@ impl ParticleMesh {
                 let color = [color[0], color[1], color[2], 0xFF];
 
                 self.particles.push(ParticleVertex {
-                    pos: pos.extend(80.0).to_array(),
+                    pos,
                     vel,
                     color,
                 });
