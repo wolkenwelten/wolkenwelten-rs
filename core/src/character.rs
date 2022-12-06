@@ -66,6 +66,7 @@ impl Character {
         self.health.set_max_health(12);
         self.health.set_full_health();
         self.experience_mut().reset();
+        self.experience_mut().gain(8);
     }
 
     #[inline]
@@ -388,8 +389,7 @@ impl Character {
             self.vel *= 1.0 - (len - 0.2).clamp(0.0001, 1.0);
         }
 
-        if self.may_jump(world) && (len > 0.01 && cur_tick & 0x7F == 0)
-        {
+        if self.may_jump(world) && (len > 0.01 && cur_tick & 0x7F == 0) {
             reactor.dispatch(Message::CharacterStep { pos: self.pos });
         }
 

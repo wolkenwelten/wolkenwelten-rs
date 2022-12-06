@@ -63,7 +63,7 @@ pub fn render_frame(frame: &mut glium::Frame, fe: &ClientState, game: &GameState
         10.0,
     );
     let mat_mvp = projection.to_cols_array_2d();
-    let cur_tex = fe.textures.gui.texture();
+    let cur_tex = fe.textures.gui.texture_nn();
     frame.draw(
         fe.ui_mesh.buffer(),
         glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList),

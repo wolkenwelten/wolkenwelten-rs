@@ -13,11 +13,11 @@ fn prepare_slot(
     item: Item,
 ) {
     let p = (pos.x as i16, pos.y as i16, size.x as i16, size.y as i16);
-    let tex = (220, 252, 4, 4);
-    let rgba = [0xFF, 0xFF, 0xFF, 0x7F];
+    let tex = (76, 124, 4, 4);
+    let rgba = [0x3F, 0x3F, 0x3F, 0x1F];
     fe.ui_mesh.push_box(p, tex, rgba);
 
-    let tex = (if active { 212 } else { 208 }, 252, 4, 4);
+    let tex = (if active { 84 } else { 80 }, 124, 4, 4);
     let rgba = [0xFF, 0xFF, 0xFF, 0xFF];
     fe.ui_mesh.push_box(p, tex, rgba);
 

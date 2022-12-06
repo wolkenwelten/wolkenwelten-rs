@@ -64,20 +64,20 @@ fn prepare_experience(fe: &mut ClientState, game: &GameState, x: i16, y: i16, si
         let percent = game.player().experience().percent_till_level_up();
         let off = (size as f32 * percent) as i16;
         let p = (x, y + size - off, size, off);
-        let tex = (220, 252, 4, 4);
-        let rgba = [0xFF, 0xAF, 0x07, 0xAF];
+        let tex = (76, 124, 4, 4);
+        let rgba = [0xFF, 0x9F, 0x0A, 0xCF];
         fe.ui_mesh.push_box(p, tex, rgba);
     }
     let p = (x, y, size, size);
-    let tex = (208, 252, 4, 4);
+    let tex = (80, 124, 4, 4);
     let rgba = [0xFF, 0xFF, 0xFF, 0xFF];
     fe.ui_mesh.push_box(p, tex, rgba);
 
     let xp_text = format!("{}", game.player().experience().level());
     fe.ui_mesh.push_string(
-        x + size / 2 - 8,
-        y + size / 2 - 8,
-        2,
+        x + size / 2 - 12,
+        y + size / 2 - 16,
+        4,
         [0xFF, 0xFF, 0xFF, 0xFF],
         xp_text.as_str(),
     );
@@ -152,7 +152,7 @@ fn prepare_crosshair(fe: &mut ClientState) {
         32,
         32,
     );
-    let tex = (200, 252, 4, 4);
+    let tex = (72, 124, 4, 4);
     fe.ui_mesh.push_box(pos, tex, [0xFF, 0xFF, 0xFF, 0x7F]);
 }
 

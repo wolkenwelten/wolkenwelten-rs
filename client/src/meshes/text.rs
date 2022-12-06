@@ -98,11 +98,15 @@ impl TextMesh {
         }
 
         let cc = c as u8;
-        let u = 32 + ((cc & 0xF) as i16 * size);
+        let u = 32 + ((cc & 0xF) as i16 * size.min(2));
         let voff = if size == 1 { 128 - 16 } else { 128 };
-        let v = voff - ((((cc >> 4) & 0xF) + 1) as i16 * size);
+        let v = voff - ((((cc >> 4) & 0xF) + 1) as i16 * size.min(2));
 
-        self.push_box((x, y, glyph_width, glyph_width), (u, v, size, size), rgba)
+        self.push_box(
+            (x, y, glyph_width, glyph_width),
+            (u, v, size.min(2), size.min(2)),
+            rgba,
+        )
     }
 
     pub fn push_string(
@@ -119,13 +123,5 @@ impl TextMesh {
             self.push_glyph(x, y, size as i16, rgba, c);
         });
         self
-    }
-}
-
-impl std::fmt::Display for TextMesh {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        let fs = if self.finished { "true" } else { "false" };
-        let len = self.vertices.len();
-        write!(f, "<TextMesh finished={} len={} />", fs, len)
     }
 }
