@@ -10,7 +10,7 @@ pub struct Health {
 
 impl Default for Health {
     fn default() -> Self {
-        Self { hp: 16, max_hp: 16 }
+        Self { hp: 12, max_hp: 12 }
     }
 }
 

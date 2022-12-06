@@ -63,8 +63,9 @@ impl Character {
         inv.clear();
         inv.resize(10, Item::None);
         self.set_inventory_active(0);
-        self.health.set_max_health(16);
+        self.health.set_max_health(12);
         self.health.set_full_health();
+        self.experience_mut().reset();
     }
 
     #[inline]
@@ -148,6 +149,12 @@ impl Character {
     #[inline]
     pub fn health(&self) -> Health {
         self.health
+    }
+
+    #[inline]
+    pub fn set_max_health(&mut self, amount: i16) {
+        self.health.set_max_health(amount);
+        self.health.set_full_health();
     }
 
     #[inline]
@@ -381,8 +388,7 @@ impl Character {
             self.vel *= 1.0 - (len - 0.2).clamp(0.0001, 1.0);
         }
 
-        if self.may_jump(world)
-            && ((len > 0.025 && cur_tick & 0x7F == 0) || (len > 0.01 && cur_tick & 0x7F == 0))
+        if self.may_jump(world) && (len > 0.01 && cur_tick & 0x7F == 0)
         {
             reactor.dispatch(Message::CharacterStep { pos: self.pos });
         }
@@ -646,6 +652,7 @@ impl Character {
                     experience.gain(xp);
                     if experience.level_up() {
                         let level = experience.level();
+                        player.set_max_health(level as i16 * 4 + 8);
                         reactor.defer(Message::CharacterLevelUp {
                             pos: player.pos(),
                             level,

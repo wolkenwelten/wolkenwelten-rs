@@ -54,8 +54,15 @@ impl Experience {
     }
 
     #[inline]
-    pub fn set_xp(&mut self, xp: u64) {
-        self.xp = xp;
+    pub fn reset(&mut self) {
+        self.xp = 0;
+        self.xp_total = 0;
+        self.next_level = 32;
+        self.level = 1;
+    }
+    #[inline]
+    pub fn set_next_level(&mut self, next_level: u64) {
+        self.next_level = next_level;
     }
 
     pub fn percent_till_level_up(&self) -> f32 {
