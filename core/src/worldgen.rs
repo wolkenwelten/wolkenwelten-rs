@@ -58,13 +58,26 @@ pub fn chunk(world: &Chungus, pos: IVec3, reactor: &Reactor<Message>) -> ChunkBl
             let snow_y = if y > 96.0 { (y * 2.0 + 2.0) as i32 } else { 0 };
             r.set_pillar(1, [x, stone_y - py, z].into(), grass_y - py);
             if grass_y > (stone_y + 4) {
-                r.set_pillar(2, [x, grass_y - py - 1, z].into(), grass_y - py);
+                let block = if grass_y > -32 { 2 } else { 23 };
+                r.set_pillar(block, [x, grass_y - py - 1, z].into(), grass_y - py);
             } else {
                 r.set_pillar(13, [x, stone_y - py, z].into(), snow_y - py);
             }
             r.set_pillar(3, [x, (-(1 << 30)) - py, z].into(), stone_y - py);
             if grass_y > (stone_y + 8) {
-                if rng.gen_range(1..400) == 1 {
+                if grass_y < -33 {
+                    if rng.gen_range(1..2000) == 1 {
+                        let i = rng.gen_range(0..assets.rocks.len());
+                        let pos = IVec3::new(
+                            x - assets.rocks[i].size.x / 2,
+                            grass_y - py - 2,
+                            z - assets.rocks[i].size.z / 2,
+                        );
+                        if assets.rocks[i].fits(pos) {
+                            r.blit(&assets.rocks[i], pos);
+                        }
+                    }
+                } else if rng.gen_range(1..400) == 1 {
                     let i = rng.gen_range(0..assets.bushes.len());
                     let pos = IVec3::new(
                         x - assets.bushes[i].size.x / 2,

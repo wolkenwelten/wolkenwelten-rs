@@ -310,6 +310,13 @@ impl BlockType {
                     RGBA8::new(0x94, 0x83, 0x12, 0xFF),
                 )
                 .with_block_health(100),
+            BlockType::new("Sand")
+                .with_texture(24)
+                .with_colors(
+                    RGBA8::new(0xEC, 0xD1, 0x95, 0xFF),
+                    RGBA8::new(0xD3, 0xA7, 0x48, 0xFF),
+                )
+                .with_block_health(140),
         ]
     }
 }
