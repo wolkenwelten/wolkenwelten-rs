@@ -71,7 +71,7 @@ impl Mob {
             ent,
             model_index,
             animation_state: MobAnimationState::Walk(Instant::now()),
-            health: Health::new(4),
+            health: Health::new(12),
         }
     }
     #[inline]
