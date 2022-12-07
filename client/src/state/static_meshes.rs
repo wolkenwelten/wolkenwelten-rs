@@ -14,11 +14,10 @@ pub struct MeshList {
 
 impl MeshList {
     fn gen_block_meshes(display: &glium::Display, game: &GameState) -> Result<Vec<Mesh>> {
-        let tile_size = 64.0 / 1664.0;
+        let tile_size = 64.0 / 2048.0;
         Ok(game
             .world()
-            .blocks
-            .borrow()
+            .blocks()
             .iter()
             .map(|block| {
                 let mut vertices: Vec<MeshVertex> = vec![];

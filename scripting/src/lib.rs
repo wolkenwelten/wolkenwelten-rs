@@ -167,13 +167,13 @@ pub fn start_runtime(
     v8::V8::initialize();
 
     {
-        let world = game_state.world_ref();
+        let world = game_state.world_rc();
         WORLD.with(move |f| {
             f.replace(Some(world));
         });
     }
     {
-        let game_log = game_state.log_ref();
+        let game_log = game_state.log_rc();
         GAME_LOG.with(move |f| {
             f.replace(Some(game_log));
         });

@@ -1,9 +1,9 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
-use crate::ClientState;
+use crate::{meshes::TextMesh, ClientState};
 use anyhow::Result;
 use glam::Mat4;
-use glium::{uniform, Surface};
+use glium::{texture::SrgbTexture2d, uniform, uniforms::Sampler, Surface};
 use wolkenwelten_core::{Character, ChunkRequestQueue, GameState, CHUNK_SIZE};
 
 pub mod chungus;
@@ -24,6 +24,15 @@ fn calc_fov(fov: f32, player: &Character) -> f32 {
     (fov + (new - fov) / 32.0).clamp(90.0, 170.0)
 }
 
+fn prepare_overlay(fe: &mut ClientState, game: &GameState) {
+    let overlay_goal_color = if game.player().is_underwater(&game.world()) {
+        [0, 24, 242, 178].into()
+    } else {
+        [0; 4].into()
+    };
+    fe.set_overlay_color(overlay_goal_color);
+}
+
 /// Prepare the ClientState for rendering, since it is mutable we can create new, persistent,
 /// buffers here. Like for example BlockMeshes.
 pub fn prepare_frame(
@@ -36,6 +45,52 @@ pub fn prepare_frame(
     fe.gc(&game.player());
     super::ui::prepare(fe, game, request);
     chungus::handle_requests(fe, game, request)?;
+    prepare_overlay(fe, game);
+    Ok(())
+}
+
+fn render_overlay(
+    frame: &mut glium::Frame,
+    fe: &ClientState,
+    mat_mvp: [[f32; 4]; 4],
+    cur_tex: Sampler<SrgbTexture2d>,
+) -> Result<()> {
+    let color = fe.overlay_color();
+    if color.a == 0 {
+        return Ok(());
+    }
+    let (window_width, window_height) = fe.window_size();
+
+    let mut mesh = TextMesh::new(&fe.display)?;
+    let p = (0, 0, window_width as i16, window_height as i16);
+    let tex = (76, 124, 4, 4);
+    mesh.push_box(p, tex, color.into());
+    mesh.prepare(&fe.display);
+
+    frame.draw(
+        mesh.buffer(),
+        glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList),
+        &fe.shaders.text,
+        &uniform! {
+            mat_mvp: mat_mvp,
+            cur_tex: cur_tex,
+        },
+        &glium::DrawParameters {
+            backface_culling: glium::draw_parameters::BackfaceCullingMode::CullClockwise,
+            blend: glium::draw_parameters::Blend {
+                color: glium::draw_parameters::BlendingFunction::Addition {
+                    source: glium::draw_parameters::LinearBlendingFactor::SourceAlpha,
+                    destination: glium::draw_parameters::LinearBlendingFactor::OneMinusSourceAlpha,
+                },
+                alpha: glium::draw_parameters::BlendingFunction::Addition {
+                    source: glium::draw_parameters::LinearBlendingFactor::One,
+                    destination: glium::draw_parameters::LinearBlendingFactor::OneMinusSourceAlpha,
+                },
+                constant_value: (0.0, 0.0, 0.0, 0.0),
+            },
+            ..Default::default()
+        },
+    )?;
     Ok(())
 }
 
@@ -64,6 +119,8 @@ pub fn render_frame(frame: &mut glium::Frame, fe: &ClientState, game: &GameState
     );
     let mat_mvp = projection.to_cols_array_2d();
     let cur_tex = fe.textures.gui.texture_nn();
+    render_overlay(frame, fe, mat_mvp, cur_tex)?;
+
     frame.draw(
         fe.ui_mesh.buffer(),
         glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList),

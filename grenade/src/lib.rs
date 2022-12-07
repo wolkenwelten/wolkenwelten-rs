@@ -75,8 +75,8 @@ pub fn init(args: RenderInitArgs) -> RenderInitArgs {
     ));
 
     {
-        let player = args.game.player_ref();
-        let clock = args.game.clock_ref();
+        let player = args.game.player_rc();
+        let clock = args.game.clock_rc();
         let grenades = grenades.clone();
         let f = move |reactor: &Reactor<Message>, _msg: Message| {
             let mut player = player.borrow_mut();
@@ -94,8 +94,8 @@ pub fn init(args: RenderInitArgs) -> RenderInitArgs {
         args.reactor.add_sink(Message::PlayerShoot, Box::new(f));
     }
     {
-        let player = args.game.player_ref();
-        let world = args.game.world_ref();
+        let player = args.game.player_rc();
+        let world = args.game.world_rc();
         let grenades = grenades.clone();
         let f = move |reactor: &Reactor<Message>, _msg: Message| {
             let mut grenades = grenades.borrow_mut();
@@ -117,7 +117,7 @@ pub fn init(args: RenderInitArgs) -> RenderInitArgs {
             .add_sink(Message::GameTick { ticks: 0 }, Box::new(f));
     }
     {
-        let world = args.game.world_ref();
+        let world = args.game.world_rc();
         let rng = RefCell::new(XorShiftRng::from_entropy());
         let f = move |reactor: &Reactor<Message>, msg: Message| {
             if let Message::EntityCollision { pos, .. } = msg {
@@ -140,7 +140,7 @@ pub fn init(args: RenderInitArgs) -> RenderInitArgs {
     }
     {
         args.render_reactor
-            .post_world_render
+            .world_render
             .push(Box::new(move |args: RenderPassArgs| {
                 let mesh = grenade_mesh.borrow();
                 for entity in grenades.borrow().iter() {

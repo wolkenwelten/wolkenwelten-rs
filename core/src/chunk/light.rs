@@ -1,13 +1,13 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
 use super::*;
-use crate::{ChunkPosIter, CHUNK_MASK, CHUNK_SIZE};
+use crate::{Chungus, ChunkData, ChunkPosIter, CHUNK_MASK, CHUNK_SIZE};
 use std::time::Instant;
 
 #[derive(Clone, Debug)]
 pub struct ChunkLightData {
     last_updated: Instant,
-    pub data: [[[u8; CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE],
+    pub data: ChunkData,
 }
 
 impl Default for ChunkLightData {
@@ -31,7 +31,7 @@ impl ChunkLightData {
     }
 
     #[inline]
-    pub fn get_last_updated(&self) -> Instant {
+    pub fn last_updated(&self) -> Instant {
         self.last_updated
     }
 
@@ -128,13 +128,9 @@ impl ChunkLightData {
         self.last_updated = Instant::now();
     }
 
-    fn neighbor_off(x: usize, y: usize, z: usize) -> usize {
-        (x * 3 * 3) + (y * 3) + z
-    }
-
     pub fn calculate_complex(&mut self, chunk: &ChunkBlockData, neighbors: &[&ChunkLightData; 27]) {
         let mut light = [[0; CHUNK_SIZE]; CHUNK_SIZE];
-        let src = neighbors[Self::neighbor_off(1, 2, 1)];
+        let src = neighbors[Chungus::neighbor_off(1, 2, 1)];
         for (x, light) in light.iter_mut().enumerate() {
             for (z, light) in light.iter_mut().enumerate() {
                 *light = src.data[x][0][z];
@@ -144,27 +140,30 @@ impl ChunkLightData {
         for x in 0..CHUNK_SIZE {
             for z in 0..CHUNK_SIZE {
                 self.data[x][0][z] = self.data[x][0][z].max(
-                    (neighbors[Self::neighbor_off(1, 0, 1)].data[x][CHUNK_SIZE - 1][z] as i8 - 1)
+                    (neighbors[Chungus::neighbor_off(1, 0, 1)].data[x][CHUNK_SIZE - 1][z] as i8 - 1)
                         .max(0) as u8,
                 );
                 self.data[x][CHUNK_SIZE - 1][z] = self.data[x][CHUNK_SIZE - 1][z].max(
-                    (neighbors[Self::neighbor_off(1, 2, 1)].data[x][0][z] as i8 - 1).max(0) as u8,
+                    (neighbors[Chungus::neighbor_off(1, 2, 1)].data[x][0][z] as i8 - 1).max(0)
+                        as u8,
                 );
 
                 self.data[x][z][0] = self.data[x][z][0].max(
-                    (neighbors[Self::neighbor_off(1, 1, 0)].data[x][z][CHUNK_SIZE - 1] as i8 - 1)
+                    (neighbors[Chungus::neighbor_off(1, 1, 0)].data[x][z][CHUNK_SIZE - 1] as i8 - 1)
                         .max(0) as u8,
                 );
                 self.data[x][z][CHUNK_SIZE - 1] = self.data[x][z][CHUNK_SIZE - 1].max(
-                    (neighbors[Self::neighbor_off(1, 1, 2)].data[x][z][0] as i8 - 1).max(0) as u8,
+                    (neighbors[Chungus::neighbor_off(1, 1, 2)].data[x][z][0] as i8 - 1).max(0)
+                        as u8,
                 );
 
                 self.data[0][x][z] = self.data[0][x][z].max(
-                    (neighbors[Self::neighbor_off(0, 1, 1)].data[CHUNK_SIZE - 1][x][z] as i8 - 1)
+                    (neighbors[Chungus::neighbor_off(0, 1, 1)].data[CHUNK_SIZE - 1][x][z] as i8 - 1)
                         .max(0) as u8,
                 );
                 self.data[CHUNK_SIZE - 1][x][z] = self.data[CHUNK_SIZE - 1][x][z].max(
-                    (neighbors[Self::neighbor_off(2, 1, 1)].data[0][x][z] as i8 - 1).max(0) as u8,
+                    (neighbors[Chungus::neighbor_off(2, 1, 1)].data[0][x][z] as i8 - 1).max(0)
+                        as u8,
                 );
             }
         }

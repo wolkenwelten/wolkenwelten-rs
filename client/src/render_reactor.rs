@@ -68,8 +68,8 @@ impl Default for RenderReactor {
     fn default() -> Self {
         Self {
             pre_world_render: vec![Box::new(clear_pass)],
-            world_render: vec![Box::new(view_pass), Box::new(chungus_pass)],
-            post_world_render: vec![],
+            world_render: vec![Box::new(view_pass)],
+            post_world_render: vec![Box::new(chungus_pass)],
 
             hud_3d_render: vec![],
             hud_2d_render: vec![],

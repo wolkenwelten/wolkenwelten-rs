@@ -131,15 +131,15 @@ pub fn init(args: RenderInitArgs) -> RenderInitArgs {
             .add_sink(Message::GameTick { ticks: 0 }, Box::new(f));
     }
     {
-        let player = args.game.player_ref();
-        let world = args.game.world_ref();
+        let player = args.game.player_rc();
+        let world = args.game.world_rc();
         let mining = mining.clone();
         let f = move |reactor: &Reactor<Message>, msg: Message| {
             if let Message::GameTick { ticks } = msg {
                 let player = player.borrow();
                 if let Some((pos, block)) = player.mining() {
                     let mut world = world.borrow_mut();
-                    let blocks = world.blocks.clone();
+                    let blocks = world.blocks_rc();
                     let bt = blocks.borrow();
                     if let Some(bt) = bt.get(block as usize) {
                         let mut mining = mining.borrow_mut();

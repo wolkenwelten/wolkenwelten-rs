@@ -1,7 +1,7 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
 use crate::Chungus;
-use crate::{ChunkBlockData, Message, Reactor, CHUNK_SIZE};
+use crate::{ChunkBlockData, ChunkFluidData, Message, Reactor, CHUNK_SIZE};
 use glam::IVec3;
 use rand::prelude::*;
 use rand::Rng;
@@ -10,7 +10,29 @@ use rand_xorshift::XorShiftRng;
 mod asset;
 pub use asset::*;
 
-pub fn chunk(world: &Chungus, pos: IVec3, reactor: &Reactor<Message>) -> ChunkBlockData {
+fn gen_fluid(chnk: &ChunkBlockData, water_y: i32) -> ChunkFluidData {
+    let mut ret = ChunkFluidData::new();
+    for x in 0..CHUNK_SIZE as i32 {
+        for y in 0..CHUNK_SIZE as i32 {
+            if y > water_y {
+                continue;
+            }
+            for z in 0..CHUNK_SIZE as i32 {
+                let x = x as usize;
+                let y = y as usize;
+                let z = z as usize;
+                ret.data[x][y][z] = if chnk.data[x][y][z] == 0 { 1 } else { 0 };
+            }
+        }
+    }
+    ret
+}
+
+pub fn chunk(
+    world: &Chungus,
+    pos: IVec3,
+    reactor: &Reactor<Message>,
+) -> (ChunkBlockData, ChunkFluidData) {
     let ele = world.elevation();
     let dis = world.displacement();
     let noi = world.noise_map();
@@ -64,6 +86,7 @@ pub fn chunk(world: &Chungus, pos: IVec3, reactor: &Reactor<Message>) -> ChunkBl
                 r.set_pillar(13, [x, stone_y - py, z].into(), snow_y - py);
             }
             r.set_pillar(3, [x, (-(1 << 30)) - py, z].into(), stone_y - py);
+
             if grass_y > (stone_y + 8) {
                 if grass_y < -33 {
                     if rng.gen_range(1..2000) == 1 {
@@ -125,5 +148,6 @@ pub fn chunk(world: &Chungus, pos: IVec3, reactor: &Reactor<Message>) -> ChunkBl
             }
         }
     }
-    r
+    let fluid = gen_fluid(&r, (-35 - py) as i32);
+    (r, fluid)
 }

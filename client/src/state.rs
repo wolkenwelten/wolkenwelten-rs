@@ -4,6 +4,7 @@ use crate::meshes::{BlockMesh, TextMesh};
 use crate::RENDER_DISTANCE;
 use anyhow::Result;
 use glam::{f32::Vec3, i32::IVec3};
+use rgb::RGBA8;
 use std::{collections::HashMap, time::Instant};
 use wolkenwelten_core::{Character, GameState, CHUNK_SIZE};
 
@@ -20,6 +21,7 @@ pub struct ClientState {
 
     block_index_buffer: glium::IndexBuffer<u32>,
     pub world_mesh: HashMap<IVec3, BlockMesh>,
+    pub fluid_mesh: HashMap<IVec3, BlockMesh>,
 
     window_width: u32,
     window_height: u32,
@@ -37,6 +39,8 @@ pub struct ClientState {
     cur_fps: u32,
     frame_count: u32,
     last_ticks: u128,
+
+    overlay_color: RGBA8,
 }
 
 impl ClientState {
@@ -52,6 +56,7 @@ impl ClientState {
             instant: Instant::now(),
             block_index_buffer,
             world_mesh: HashMap::new(),
+            fluid_mesh: HashMap::new(),
 
             window_width: 640,
             window_height: 480,
@@ -68,12 +73,23 @@ impl ClientState {
             frame_count: 0,
             ticks: 0,
             last_ticks: 0,
+            overlay_color: RGBA8::from([0, 0, 0, 255]),
         })
     }
 
     #[inline]
     pub fn ticks(&self) -> u64 {
         self.ticks
+    }
+
+    #[inline]
+    pub fn overlay_color(&self) -> RGBA8 {
+        self.overlay_color
+    }
+
+    #[inline]
+    pub fn set_overlay_color(&mut self, overlay_color: RGBA8) {
+        self.overlay_color = overlay_color;
     }
 
     #[inline]

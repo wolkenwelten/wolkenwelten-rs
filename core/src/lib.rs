@@ -15,12 +15,16 @@ pub use experience::*;
 pub use item::*;
 pub use iter::*;
 pub use message::*;
-pub use queue::ChunkRequestQueue;
+pub use queue::*;
 pub use reactor::*;
 
 pub const CHUNK_BITS: i32 = 5;
 pub const CHUNK_SIZE: usize = 1 << CHUNK_BITS;
 pub const CHUNK_MASK: i32 = CHUNK_SIZE as i32 - 1;
+
+pub type ChunkData = [[[u8; CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE];
+
+pub type ChunkBuffer = [[[u8; CHUNK_SIZE + 2]; CHUNK_SIZE + 2]; CHUNK_SIZE + 2];
 
 #[derive(Copy, Clone, Debug, Default, Eq, PartialEq, Hash)]
 pub enum Side {

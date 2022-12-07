@@ -1,13 +1,13 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
-use crate::CHUNK_SIZE;
+use crate::{ChunkData, CHUNK_SIZE};
 use glam::IVec3;
 use std::time::Instant;
 
 #[derive(Clone, Debug)]
 pub struct ChunkBlockData {
     last_updated: Instant,
-    pub data: [[[u8; CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE],
+    pub data: ChunkData,
 }
 
 impl Default for ChunkBlockData {
@@ -24,7 +24,7 @@ impl ChunkBlockData {
     }
 
     #[inline]
-    pub fn get_last_updated(&self) -> Instant {
+    pub fn last_updated(&self) -> Instant {
         self.last_updated
     }
 

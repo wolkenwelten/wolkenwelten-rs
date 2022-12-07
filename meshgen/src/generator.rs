@@ -2,10 +2,9 @@
 // All rights reserved. AGPL-3.0+ license.
 use super::BlockVertex;
 use wolkenwelten_core::{
-    BlockType, ChunkBlockData, ChunkLightData, ChunkPosIter, Side, CHUNK_SIZE,
+    blit_chunk_data, BlockType, ChunkBlockData, ChunkBuffer, ChunkFluidData, ChunkLightData,
+    ChunkPosIter, Side, CHUNK_SIZE,
 };
-
-type BlockBuffer = [[[u8; CHUNK_SIZE + 2]; CHUNK_SIZE + 2]; CHUNK_SIZE + 2];
 type SideBuffer = [[[u8; CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE];
 
 #[derive(Copy, Clone, Debug, Default)]
@@ -307,7 +306,7 @@ fn add_face_right(
     ));
 }
 
-fn light_left_right(light_data: &BlockBuffer, x: usize, y: usize, z: usize) -> u16 {
+fn light_left_right(light_data: &ChunkBuffer, x: usize, y: usize, z: usize) -> u16 {
     let a = light_data[x][y][z] as u16;
     let b = light_data[x][y + 1][z] as u16;
     let c = light_data[x][y][z + 1] as u16;
@@ -315,7 +314,7 @@ fn light_left_right(light_data: &BlockBuffer, x: usize, y: usize, z: usize) -> u
     ((a + b + c + d) / 4).min(15)
 }
 
-fn light_top_bottom(light_data: &BlockBuffer, x: usize, y: usize, z: usize) -> u16 {
+fn light_top_bottom(light_data: &ChunkBuffer, x: usize, y: usize, z: usize) -> u16 {
     let a = light_data[x][y][z] as u16;
     let b = light_data[x][y][z + 1] as u16;
     let c = light_data[x + 1][y][z] as u16;
@@ -323,7 +322,7 @@ fn light_top_bottom(light_data: &BlockBuffer, x: usize, y: usize, z: usize) -> u
     ((a + b + c + d) / 4).min(15)
 }
 
-fn light_front_back(light_data: &BlockBuffer, x: usize, y: usize, z: usize) -> u16 {
+fn light_front_back(light_data: &ChunkBuffer, x: usize, y: usize, z: usize) -> u16 {
     let a = light_data[x][y][z] as u16;
     let b = light_data[x][y + 1][z] as u16;
     let c = light_data[x + 1][y][z] as u16;
@@ -334,8 +333,8 @@ fn light_front_back(light_data: &BlockBuffer, x: usize, y: usize, z: usize) -> u
 fn gen_front(
     vertices: &mut Vec<BlockVertex>,
     (block_data, light_data, side_cache, block_types): (
-        &BlockBuffer,
-        &BlockBuffer,
+        &ChunkBuffer,
+        &ChunkBuffer,
         &SideBuffer,
         &Vec<BlockType>,
     ),
@@ -392,8 +391,8 @@ fn gen_front(
 fn gen_back(
     vertices: &mut Vec<BlockVertex>,
     (block_data, light_data, side_cache, block_types): (
-        &BlockBuffer,
-        &BlockBuffer,
+        &ChunkBuffer,
+        &ChunkBuffer,
         &SideBuffer,
         &Vec<BlockType>,
     ),
@@ -450,8 +449,8 @@ fn gen_back(
 fn gen_top(
     vertices: &mut Vec<BlockVertex>,
     (block_data, light_data, side_cache, block_types): (
-        &BlockBuffer,
-        &BlockBuffer,
+        &ChunkBuffer,
+        &ChunkBuffer,
         &SideBuffer,
         &Vec<BlockType>,
     ),
@@ -508,8 +507,8 @@ fn gen_top(
 fn gen_bottom(
     vertices: &mut Vec<BlockVertex>,
     (block_data, light_data, side_cache, block_types): (
-        &BlockBuffer,
-        &BlockBuffer,
+        &ChunkBuffer,
+        &ChunkBuffer,
         &SideBuffer,
         &Vec<BlockType>,
     ),
@@ -566,8 +565,8 @@ fn gen_bottom(
 fn gen_left(
     vertices: &mut Vec<BlockVertex>,
     (block_data, light_data, side_cache, block_types): (
-        &BlockBuffer,
-        &BlockBuffer,
+        &ChunkBuffer,
+        &ChunkBuffer,
         &SideBuffer,
         &Vec<BlockType>,
     ),
@@ -624,8 +623,8 @@ fn gen_left(
 fn gen_right(
     vertices: &mut Vec<BlockVertex>,
     (block_data, light_data, side_cache, block_types): (
-        &BlockBuffer,
-        &BlockBuffer,
+        &ChunkBuffer,
+        &ChunkBuffer,
         &SideBuffer,
         &Vec<BlockType>,
     ),
@@ -679,38 +678,7 @@ fn gen_right(
     (vertices.len() - start) / 4
 }
 
-fn calc_chunk_data_stand_end(off: isize) -> (usize, usize) {
-    let csi = CHUNK_SIZE as isize;
-    let start = off;
-    let end = off + csi;
-    (
-        start.clamp(0, csi + 2) as usize,
-        end.clamp(0, csi + 2) as usize,
-    )
-}
-
-fn calc_chunk_data(
-    block_data: &mut BlockBuffer,
-    chunk: &[[[u8; CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE],
-    off: [isize; 3],
-) {
-    let (x_start, x_end) = calc_chunk_data_stand_end(off[0]);
-    let (y_start, y_end) = calc_chunk_data_stand_end(off[1]);
-    let (z_start, z_end) = calc_chunk_data_stand_end(off[2]);
-
-    for (x, block_data) in block_data.iter_mut().enumerate().take(x_end).skip(x_start) {
-        let cx = (x as isize - off[0]) as usize;
-        for (y, block_data) in block_data.iter_mut().enumerate().take(y_end).skip(y_start) {
-            let cy = (y as isize - off[1]) as usize;
-            for (z, block_data) in block_data.iter_mut().enumerate().take(z_end).skip(z_start) {
-                let cz = (z as isize - off[2]) as usize;
-                *block_data = chunk[cx][cy][cz];
-            }
-        }
-    }
-}
-
-fn calc_block_data(block_data: &mut BlockBuffer, chunks: &[&ChunkBlockData; 27]) {
+fn calc_block_data(block_data: &mut ChunkBuffer, chunks: &[&ChunkBlockData; 27]) {
     for cx in 0..3 {
         for cy in 0..3 {
             for cz in 0..3 {
@@ -719,13 +687,13 @@ fn calc_block_data(block_data: &mut BlockBuffer, chunks: &[&ChunkBlockData; 27])
                     (cy * CHUNK_SIZE) as isize - (CHUNK_SIZE as isize - 1),
                     (cz * CHUNK_SIZE) as isize - (CHUNK_SIZE as isize - 1),
                 ];
-                calc_chunk_data(block_data, &chunks[cx * 3 * 3 + cy * 3 + cz].data, off)
+                blit_chunk_data(block_data, &chunks[cx * 3 * 3 + cy * 3 + cz].data, off)
             }
         }
     }
 }
 
-fn calc_light_data(d: &mut BlockBuffer, lights: &[&ChunkLightData; 27]) {
+fn calc_light_data(d: &mut ChunkBuffer, lights: &[&ChunkLightData; 27]) {
     for cx in 0..3 {
         for cy in 0..3 {
             for cz in 0..3 {
@@ -734,14 +702,29 @@ fn calc_light_data(d: &mut BlockBuffer, lights: &[&ChunkLightData; 27]) {
                     (cy * CHUNK_SIZE) as isize - (CHUNK_SIZE as isize - 1),
                     (cz * CHUNK_SIZE) as isize - (CHUNK_SIZE as isize - 1),
                 ];
-                calc_chunk_data(d, &lights[cx * 3 * 3 + cy * 3 + cz].data, off)
+                blit_chunk_data(d, &lights[cx * 3 * 3 + cy * 3 + cz].data, off)
+            }
+        }
+    }
+}
+
+fn calc_fluid_data(d: &mut ChunkBuffer, fluids: &[&ChunkFluidData; 27]) {
+    for cx in 0..3 {
+        for cy in 0..3 {
+            for cz in 0..3 {
+                let off = [
+                    (cx * CHUNK_SIZE) as isize - (CHUNK_SIZE as isize - 1),
+                    (cy * CHUNK_SIZE) as isize - (CHUNK_SIZE as isize - 1),
+                    (cz * CHUNK_SIZE) as isize - (CHUNK_SIZE as isize - 1),
+                ];
+                blit_chunk_data(d, &fluids[cx * 3 * 3 + cy * 3 + cz].data, off)
             }
         }
     }
 }
 
 /// Check which sides need to be drawn for a given position.
-fn calc_sides(x: usize, y: usize, z: usize, block_data: &BlockBuffer) -> u8 {
+fn calc_sides(x: usize, y: usize, z: usize, block_data: &ChunkBuffer) -> u8 {
     if block_data[x][y][z] == 0 {
         0
     } else {
@@ -756,9 +739,38 @@ fn calc_sides(x: usize, y: usize, z: usize, block_data: &BlockBuffer) -> u8 {
 
 /// Fill the side cache, every entry is a bitmask describing which faces
 /// need to be drawn and which can be skipped.
-fn calc_side_cache(side_cache: &mut SideBuffer, block_data: &BlockBuffer) {
+fn calc_side_cache(side_cache: &mut SideBuffer, block_data: &ChunkBuffer) {
     for (x, y, z) in ChunkPosIter::new() {
         side_cache[x][y][z] = calc_sides(x + 1, y + 1, z + 1, block_data);
+    }
+}
+
+fn calc_fluid_sides(
+    x: usize,
+    y: usize,
+    z: usize,
+    block_data: &ChunkBuffer,
+    fluid_data: &ChunkBuffer,
+) -> u8 {
+    if (block_data[x][y][z] != 0) || (fluid_data[x][y][z] == 0) {
+        0
+    } else {
+        (((block_data[x][y][z + 1] | fluid_data[x][y][z + 1]) == 0) as u8)
+            | ((((block_data[x][y][z - 1] | fluid_data[x][y][z - 1]) == 0) as u8) << 1)
+            | ((((block_data[x][y + 1][z] | fluid_data[x][y + 1][z]) == 0) as u8) << 2)
+            | ((((block_data[x][y - 1][z] | fluid_data[x][y - 1][z]) == 0) as u8) << 3)
+            | ((((block_data[x - 1][y][z] | fluid_data[x - 1][y][z]) == 0) as u8) << 4)
+            | ((((block_data[x + 1][y][z] | fluid_data[x + 1][y][z]) == 0) as u8) << 5)
+    }
+}
+
+fn calc_fluid_side_cache(
+    side_cache: &mut SideBuffer,
+    block_data: &ChunkBuffer,
+    fluid_data: &ChunkBuffer,
+) {
+    for (x, y, z) in ChunkPosIter::new() {
+        side_cache[x][y][z] = calc_fluid_sides(x + 1, y + 1, z + 1, block_data, fluid_data);
     }
 }
 
@@ -772,8 +784,8 @@ pub fn generate(
 ) -> (Vec<BlockVertex>, [usize; 6]) {
     let mut vertices: Vec<BlockVertex> = Vec::with_capacity(1024);
 
-    let mut block_data: BlockBuffer = [[[0; CHUNK_SIZE + 2]; CHUNK_SIZE + 2]; CHUNK_SIZE + 2];
-    let mut light_data: BlockBuffer = [[[15; CHUNK_SIZE + 2]; CHUNK_SIZE + 2]; CHUNK_SIZE + 2];
+    let mut block_data: ChunkBuffer = [[[0; CHUNK_SIZE + 2]; CHUNK_SIZE + 2]; CHUNK_SIZE + 2];
+    let mut light_data: ChunkBuffer = [[[15; CHUNK_SIZE + 2]; CHUNK_SIZE + 2]; CHUNK_SIZE + 2];
     let mut side_cache: SideBuffer = [[[0; CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE];
 
     calc_block_data(&mut block_data, chunks);
@@ -803,16 +815,47 @@ pub fn generate_simple(
 ) -> (Vec<BlockVertex>, [usize; 6]) {
     let mut vertices: Vec<BlockVertex> = Vec::with_capacity(1024);
 
-    let mut block_data: BlockBuffer = [[[0; CHUNK_SIZE + 2]; CHUNK_SIZE + 2]; CHUNK_SIZE + 2];
-    let mut light_data: BlockBuffer = [[[15; CHUNK_SIZE + 2]; CHUNK_SIZE + 2]; CHUNK_SIZE + 2];
+    let mut block_data: ChunkBuffer = [[[0; CHUNK_SIZE + 2]; CHUNK_SIZE + 2]; CHUNK_SIZE + 2];
+    let mut light_data: ChunkBuffer = [[[15; CHUNK_SIZE + 2]; CHUNK_SIZE + 2]; CHUNK_SIZE + 2];
     let mut side_cache: SideBuffer = [[[0; CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE];
 
     let off = [1; 3];
-    calc_chunk_data(&mut block_data, &chunk.data, off);
-    calc_chunk_data(&mut light_data, &light.data, off);
+    blit_chunk_data(&mut block_data, &chunk.data, off);
+    blit_chunk_data(&mut light_data, &light.data, off);
     calc_side_cache(&mut side_cache, &block_data);
 
     let data = (&block_data, &light_data, &side_cache, block_types);
+    let mut side_square_count = [0; 6];
+
+    side_square_count[0] = gen_front(&mut vertices, data);
+    side_square_count[1] = gen_back(&mut vertices, data);
+    side_square_count[2] = gen_top(&mut vertices, data);
+    side_square_count[3] = gen_bottom(&mut vertices, data);
+    side_square_count[4] = gen_left(&mut vertices, data);
+    side_square_count[5] = gen_right(&mut vertices, data);
+
+    (vertices, side_square_count)
+}
+
+pub fn generate_fluid(
+    chunks: &[&ChunkBlockData; 27],
+    lights: &[&ChunkLightData; 27],
+    fluids: &[&ChunkFluidData; 27],
+    fluid_types: &Vec<BlockType>,
+) -> (Vec<BlockVertex>, [usize; 6]) {
+    let mut vertices: Vec<BlockVertex> = Vec::with_capacity(1024);
+
+    let mut block_data: ChunkBuffer = [[[0; CHUNK_SIZE + 2]; CHUNK_SIZE + 2]; CHUNK_SIZE + 2];
+    let mut fluid_data: ChunkBuffer = [[[0; CHUNK_SIZE + 2]; CHUNK_SIZE + 2]; CHUNK_SIZE + 2];
+    let mut light_data: ChunkBuffer = [[[15; CHUNK_SIZE + 2]; CHUNK_SIZE + 2]; CHUNK_SIZE + 2];
+    let mut side_cache: SideBuffer = [[[0; CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE];
+
+    calc_block_data(&mut block_data, chunks);
+    calc_light_data(&mut light_data, lights);
+    calc_fluid_data(&mut fluid_data, fluids);
+    calc_fluid_side_cache(&mut side_cache, &block_data, &fluid_data);
+
+    let data = (&fluid_data, &light_data, &side_cache, fluid_types);
     let mut side_square_count = [0; 6];
 
     side_square_count[0] = gen_front(&mut vertices, data);

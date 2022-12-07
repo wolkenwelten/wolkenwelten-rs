@@ -10,6 +10,7 @@ pub struct ChunkRequestQueue {
     block: HashSet<IVec3>,
     simple_light: HashSet<IVec3>,
     complex_light: HashSet<IVec3>,
+    fluid: HashSet<IVec3>,
     _meta: HashSet<IVec3>,
 }
 
@@ -96,5 +97,25 @@ impl ChunkRequestQueue {
     #[inline]
     pub fn mesh_len(&self) -> usize {
         self.mesh.len()
+    }
+
+    #[inline]
+    pub fn fluid(&mut self, pos: IVec3) {
+        self.fluid.insert(pos);
+    }
+
+    #[inline]
+    pub fn get_fluid(&self) -> &HashSet<IVec3> {
+        &self.fluid
+    }
+
+    #[inline]
+    pub fn get_fluid_mut(&mut self) -> &mut HashSet<IVec3> {
+        &mut self.fluid
+    }
+
+    #[inline]
+    pub fn fluid_len(&self) -> usize {
+        self.fluid.len()
     }
 }

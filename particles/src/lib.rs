@@ -310,7 +310,7 @@ pub fn init(args: RenderInitArgs) -> RenderInitArgs {
     }
     {
         let particles = particles.clone();
-        let blocks = args.game.world().blocks.clone();
+        let blocks = args.game.world().blocks_rc();
         let f = move |_: &Reactor<Message>, msg: Message| {
             if let Message::BlockBreak { pos, block } = msg {
                 if let Some(bt) = blocks.borrow().get(block as usize) {
@@ -329,7 +329,7 @@ pub fn init(args: RenderInitArgs) -> RenderInitArgs {
     }
     {
         let particles = particles.clone();
-        let blocks = args.game.world().blocks.clone();
+        let blocks = args.game.world().blocks_rc();
         let f = move |_: &Reactor<Message>, msg: Message| {
             if let Message::BlockMine { pos, block } = msg {
                 if let Some(bt) = blocks.borrow().get(block as usize) {
@@ -348,7 +348,7 @@ pub fn init(args: RenderInitArgs) -> RenderInitArgs {
     }
     {
         let particles = particles.clone();
-        let blocks = args.game.world().blocks.clone();
+        let blocks = args.game.world().blocks_rc();
         let f = move |_: &Reactor<Message>, msg: Message| {
             if let Message::BlockPlace { pos, block } = msg {
                 if let Some(bt) = blocks.borrow().get(block as usize) {

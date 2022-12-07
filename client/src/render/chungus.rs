@@ -3,17 +3,29 @@
 use crate::{meshes::BlockMesh, ClientState, Frustum, QueueEntry, RenderPassArgs};
 use anyhow::Result;
 use glam::{IVec3, Mat4};
-use glium::{uniform, Surface};
 use std::{collections::HashSet, time::Instant};
-use wolkenwelten_core::{ChunkBlockData, ChunkRequestQueue, GameState};
+use wolkenwelten_core::{Chungus, ChunkBlockData, ChunkFluidData, ChunkRequestQueue, GameState};
 
 pub fn should_update(mesh: &BlockMesh, chunks: &[&ChunkBlockData; 27]) -> bool {
-    for chunk in chunks.iter() {
-        if chunk.get_last_updated() >= mesh.get_last_updated() {
-            return true;
-        }
-    }
-    false
+    let mlu = mesh.last_updated();
+    chunks[13].last_updated() > mlu
+        || chunks[Chungus::neighbor_off(0, 1, 1)].last_updated() > mlu
+        || chunks[Chungus::neighbor_off(2, 1, 1)].last_updated() > mlu
+        || chunks[Chungus::neighbor_off(1, 0, 1)].last_updated() > mlu
+        || chunks[Chungus::neighbor_off(1, 2, 1)].last_updated() > mlu
+        || chunks[Chungus::neighbor_off(1, 1, 0)].last_updated() > mlu
+        || chunks[Chungus::neighbor_off(1, 1, 2)].last_updated() > mlu
+}
+
+pub fn should_update_fluid(mesh: &BlockMesh, chunks: &[&ChunkFluidData; 27]) -> bool {
+    let mlu = mesh.last_updated();
+    chunks[13].last_updated() > mlu
+        || chunks[Chungus::neighbor_off(0, 1, 1)].last_updated() > mlu
+        || chunks[Chungus::neighbor_off(2, 1, 1)].last_updated() > mlu
+        || chunks[Chungus::neighbor_off(1, 0, 1)].last_updated() > mlu
+        || chunks[Chungus::neighbor_off(1, 2, 1)].last_updated() > mlu
+        || chunks[Chungus::neighbor_off(1, 1, 0)].last_updated() > mlu
+        || chunks[Chungus::neighbor_off(1, 1, 2)].last_updated() > mlu
 }
 
 pub fn handle_requests(
@@ -22,16 +34,15 @@ pub fn handle_requests(
     request: &mut ChunkRequestQueue,
 ) -> Result<()> {
     let now = Instant::now();
-
     let mut light_reqs: HashSet<IVec3> = HashSet::new();
     let mut block_reqs: HashSet<IVec3> = HashSet::new();
+    let world = game.world_mut();
     request.get_mesh_mut().iter().for_each(|pos| {
-        let world = game.world_mut();
         if let Some(lights) = world.get_tri_complex_light(pos, &mut light_reqs) {
             if let Some(chunks) = world.get_tri_chunk(pos, &mut block_reqs) {
-                let block_types = world.blocks.borrow();
+                let block_types = world.blocks();
                 if let Some(mesh) = fe.world_mesh.get_mut(pos) {
-                    if lights[13].get_last_updated() >= mesh.get_last_updated()
+                    if lights[13].last_updated() >= mesh.last_updated()
                         || should_update(mesh, &chunks)
                     {
                         let _ = mesh.update(&fe.display, &chunks, &lights, &block_types, now);
@@ -48,11 +59,50 @@ pub fn handle_requests(
             }
         }
     });
+    request.get_fluid().iter().for_each(|pos| {
+        if let Some(lights) = world.get_tri_complex_light(pos, &mut light_reqs) {
+            if let Some(chunks) = world.get_tri_chunk(pos, &mut block_reqs) {
+                if let Some(fluids) = world.get_tri_fluids(pos, &mut block_reqs) {
+                    if let Some(mesh) = fe.fluid_mesh.get_mut(pos) {
+                        if lights[13].last_updated() >= mesh.last_updated()
+                            || should_update_fluid(mesh, &fluids)
+                            || should_update(mesh, &chunks)
+                        {
+                            let _ = mesh.update_fluid(
+                                &fe.display,
+                                &chunks,
+                                &lights,
+                                &fluids,
+                                &world.fluids(),
+                                now,
+                            );
+                        }
+                    } else {
+                        let mesh = BlockMesh::new(&fe.display);
+                        if let Ok(mut mesh) = mesh {
+                            let r = mesh.update_fluid(
+                                &fe.display,
+                                &chunks,
+                                &lights,
+                                &fluids,
+                                &world.fluids(),
+                                now,
+                            );
+                            if r.is_ok() {
+                                fe.fluid_mesh.insert(*pos, mesh);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    });
     light_reqs
         .iter()
         .for_each(|pos| request.complex_light(*pos));
     block_reqs.iter().for_each(|pos| request.block(*pos));
     request.get_mesh_mut().clear();
+    request.get_fluid_mut().clear();
 
     Ok(())
 }
@@ -69,9 +119,18 @@ fn chungus_draw(
     let now = Instant::now();
     let mat_mvp = mvp.to_cols_array_2d();
 
-    let cur_tex = fe
+    let block_tex = fe
         .textures
         .blocks
+        .texture()
+        .sampled()
+        .magnify_filter(glium::uniforms::MagnifySamplerFilter::Nearest)
+        .minify_filter(glium::uniforms::MinifySamplerFilter::Linear)
+        .wrap_function(glium::uniforms::SamplerWrapFunction::Repeat);
+
+    let fluid_tex = fe
+        .textures
+        .fluids
         .texture()
         .sampled()
         .magnify_filter(glium::uniforms::MagnifySamplerFilter::Nearest)
@@ -84,66 +143,16 @@ fn chungus_draw(
             let td = (now - mesh.get_first_created()).as_millis();
             let fade_in = (td as f32 / 500.0).clamp(0.0, 1.0);
             let alpha = entry.alpha * fade_in;
-            let mask = entry.mask;
-            let trans_pos = [entry.trans.x, entry.trans.y, entry.trans.z];
-            let uniforms = uniform! {
-                color_alpha: alpha,
-                mat_mvp: mat_mvp,
-                trans_pos: trans_pos,
-                cur_tex: cur_tex,
-            };
-            let draw_parameters = glium::DrawParameters {
-                backface_culling: glium::draw_parameters::BackfaceCullingMode::CullClockwise,
-                blend: glium::draw_parameters::Blend {
-                    color: glium::draw_parameters::BlendingFunction::Addition {
-                        source: glium::draw_parameters::LinearBlendingFactor::SourceAlpha,
-                        destination:
-                            glium::draw_parameters::LinearBlendingFactor::OneMinusSourceAlpha,
-                    },
-                    alpha: glium::draw_parameters::BlendingFunction::Addition {
-                        source: glium::draw_parameters::LinearBlendingFactor::One,
-                        destination:
-                            glium::draw_parameters::LinearBlendingFactor::OneMinusSourceAlpha,
-                    },
-                    constant_value: (0.0, 0.0, 0.0, 0.0),
-                },
-                depth: glium::draw_parameters::Depth {
-                    test: glium::draw_parameters::DepthTest::IfLess,
-                    write: true,
-                    ..Default::default()
-                },
-                ..Default::default()
-            };
-
-            if mask == 0b111111 {
-                let index_count = (mesh.side_start[5] + mesh.side_square_count[5]) * 6;
-                if let Some(indeces) = fe.block_indeces().slice(..index_count) {
-                    frame.draw(
-                        mesh.buffer(),
-                        indeces,
-                        &fe.shaders.block,
-                        &uniforms,
-                        &draw_parameters,
-                    )?;
-                }
-            } else {
-                for i in (0..6).filter(|i| (mask & (1 << i)) != 0) {
-                    let start_offset = mesh.side_start[i] * 6;
-                    let index_count = start_offset + (mesh.side_square_count[i] * 6);
-                    if index_count == 0 {
-                        continue;
-                    }
-                    if let Some(indeces) = fe.block_indeces().slice(start_offset..index_count) {
-                        frame.draw(
-                            mesh.buffer(),
-                            indeces,
-                            &fe.shaders.block,
-                            &uniforms,
-                            &draw_parameters,
-                        )?;
-                    }
-                }
-            }
+            mesh.draw(frame, fe, entry, mat_mvp, block_tex, alpha)?;
+        }
+    }
+    for entry in render_queue.iter() {
+        request.fluid(entry.pos);
+        if let Some(mesh) = fe.fluid_mesh.get(&entry.pos) {
+            let td = (now - mesh.get_first_created()).as_millis();
+            let fade_in = (td as f32 / 500.0).clamp(0.0, 1.0);
+            let alpha = entry.alpha * fade_in * 0.8;
+            mesh.draw(frame, fe, entry, mat_mvp, fluid_tex, alpha)?;
         }
     }
     Ok(())

@@ -315,6 +315,22 @@ impl Character {
             || world.is_solid(pos + Vec3::new(0.0, 0.8, 0.0))
     }
 
+    fn is_underwater_point(world: &Chungus, pos: Vec3) -> bool {
+        if let Some(fluid) = world.get_fluid_block(pos.as_ivec3()) {
+            fluid != 0
+        } else {
+            false
+        }
+    }
+
+    pub fn is_underwater(&self, world: &Chungus) -> bool {
+        Self::is_underwater_point(world, self.pos() + Vec3::new(0.0, -0.8, 0.0))
+    }
+
+    pub fn may_swim(&self, world: &Chungus) -> bool {
+        Self::is_underwater_point(world, self.pos() + Vec3::new(0.0, -1.2, 0.0))
+    }
+
     pub fn tick(&mut self, reactor: &Reactor<Message>, world: &Chungus, cur_tick: u64) {
         if self.no_clip {
             self.pos += self.vel;
@@ -324,6 +340,7 @@ impl Character {
         if !world.is_loaded(self.pos) {
             return; // Just freeze the character until we have loaded the area, this shouldn't happen if at all possible
         }
+        let underwater = self.is_underwater(world);
 
         let accel = if self.movement.xz().length() > 0.01 {
             CHARACTER_ACCELERATION
@@ -335,12 +352,18 @@ impl Character {
         } else {
             accel * 0.4 // Slow down player movement changes during jumps
         };
+        let accel = if underwater { accel * 0.7 } else { accel };
 
         self.vel.x = self.vel.x * (1.0 - accel) + (self.movement.x * 0.02) * accel;
         self.vel.z = self.vel.z * (1.0 - accel) + (self.movement.z * 0.02) * accel;
 
-        self.vel.y -= 0.0005;
+        self.vel.y -= if underwater { 0.0001 } else { 0.0005 };
         let old = self.vel;
+
+        if underwater {
+            self.vel *= 0.99;
+            self.vel.y *= 0.997;
+        }
 
         if self.is_solid_pillar(self.pos + COL_POINT_LEFT, world) {
             self.vel.x = self.vel.x.max(0.0);
@@ -423,8 +446,8 @@ impl Character {
 
     pub fn add_handler(reactor: &mut Reactor<Message>, game: &GameState) {
         {
-            let player = game.player_ref();
-            let clock = game.clock_ref();
+            let player = game.player_rc();
+            let clock = game.clock_rc();
             let f = move |reactor: &Reactor<Message>, _: Message| {
                 let mut player = player.borrow_mut();
                 let now = clock.borrow().elapsed().as_millis() as u64;
@@ -443,7 +466,7 @@ impl Character {
             reactor.add_sink(Message::PlayerStrike, Box::new(f));
         }
         {
-            let player = game.player_ref();
+            let player = game.player_rc();
             let f = move |_: &Reactor<Message>, msg: Message| {
                 if let Message::PlayerSwitchSelection { delta, .. } = msg {
                     player.borrow_mut().switch_selection(delta);
@@ -452,7 +475,7 @@ impl Character {
             reactor.add_sink(Message::PlayerSwitchSelection { delta: 0 }, Box::new(f));
         }
         {
-            let player = game.player_ref();
+            let player = game.player_rc();
             let f = move |_: &Reactor<Message>, msg: Message| {
                 if let Message::PlayerSelect { i, .. } = msg {
                     player
@@ -463,7 +486,7 @@ impl Character {
             reactor.add_sink(Message::PlayerSelect { i: 0 }, Box::new(f));
         }
         {
-            let player = game.player_ref();
+            let player = game.player_rc();
             let f = move |_: &Reactor<Message>, msg: Message| {
                 if let Message::PlayerNoClip { no_clip, .. } = msg {
                     player.borrow_mut().set_no_clip(no_clip);
@@ -472,7 +495,7 @@ impl Character {
             reactor.add_sink(Message::PlayerNoClip { no_clip: false }, Box::new(f));
         }
         {
-            let player = game.player_ref();
+            let player = game.player_rc();
             let f = move |_: &Reactor<Message>, msg: Message| {
                 if let Message::PlayerTurn { direction, .. } = msg {
                     let mut player = player.borrow_mut();
@@ -488,7 +511,7 @@ impl Character {
             );
         }
         {
-            let player = game.player_ref();
+            let player = game.player_rc();
             let f = move |_: &Reactor<Message>, msg: Message| {
                 if let Message::PlayerFly { direction, .. } = msg {
                     player.borrow_mut().vel = direction * 0.15;
@@ -502,7 +525,7 @@ impl Character {
             );
         }
         {
-            let player = game.player_ref();
+            let player = game.player_rc();
             let f = move |_reactor: &Reactor<Message>, msg: Message| {
                 if let Message::ItemDropPickup {
                     item: Item::Block(bi),
@@ -523,7 +546,7 @@ impl Character {
             );
         }
         {
-            let player = game.player_ref();
+            let player = game.player_rc();
             let f = move |_reactor: &Reactor<Message>, _msg: Message| {
                 player.borrow_mut().check_animation();
             };
@@ -537,13 +560,17 @@ impl Character {
             );
         }
         {
-            let player = game.player_ref();
-            let world = game.world_ref();
+            let player = game.player_rc();
+            let world = game.world_rc();
+            let clock = game.clock_rc();
             let f = move |reactor: &Reactor<Message>, msg: Message| {
                 if let Message::PlayerMove { direction, .. } = msg {
                     let mut player = player.borrow_mut();
                     player.set_movement(direction);
-                    if direction.y > 0.0 && player.may_jump(&world.borrow()) {
+                    let world = &world.borrow();
+                    if direction.y > 0.0 && (player.may_jump(world) || player.may_swim(world)) {
+                        let now = clock.borrow().elapsed().as_millis() as u64;
+                        player.set_cooldown(now + 200);
                         player.jump();
                         reactor.dispatch(Message::CharacterJump { pos: player.pos })
                     }
@@ -557,9 +584,9 @@ impl Character {
             );
         }
         {
-            let player = game.player_ref();
-            let world = game.world_ref();
-            let clock = game.clock_ref();
+            let player = game.player_rc();
+            let world = game.world_rc();
+            let clock = game.clock_rc();
             let f = move |reactor: &Reactor<Message>, msg: Message| {
                 if let Message::PlayerBlockPlace { pos, .. } = msg {
                     let mut player = player.borrow_mut();
@@ -582,9 +609,9 @@ impl Character {
             reactor.add_sink(Message::PlayerBlockPlace { pos: IVec3::ZERO }, Box::new(f));
         }
         {
-            let player = game.player_ref();
-            let clock = game.clock_ref();
-            let world = game.world_ref();
+            let player = game.player_rc();
+            let clock = game.clock_rc();
+            let world = game.world_rc();
             let f = move |_reactor: &Reactor<Message>, msg: Message| {
                 if let Message::PlayerBlockMine { pos, .. } = msg {
                     if let Some(pos) = pos {
@@ -606,8 +633,8 @@ impl Character {
             reactor.add_sink(Message::PlayerBlockMine { pos: None }, Box::new(f));
         }
         {
-            let player = game.player_ref();
-            let clock = game.clock_ref();
+            let player = game.player_rc();
+            let clock = game.clock_rc();
             let f = move |reactor: &Reactor<Message>, _msg: Message| {
                 let mut player = player.borrow_mut();
                 let now = clock.borrow().elapsed().as_millis() as u64;
@@ -627,8 +654,8 @@ impl Character {
             reactor.add_sink(Message::PlayerDropItem, Box::new(f));
         }
         {
-            let player = game.player_ref();
-            let world = game.world_ref();
+            let player = game.player_rc();
+            let world = game.world_rc();
             let f = move |reactor: &Reactor<Message>, msg: Message| {
                 if let Message::GameTick { ticks } = msg {
                     player.borrow_mut().tick(reactor, &world.borrow(), ticks);
@@ -644,7 +671,7 @@ impl Character {
             reactor.add_sink(Message::GameTick { ticks: 0 }, Box::new(f));
         }
         {
-            let player = game.player_ref();
+            let player = game.player_rc();
             let f = move |reactor: &Reactor<Message>, msg: Message| {
                 if let Message::CharacterGainExperience { xp, .. } = msg {
                     let mut player = player.borrow_mut();

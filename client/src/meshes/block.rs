@@ -1,10 +1,15 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
 use anyhow::Result;
+use glium::texture::SrgbTexture2dArray;
+use glium::uniforms::Sampler;
+use glium::{uniform, Surface};
 use std::time::Instant;
-use wolkenwelten_core::{BlockType, ChunkBlockData, ChunkLightData};
+use wolkenwelten_core::{BlockType, ChunkBlockData, ChunkFluidData, ChunkLightData};
 use wolkenwelten_meshgen;
 use wolkenwelten_meshgen::BlockVertex;
+
+use crate::{ClientState, QueueEntry};
 
 #[derive(Debug)]
 pub struct BlockMesh {
@@ -41,7 +46,7 @@ impl BlockMesh {
         )
     }
 
-    pub fn get_last_updated(&self) -> Instant {
+    pub fn last_updated(&self) -> Instant {
         self.last_updated
     }
 
@@ -112,6 +117,98 @@ impl BlockMesh {
             self.side_start[i] = self.side_start[i - 1] + self.side_square_count[i - 1];
         }
         self.buffer = glium::VertexBuffer::dynamic(display, &vertices)?;
+        Ok(())
+    }
+
+    pub fn update_fluid(
+        &mut self,
+        display: &glium::Display,
+        chunks: &[&ChunkBlockData; 27],
+        lights: &[&ChunkLightData; 27],
+        fluids: &[&ChunkFluidData; 27],
+        fluid_types: &Vec<BlockType>,
+        now: Instant,
+    ) -> Result<()> {
+        self.last_updated = now;
+
+        let (vertices, side_start_count) =
+            wolkenwelten_meshgen::generate_fluid(chunks, lights, fluids, fluid_types);
+        self.side_square_count = side_start_count;
+        self.side_start[0] = 0;
+        for i in 1..6 {
+            self.side_start[i] = self.side_start[i - 1] + self.side_square_count[i - 1];
+        }
+        self.buffer = glium::VertexBuffer::dynamic(display, &vertices)?;
+        Ok(())
+    }
+
+    pub fn draw(
+        &self,
+        frame: &mut glium::Frame,
+        fe: &ClientState,
+        entry: &QueueEntry,
+        mat_mvp: [[f32; 4]; 4],
+        cur_tex: Sampler<SrgbTexture2dArray>,
+        alpha: f32,
+    ) -> Result<()> {
+        let mask = entry.mask;
+        let trans_pos = [entry.trans.x, entry.trans.y, entry.trans.z];
+        let uniforms = uniform! {
+            color_alpha: alpha,
+            mat_mvp: mat_mvp,
+            trans_pos: trans_pos,
+            cur_tex: cur_tex,
+        };
+        let draw_parameters = glium::DrawParameters {
+            backface_culling: glium::draw_parameters::BackfaceCullingMode::CullClockwise,
+            blend: glium::draw_parameters::Blend {
+                color: glium::draw_parameters::BlendingFunction::Addition {
+                    source: glium::draw_parameters::LinearBlendingFactor::SourceAlpha,
+                    destination: glium::draw_parameters::LinearBlendingFactor::OneMinusSourceAlpha,
+                },
+                alpha: glium::draw_parameters::BlendingFunction::Addition {
+                    source: glium::draw_parameters::LinearBlendingFactor::One,
+                    destination: glium::draw_parameters::LinearBlendingFactor::OneMinusSourceAlpha,
+                },
+                constant_value: (0.0, 0.0, 0.0, 0.0),
+            },
+            depth: glium::draw_parameters::Depth {
+                test: glium::draw_parameters::DepthTest::IfLess,
+                write: true,
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+
+        if mask == 0b111111 {
+            let index_count = (self.side_start[5] + self.side_square_count[5]) * 6;
+            if let Some(indeces) = fe.block_indeces().slice(..index_count) {
+                frame.draw(
+                    self.buffer(),
+                    indeces,
+                    &fe.shaders.block,
+                    &uniforms,
+                    &draw_parameters,
+                )?;
+            }
+        } else {
+            for i in (0..6).filter(|i| (mask & (1 << i)) != 0) {
+                let start_offset = self.side_start[i] * 6;
+                let index_count = start_offset + (self.side_square_count[i] * 6);
+                if index_count == 0 {
+                    continue;
+                }
+                if let Some(indeces) = fe.block_indeces().slice(start_offset..index_count) {
+                    frame.draw(
+                        self.buffer(),
+                        indeces,
+                        &fe.shaders.block,
+                        &uniforms,
+                        &draw_parameters,
+                    )?;
+                }
+            }
+        }
         Ok(())
     }
 }

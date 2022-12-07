@@ -59,12 +59,12 @@ impl GameState {
     }
 
     #[inline]
-    pub fn player_ref(&self) -> Rc<RefCell<Character>> {
+    pub fn player_rc(&self) -> Rc<RefCell<Character>> {
         self.player.clone()
     }
 
     #[inline]
-    pub fn log_ref(&self) -> Rc<RefCell<GameLog>> {
+    pub fn log_rc(&self) -> Rc<RefCell<GameLog>> {
         self.log.clone()
     }
     #[inline]
@@ -93,12 +93,12 @@ impl GameState {
     }
 
     #[inline]
-    pub fn world_ref(&self) -> Rc<RefCell<Chungus>> {
+    pub fn world_rc(&self) -> Rc<RefCell<Chungus>> {
         self.world.clone()
     }
 
     #[inline]
-    pub fn clock_ref(&self) -> Rc<RefCell<Instant>> {
+    pub fn clock_rc(&self) -> Rc<RefCell<Instant>> {
         self.clock.clone()
     }
 

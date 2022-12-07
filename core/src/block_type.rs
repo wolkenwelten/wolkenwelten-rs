@@ -319,6 +319,15 @@ impl BlockType {
                 .with_block_health(140),
         ]
     }
+
+    pub fn new_default_fluids() -> Vec<Self> {
+        vec![
+            BlockType::new("Void").with_texture(0),
+            BlockType::new("Water").with_texture(0),
+            BlockType::new("Sea Water").with_texture(1),
+            BlockType::new("Lava").with_texture(2),
+        ]
+    }
 }
 
 #[cfg(test)]

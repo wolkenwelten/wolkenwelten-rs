@@ -244,9 +244,9 @@ pub fn init(args: RenderInitArgs) -> RenderInitArgs {
     let mobs: Rc<RefCell<MobList>> = Rc::new(RefCell::new(MobList::new()));
     let rng = Rc::new(RefCell::new(XorShiftRng::from_entropy()));
     {
-        let player = args.game.player_ref();
+        let player = args.game.player_rc();
         let mobs = mobs.clone();
-        let world = args.game.world_ref();
+        let world = args.game.world_rc();
         let rng = rng.clone();
         let f = move |reactor: &Reactor<Message>, _msg: Message| {
             let mut rng = rng.borrow_mut();
@@ -361,7 +361,7 @@ pub fn init(args: RenderInitArgs) -> RenderInitArgs {
         let meshes: Vec<Vec<VoxelMesh>> =
             mob_load_meshes(&args.fe.display).expect("Error loading crab mesh");
         args.render_reactor
-            .post_world_render
+            .world_render
             .push(Box::new(move |args: RenderPassArgs| {
                 let mvp = args.projection * args.view;
                 let frustum = Frustum::extract(&mvp);

@@ -4197,6 +4197,7 @@ dependencies = [
  "glium",
  "image",
  "rand 0.8.5",
+ "rgb",
  "tobj",
  "vox-format",
  "winit",

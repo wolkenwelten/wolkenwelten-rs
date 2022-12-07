@@ -8,6 +8,7 @@ use wolkenwelten_core::GameState;
 #[derive(Debug)]
 pub struct TextureList {
     pub blocks: TextureArray,
+    pub fluids: TextureArray,
     pub blocks_raw: Texture,
     pub gui: Texture,
 }
@@ -17,6 +18,7 @@ impl TextureList {
     pub fn new(display: &glium::Display, game: &GameState) -> Result<TextureList> {
         let block_bytes = include_bytes!("../../assets/blocks.png");
         let blocks = TextureArray::from_bytes(display, block_bytes)?;
+        let fluids = TextureArray::from_bytes(display, include_bytes!("../../assets/fluids.png"))?;
         let blocks_raw = Texture::from_bytes(display, block_bytes)?;
         let gui = Texture::gui_texture(
             display,
@@ -27,6 +29,7 @@ impl TextureList {
         Ok(TextureList {
             blocks,
             blocks_raw,
+            fluids,
             gui,
         })
     }

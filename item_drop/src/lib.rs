@@ -133,9 +133,9 @@ impl ItemDropList {
 pub fn init(args: RenderInitArgs) -> RenderInitArgs {
     let drops: Rc<RefCell<ItemDropList>> = Rc::new(RefCell::new(ItemDropList::new()));
     {
-        let player = args.game.player_ref();
+        let player = args.game.player_rc();
         let drops = drops.clone();
-        let world = args.game.world_ref();
+        let world = args.game.world_rc();
         let f = move |reactor: &Reactor<Message>, _msg: Message| {
             let player_pos = player.borrow().pos();
             drops
@@ -226,7 +226,7 @@ pub fn init(args: RenderInitArgs) -> RenderInitArgs {
     }
     {
         args.render_reactor
-            .post_world_render
+            .world_render
             .push(Box::new(move |args: RenderPassArgs| {
                 for entity in drops.borrow().iter() {
                     let _ =
