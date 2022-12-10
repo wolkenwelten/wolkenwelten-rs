@@ -175,6 +175,14 @@ impl<'a> SfxList<'a> {
             0.2,
         );
         s.add_relay(
+            SfxId::Punch,
+            Message::MobStrike {
+                pos: Vec3::ZERO,
+                damage: 0,
+            },
+            0.4,
+        );
+        s.add_relay(
             SfxId::Bomb,
             Message::Explosion {
                 pos: Vec3::ZERO,

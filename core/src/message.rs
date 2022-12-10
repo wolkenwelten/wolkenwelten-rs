@@ -130,6 +130,10 @@ pub enum Message {
     MobDied {
         pos: Vec3,
     },
+    MobStrike {
+        pos: Vec3,
+        damage: i16,
+    },
 
     SfxPlay {
         pos: Vec3,
@@ -182,6 +186,7 @@ impl Message {
             | Message::CharacterLevelUp { pos, .. }
             | Message::MobDied { pos, .. }
             | Message::Explosion { pos, .. }
+            | Message::MobStrike { pos, .. }
             | Message::CharacterJump { pos, .. } => Some(*pos),
             _ => None,
         }

@@ -86,6 +86,10 @@ impl Character {
     pub fn movement(&self) -> Vec3 {
         self.movement
     }
+    #[inline]
+    pub fn damage(&mut self, amount: i16) {
+        self.health.damage(amount);
+    }
 
     #[inline]
     pub fn experience(&self) -> &Experience {
@@ -408,16 +412,16 @@ impl Character {
             if amount > 0 {
                 let damage = amount * amount;
                 self.health.damage(damage);
-                if self.health().is_dead() {
-                    reactor.dispatch(Message::CharacterDeath { pos: self.pos });
-                    self.rebirth();
-                } else {
-                    reactor.dispatch(Message::CharacterDamage {
-                        pos: self.pos,
-                        damage,
-                    });
-                }
+                reactor.dispatch(Message::CharacterDamage {
+                    pos: self.pos,
+                    damage,
+                });
             }
+        }
+
+        if self.health().is_dead() {
+            reactor.dispatch(Message::CharacterDeath { pos: self.pos });
+            self.rebirth();
         }
 
         let len = self.vel.length();
@@ -713,6 +717,22 @@ impl Character {
                 Message::CharacterGainExperience {
                     pos: Vec3::ZERO,
                     xp: 0,
+                },
+                Box::new(f),
+            );
+        }
+
+        {
+            let player = game.player_rc();
+            let f = move |_: &Reactor<Message>, msg: Message| {
+                if let Message::MobStrike { damage, .. } = msg {
+                    player.borrow_mut().damage(damage);
+                }
+            };
+            reactor.add_sink(
+                Message::MobStrike {
+                    pos: Vec3::ZERO,
+                    damage: 0,
                 },
                 Box::new(f),
             );

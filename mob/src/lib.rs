@@ -9,22 +9,27 @@ use rand_xorshift::XorShiftRng;
 use std::rc::Rc;
 use std::{cell::RefCell, time::Instant};
 use wolkenwelten_client::{ClientState, Frustum, RenderInitArgs, RenderPassArgs, VoxelMesh};
+use wolkenwelten_core::Character;
 use wolkenwelten_core::{BlockItem, Chungus, Entity, Health, Item, Message, Reactor, SfxId};
 
 const MOB_ACCELERATION: f32 = 0.005;
 const MOB_STOP_RATE: f32 = MOB_ACCELERATION * 2.0;
+const MOB_STOP_FIGHTING_DISTANCE: f32 = 24.0;
+const MOB_START_CHASING_DISTANCE: f32 = 12.0;
 
 #[derive(Copy, Clone, Debug)]
-enum MobAnimationState {
+enum MobState {
     Idle(Instant),
     Walk(Instant),
     Run(Instant),
     WalkBack(Instant),
     TurnRight(Instant),
     TurnLeft(Instant),
+    ChasePlayer(Instant),
+    FightPlayer(Instant),
 }
 
-impl Default for MobAnimationState {
+impl Default for MobState {
     fn default() -> Self {
         Self::Idle(Instant::now())
     }
@@ -34,29 +39,22 @@ impl Default for MobAnimationState {
 struct Mob {
     ent: Entity,
     model_index: i32,
-    animation_state: MobAnimationState,
+    state: MobState,
     health: Health,
 }
 
 fn mob_load_meshes(display: &Display) -> Result<Vec<Vec<VoxelMesh>>> {
-    Ok(vec![
-        vec![
-            VoxelMesh::from_vox_data(display, include_bytes!("../assets/crab/idle_1.vox"))?,
-            VoxelMesh::from_vox_data(display, include_bytes!("../assets/crab/idle_2.vox"))?,
-            VoxelMesh::from_vox_data(display, include_bytes!("../assets/crab/walk_1.vox"))?,
-            VoxelMesh::from_vox_data(display, include_bytes!("../assets/crab/idle_1.vox"))?,
-            VoxelMesh::from_vox_data(display, include_bytes!("../assets/crab/walk_2.vox"))?,
-            VoxelMesh::from_vox_data(display, include_bytes!("../assets/crab/idle_1.vox"))?,
-        ],
-        vec![
-            VoxelMesh::from_vox_data(display, include_bytes!("../assets/king_crab/idle_1.vox"))?,
-            VoxelMesh::from_vox_data(display, include_bytes!("../assets/king_crab/idle_2.vox"))?,
-            VoxelMesh::from_vox_data(display, include_bytes!("../assets/king_crab/walk_1.vox"))?,
-            VoxelMesh::from_vox_data(display, include_bytes!("../assets/king_crab/idle_1.vox"))?,
-            VoxelMesh::from_vox_data(display, include_bytes!("../assets/king_crab/walk_2.vox"))?,
-            VoxelMesh::from_vox_data(display, include_bytes!("../assets/king_crab/idle_1.vox"))?,
-        ],
-    ])
+    Ok(vec![vec![
+        VoxelMesh::from_vox_data(display, include_bytes!("../assets/crab/idle_1.vox"))?,
+        VoxelMesh::from_vox_data(display, include_bytes!("../assets/crab/idle_2.vox"))?,
+        VoxelMesh::from_vox_data(display, include_bytes!("../assets/crab/walk_1.vox"))?,
+        VoxelMesh::from_vox_data(display, include_bytes!("../assets/crab/idle_1.vox"))?,
+        VoxelMesh::from_vox_data(display, include_bytes!("../assets/crab/walk_2.vox"))?,
+        VoxelMesh::from_vox_data(display, include_bytes!("../assets/crab/idle_1.vox"))?,
+        VoxelMesh::from_vox_data(display, include_bytes!("../assets/crab/idle_1.vox"))?,
+        VoxelMesh::from_vox_data(display, include_bytes!("../assets/crab/attack_1.vox"))?,
+        VoxelMesh::from_vox_data(display, include_bytes!("../assets/crab/attack_2.vox"))?,
+    ]])
 }
 
 impl Mob {
@@ -70,7 +68,7 @@ impl Mob {
         Self {
             ent,
             model_index,
-            animation_state: MobAnimationState::Walk(Instant::now()),
+            state: MobState::Walk(Instant::now()),
             health: Health::new(12),
         }
     }
@@ -83,6 +81,10 @@ impl Mob {
         self.ent.rot()
     }
     #[inline]
+    pub fn set_rot(&mut self, rot: Vec3) {
+        self.ent.set_rot(rot);
+    }
+    #[inline]
     pub fn set_vel(&mut self, vel: Vec3) {
         self.ent.set_vel(vel);
     }
@@ -90,72 +92,131 @@ impl Mob {
     pub fn model_index(&self) -> i32 {
         self.model_index
     }
+    #[inline]
+    pub fn set_state(&mut self, state: MobState) {
+        self.state = state;
+    }
+    #[inline]
+    pub fn set_idle_state(&mut self) {
+        self.state = MobState::Idle(Instant::now());
+    }
 
     pub fn anime_index(&self) -> usize {
-        match self.animation_state {
-            MobAnimationState::Idle(t) => (t.elapsed().as_millis() as usize / 1000) % 2,
-            MobAnimationState::TurnLeft(t)
-            | MobAnimationState::TurnRight(t)
-            | MobAnimationState::WalkBack(t)
-            | MobAnimationState::Walk(t) => 2 + (t.elapsed().as_millis() as usize / 200) % 4,
-            MobAnimationState::Run(t) => 2 + (t.elapsed().as_millis() as usize / 100) % 4,
+        match self.state {
+            MobState::FightPlayer(t) => 6 + (t.elapsed().as_millis() as usize / 400) % 2,
+            MobState::Idle(t) => (t.elapsed().as_millis() as usize / 1000) % 2,
+            MobState::TurnLeft(t)
+            | MobState::TurnRight(t)
+            | MobState::WalkBack(t)
+            | MobState::Walk(t) => 2 + (t.elapsed().as_millis() as usize / 200) % 4,
+            MobState::ChasePlayer(t) | MobState::Run(t) => {
+                2 + (t.elapsed().as_millis() as usize / 100) % 4
+            }
         }
     }
 
+    fn player_aggresive(&mut self, player: &Character) {
+        match self.state {
+            MobState::ChasePlayer(_) | MobState::FightPlayer(_) => return,
+            _ => (),
+        }
+        let player_pos = player.pos();
+        let diff = (player_pos - self.pos()).xz();
+        let distance = diff.length_squared();
+        if distance > MOB_START_CHASING_DISTANCE * MOB_START_CHASING_DISTANCE {
+            return;
+        }
+        self.set_state(MobState::ChasePlayer(Instant::now()));
+    }
+
     #[inline]
-    pub fn tick(&mut self, world: &Chungus, rng: &mut XorShiftRng) {
+    pub fn tick(
+        &mut self,
+        world: &Chungus,
+        rng: &mut XorShiftRng,
+        player: &Character,
+        reactor: &Reactor<Message>,
+    ) {
         if !world.is_loaded(self.ent.pos) {
             return; // Just freeze the mob until we have loaded the area, this shouldn't happen if at all possible
         }
 
+        self.player_aggresive(player);
         let mut goal_vel = Vec3::ZERO;
-        match self.animation_state {
-            MobAnimationState::Idle(_t) => {
+        match self.state {
+            MobState::Idle(_t) => {
                 if rng.gen_range(0..10000) == 0 {
-                    self.animation_state = MobAnimationState::Run(Instant::now())
+                    self.state = MobState::Run(Instant::now())
                 }
                 if rng.gen_range(0..10000) == 0 {
-                    self.animation_state = MobAnimationState::WalkBack(Instant::now())
+                    self.state = MobState::WalkBack(Instant::now())
                 }
                 if rng.gen_range(0..5000) == 0 {
-                    self.animation_state = MobAnimationState::Walk(Instant::now())
+                    self.state = MobState::Walk(Instant::now())
                 }
                 if rng.gen_range(0..500) == 0 {
-                    self.animation_state = MobAnimationState::TurnLeft(Instant::now())
+                    self.state = MobState::TurnLeft(Instant::now())
                 }
                 if rng.gen_range(0..500) == 0 {
-                    self.animation_state = MobAnimationState::TurnRight(Instant::now())
+                    self.state = MobState::TurnRight(Instant::now())
                 }
             }
-            MobAnimationState::Run(_t) => {
+            MobState::Run(_t) => {
                 if rng.gen_range(0..400) == 0 {
-                    self.animation_state = MobAnimationState::Idle(Instant::now())
+                    self.set_idle_state();
                 };
                 goal_vel = self.ent.walk_direction();
             }
-            MobAnimationState::Walk(_t) => {
+            MobState::Walk(_t) => {
                 if rng.gen_range(0..4000) == 0 {
-                    self.animation_state = MobAnimationState::Idle(Instant::now())
+                    self.set_idle_state();
                 };
                 goal_vel = self.ent.walk_direction() * 0.5;
             }
-            MobAnimationState::WalkBack(_t) => {
+            MobState::WalkBack(_t) => {
                 if rng.gen_range(0..1000) == 0 {
-                    self.animation_state = MobAnimationState::Idle(Instant::now())
+                    self.set_idle_state();
                 };
                 goal_vel = self.ent.walk_direction() * -0.15;
             }
-            MobAnimationState::TurnLeft(_t) => {
+            MobState::TurnLeft(_t) => {
                 if rng.gen_range(0..100) == 0 {
-                    self.animation_state = MobAnimationState::Idle(Instant::now())
+                    self.set_idle_state();
                 };
                 self.ent.set_rot(self.ent.rot() - Vec3::new(0.0, 0.1, 0.0));
             }
-            MobAnimationState::TurnRight(_t) => {
+            MobState::TurnRight(_t) => {
                 if rng.gen_range(0..100) == 0 {
-                    self.animation_state = MobAnimationState::Idle(Instant::now())
+                    self.set_idle_state();
                 };
                 self.ent.set_rot(self.ent.rot() + Vec3::new(0.0, 0.1, 0.0));
+            }
+            MobState::FightPlayer(_t) | MobState::ChasePlayer(_t) => {
+                let player_pos = player.pos();
+                let diff = (player_pos - self.pos()).xz();
+                let distance = diff.length_squared();
+                if distance > MOB_STOP_FIGHTING_DISTANCE * MOB_STOP_FIGHTING_DISTANCE {
+                    self.set_idle_state();
+                } else {
+                    let deg = diff.y.atan2(diff.x).to_degrees();
+                    self.set_rot(Vec3::new(0.0, -deg - 90.0, 0.0));
+                    if distance > 2.0 * 2.0 {
+                        goal_vel = self.ent.walk_direction();
+                        if let MobState::FightPlayer(_) = self.state {
+                            self.set_state(MobState::ChasePlayer(Instant::now()));
+                        }
+                    } else if let MobState::ChasePlayer(_) = self.state {
+                        self.set_state(MobState::FightPlayer(Instant::now()));
+                    } else if let MobState::FightPlayer(t) = self.state {
+                        if t.elapsed().as_millis() > 1000 {
+                            reactor.defer(Message::MobStrike {
+                                pos: self.pos(),
+                                damage: 2,
+                            });
+                            self.set_state(MobState::FightPlayer(Instant::now()));
+                        }
+                    }
+                }
             }
         };
 
@@ -221,12 +282,13 @@ impl MobList {
     pub fn tick_all(
         &mut self,
         reactor: &Reactor<Message>,
-        player_pos: Vec3,
+        player: &Character,
         world: &Chungus,
         rng: &mut XorShiftRng,
     ) {
+        let player_pos = player.pos();
         self.mobs.retain_mut(|m| {
-            m.tick(world, rng);
+            m.tick(world, rng, player, reactor);
             let dist = m.pos() - player_pos;
             let dd = dist.x * dist.x + dist.y * dist.y + dist.z * dist.z;
             if m.health.is_dead() {
@@ -250,9 +312,8 @@ pub fn init(args: RenderInitArgs) -> RenderInitArgs {
         let rng = rng.clone();
         let f = move |reactor: &Reactor<Message>, _msg: Message| {
             let mut rng = rng.borrow_mut();
-            let player_pos = player.borrow().pos();
             mobs.borrow_mut()
-                .tick_all(reactor, player_pos, &world.borrow(), &mut rng);
+                .tick_all(reactor, &player.borrow(), &world.borrow(), &mut rng);
         };
         args.reactor
             .add_sink(Message::GameTick { ticks: 0 }, Box::new(f));
@@ -275,6 +336,7 @@ pub fn init(args: RenderInitArgs) -> RenderInitArgs {
                         dir.y = -0.5;
                         m.set_vel(dir * -0.04);
                         m.health -= damage;
+                        m.set_state(MobState::ChasePlayer(Instant::now()));
                         if m.health.is_dead() {
                             reactor.defer(Message::CharacterGainExperience {
                                 pos: m.pos(),
@@ -340,7 +402,8 @@ pub fn init(args: RenderInitArgs) -> RenderInitArgs {
         let f = move |_reactor: &Reactor<Message>, msg: Message| {
             if let Message::WorldgenSpawnMob { pos, .. } = msg {
                 let mut rng = rng.borrow_mut();
-                let model_index = rng.gen_range(0..=1);
+                //let model_index = rng.gen_range(0..=1);
+                let model_index = 0;
                 mobs.borrow_mut().add(
                     pos,
                     Vec3::new(0.0, rng.gen_range(0.0..360.0), 0.0),
