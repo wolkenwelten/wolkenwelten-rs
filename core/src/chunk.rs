@@ -4,11 +4,23 @@ mod block;
 mod fluid;
 mod light;
 
+use glam::{IVec3, Vec3};
+
 pub use block::ChunkBlockData;
 pub use fluid::ChunkFluidData;
 pub use light::ChunkLightData;
 
 use crate::{ChunkBuffer, ChunkData, CHUNK_SIZE};
+
+pub fn point_lies_within_chunk(p: Vec3, chunk: IVec3) -> bool {
+    let chunk = (chunk * CHUNK_SIZE as i32).as_vec3();
+    !(p.x < chunk.x
+        || p.x > chunk.x + CHUNK_SIZE as f32
+        || p.y < chunk.y
+        || p.y > chunk.y + CHUNK_SIZE as f32
+        || p.z < chunk.z
+        || p.z > chunk.z + CHUNK_SIZE as f32)
+}
 
 fn blit_chunk_data_end(off: isize) -> (usize, usize) {
     let start = off;

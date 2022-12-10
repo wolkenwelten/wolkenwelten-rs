@@ -1,5 +1,6 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
+use crate::point_lies_within_chunk;
 use crate::Chungus;
 use crate::{ChunkBlockData, ChunkFluidData, Message, Reactor, CHUNK_SIZE};
 use glam::IVec3;
@@ -110,10 +111,12 @@ pub fn chunk(
                     if assets.bushes[i].fits(pos) {
                         r.blit(&assets.bushes[i], pos);
                     }
-                } else if rng.gen_range(1..40000) == 1 {
-                    let mut pos = ((pos * CHUNK_SIZE as i32) + IVec3::new(x, 0, z)).as_vec3();
-                    pos.y = grass_y as f32 + 1.0;
-                    reactor.dispatch(Message::WorldgenSpawnMob { pos });
+                } else if rng.gen_range(1..800) == 1 {
+                    let mut mob_pos = ((pos * CHUNK_SIZE as i32) + IVec3::new(x, 0, z)).as_vec3();
+                    mob_pos.y = grass_y as f32 + 1.0;
+                    if point_lies_within_chunk(mob_pos, pos) {
+                        reactor.dispatch(Message::WorldgenSpawnMob { pos: mob_pos });
+                    }
                 } else if rng.gen_range(1..1000) == 1 {
                     let i = rng.gen_range(0..assets.rocks.len());
                     let pos = IVec3::new(
