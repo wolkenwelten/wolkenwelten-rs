@@ -86,12 +86,12 @@ impl InputState {
                 MouseScrollDelta::LineDelta(_, y) => {
                     reactor.dispatch(Message::PlayerSwitchSelection {
                         delta: y.round() as i32,
-                    })
+                    });
                 }
                 MouseScrollDelta::PixelDelta(PhysicalPosition { x: _x, y }) => {
                     reactor.dispatch(Message::PlayerSwitchSelection {
                         delta: y.round() as i32,
-                    })
+                    });
                 }
             },
 
@@ -107,73 +107,97 @@ impl InputState {
                     state: ElementState::Pressed,
                     virtual_keycode: Some(VirtualKeyCode::N),
                     ..
-                } => reactor.dispatch(Message::PlayerNoClip { no_clip: true }),
+                } => {
+                    reactor.dispatch(Message::PlayerNoClip { no_clip: true });
+                }
 
                 KeyboardInput {
                     state: ElementState::Pressed,
                     virtual_keycode: Some(VirtualKeyCode::M),
                     ..
-                } => reactor.dispatch(Message::PlayerNoClip { no_clip: false }),
+                } => {
+                    reactor.dispatch(Message::PlayerNoClip { no_clip: false });
+                }
 
                 KeyboardInput {
                     state: ElementState::Pressed,
                     virtual_keycode: Some(VirtualKeyCode::Key1),
                     ..
-                } => reactor.dispatch(Message::PlayerSelect { i: 0 }),
+                } => {
+                    reactor.dispatch(Message::PlayerSelect { i: 0 });
+                }
 
                 KeyboardInput {
                     state: ElementState::Pressed,
                     virtual_keycode: Some(VirtualKeyCode::Key2),
                     ..
-                } => reactor.dispatch(Message::PlayerSelect { i: 1 }),
+                } => {
+                    reactor.dispatch(Message::PlayerSelect { i: 1 });
+                }
 
                 KeyboardInput {
                     state: ElementState::Pressed,
                     virtual_keycode: Some(VirtualKeyCode::Key3),
                     ..
-                } => reactor.dispatch(Message::PlayerSelect { i: 2 }),
+                } => {
+                    reactor.dispatch(Message::PlayerSelect { i: 2 });
+                }
 
                 KeyboardInput {
                     state: ElementState::Pressed,
                     virtual_keycode: Some(VirtualKeyCode::Key4),
                     ..
-                } => reactor.dispatch(Message::PlayerSelect { i: 3 }),
+                } => {
+                    reactor.dispatch(Message::PlayerSelect { i: 3 });
+                }
 
                 KeyboardInput {
                     state: ElementState::Pressed,
                     virtual_keycode: Some(VirtualKeyCode::Key5),
                     ..
-                } => reactor.dispatch(Message::PlayerSelect { i: 4 }),
+                } => {
+                    reactor.dispatch(Message::PlayerSelect { i: 4 });
+                }
 
                 KeyboardInput {
                     state: ElementState::Pressed,
                     virtual_keycode: Some(VirtualKeyCode::Key6),
                     ..
-                } => reactor.dispatch(Message::PlayerSelect { i: 5 }),
+                } => {
+                    reactor.dispatch(Message::PlayerSelect { i: 5 });
+                }
 
                 KeyboardInput {
                     state: ElementState::Pressed,
                     virtual_keycode: Some(VirtualKeyCode::Key7),
                     ..
-                } => reactor.dispatch(Message::PlayerSelect { i: 6 }),
+                } => {
+                    reactor.dispatch(Message::PlayerSelect { i: 6 });
+                }
 
                 KeyboardInput {
                     state: ElementState::Pressed,
                     virtual_keycode: Some(VirtualKeyCode::Key8),
                     ..
-                } => reactor.dispatch(Message::PlayerSelect { i: 7 }),
+                } => {
+                    reactor.dispatch(Message::PlayerSelect { i: 7 });
+                }
 
                 KeyboardInput {
                     state: ElementState::Pressed,
                     virtual_keycode: Some(VirtualKeyCode::Key9),
                     ..
-                } => reactor.dispatch(Message::PlayerSelect { i: 8 }),
+                } => {
+                    reactor.dispatch(Message::PlayerSelect { i: 8 });
+                }
 
                 KeyboardInput {
                     state: ElementState::Pressed,
                     virtual_keycode: Some(VirtualKeyCode::Key0),
                     ..
-                } => reactor.dispatch(Message::PlayerSelect { i: 9 }),
+                } => {
+                    reactor.dispatch(Message::PlayerSelect { i: 9 });
+                }
 
                 KeyboardInput {
                     state,
@@ -203,7 +227,9 @@ impl InputState {
                     state: ElementState::Pressed,
                     virtual_keycode: Some(VirtualKeyCode::Escape),
                     ..
-                } => reactor.dispatch(Message::GameQuit),
+                } => {
+                    reactor.dispatch(Message::GameQuit);
+                }
 
                 KeyboardInput {
                     state,

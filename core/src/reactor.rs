@@ -12,6 +12,7 @@ pub struct Reactor<T> {
     handler: ReactorHandlerMap<T>,
     defer_queue: RefCell<Vec<T>>,
     defer_active: RefCell<bool>,
+    reply_queue: RefCell<Vec<T>>,
     msg_log: RefCell<Vec<T>>,
 }
 
@@ -32,6 +33,7 @@ where
         Self {
             handler: HashMap::new(),
             defer_queue: RefCell::new(vec![]),
+            reply_queue: RefCell::new(vec![]),
             defer_active: RefCell::new(false),
             msg_log: RefCell::new(vec![]),
         }
@@ -64,12 +66,22 @@ where
 
     #[inline]
     pub fn dispatch(&self, msg: T) {
-        let defer_active = *self.defer_active.borrow();
-        if defer_active {
-            self.dispatch_raw(msg)
+        if *self.defer_active.borrow() {
+            self.dispatch_raw(msg);
         } else {
-            self.dispatch_defer(msg)
+            self.dispatch_defer(msg);
         }
+    }
+
+    pub fn dispatch_with_answer(&self, msg: T) -> Vec<T> {
+        self.reply_queue.borrow_mut().clear();
+        self.dispatch(msg);
+        self.reply_queue.replace(vec![])
+    }
+
+    #[inline]
+    pub fn reply(&self, msg: T) {
+        self.reply_queue.borrow_mut().push(msg);
     }
 
     #[inline]
@@ -79,7 +91,7 @@ where
             self.defer_queue.borrow_mut().push(msg)
         } else {
             // If we are not currently dispatching a msg then we can safely dispatch the message immediatly
-            self.dispatch(msg)
+            self.dispatch(msg);
         }
     }
 

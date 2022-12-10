@@ -22,6 +22,7 @@ pub struct Character {
 
     no_clip: bool,
     cooldown: u64,
+    mining_cooldown: u64,
     health: Health,
     experience: Experience,
 
@@ -137,6 +138,10 @@ impl Character {
     #[inline]
     pub fn may_act(&self, now: u64) -> bool {
         self.cooldown < now
+    }
+    #[inline]
+    pub fn may_mine(&self, now: u64) -> bool {
+        self.mining_cooldown < now
     }
     #[inline]
     pub fn jump(&mut self) {
@@ -331,6 +336,14 @@ impl Character {
         Self::is_underwater_point(world, self.pos() + Vec3::new(0.0, -1.2, 0.0))
     }
 
+    pub fn mining_cooldown(&self) -> u64 {
+        self.mining_cooldown
+    }
+
+    pub fn set_mining_cooldown(&mut self, mc: u64) {
+        self.mining_cooldown = mc;
+    }
+
     pub fn tick(&mut self, reactor: &Reactor<Message>, world: &Chungus, cur_tick: u64) {
         if self.no_clip {
             self.pos += self.vel;
@@ -449,18 +462,26 @@ impl Character {
             let player = game.player_rc();
             let clock = game.clock_rc();
             let f = move |reactor: &Reactor<Message>, _: Message| {
-                let mut player = player.borrow_mut();
                 let now = clock.borrow().elapsed().as_millis() as u64;
-                if player.may_act(now) {
-                    let attack_pos = player.pos() + player.direction();
-                    reactor.defer(Message::CharacterAttack {
-                        char_pos: player.pos(),
-                        attack_pos,
-                        damage: 1,
-                    });
-
-                    player.set_animation_hit();
-                    player.set_cooldown(now + 400)
+                let msg = {
+                    let mut player = player.borrow_mut();
+                    if player.may_act(now) {
+                        let attack_pos = player.pos() + player.direction();
+                        player.set_animation_hit();
+                        player.set_cooldown(now + 400);
+                        Message::CharacterAttack {
+                            char_pos: player.pos(),
+                            attack_pos,
+                            damage: 1,
+                        }
+                    } else {
+                        return;
+                    }
+                };
+                let replies = reactor.dispatch_with_answer(msg);
+                if !replies.is_empty() {
+                    let mut player = player.borrow_mut();
+                    player.set_mining_cooldown(now + 400)
                 }
             };
             reactor.add_sink(Message::PlayerStrike, Box::new(f));
@@ -572,7 +593,7 @@ impl Character {
                         let now = clock.borrow().elapsed().as_millis() as u64;
                         player.set_cooldown(now + 200);
                         player.jump();
-                        reactor.dispatch(Message::CharacterJump { pos: player.pos })
+                        reactor.dispatch(Message::CharacterJump { pos: player.pos });
                     }
                 }
             };
@@ -614,20 +635,21 @@ impl Character {
             let world = game.world_rc();
             let f = move |_reactor: &Reactor<Message>, msg: Message| {
                 if let Message::PlayerBlockMine { pos, .. } = msg {
-                    if let Some(pos) = pos {
-                        if let Some(b) = world.borrow_mut().get_block(pos) {
-                            let mut player = player.borrow_mut();
-                            player.set_mining(Some((pos, b)));
-                            let now = clock.borrow().elapsed().as_millis() as u64;
-                            if player.may_act(now) {
-                                player.set_animation_hit();
-                                player.set_cooldown(now + 300);
+                    let now = clock.borrow().elapsed().as_millis() as u64;
+                    if player.borrow().may_mine(now) {
+                        if let Some(pos) = pos {
+                            if let Some(b) = world.borrow_mut().get_block(pos) {
+                                let mut player = player.borrow_mut();
+                                player.set_mining(Some((pos, b)));
+                                if player.may_act(now) {
+                                    player.set_animation_hit();
+                                    player.set_cooldown(now + 300);
+                                }
+                                return;
                             }
                         }
-                    } else {
-                        let mut player = player.borrow_mut();
-                        player.set_mining(None);
                     }
+                    player.borrow_mut().set_mining(None);
                 }
             };
             reactor.add_sink(Message::PlayerBlockMine { pos: None }, Box::new(f));

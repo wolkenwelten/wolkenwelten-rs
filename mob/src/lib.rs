@@ -281,10 +281,12 @@ pub fn init(args: RenderInitArgs) -> RenderInitArgs {
                                 xp: 8,
                             });
                         }
-                        reactor.defer(Message::MobHurt {
+                        let msg = Message::MobHurt {
                             pos: m.pos(),
                             damage,
-                        });
+                        };
+                        reactor.reply(msg);
+                        reactor.defer(msg);
                         reactor.defer(Message::SfxPlay {
                             pos: m.pos(),
                             volume: 0.3,
