@@ -110,7 +110,7 @@ pub fn chunk(
                     if assets.bushes[i].fits(pos) {
                         r.blit(&assets.bushes[i], pos);
                     }
-                } else if rng.gen_range(1..10000) == 1 {
+                } else if rng.gen_range(1..40000) == 1 {
                     let mut pos = ((pos * CHUNK_SIZE as i32) + IVec3::new(x, 0, z)).as_vec3();
                     pos.y = grass_y as f32 + 1.0;
                     reactor.dispatch(Message::WorldgenSpawnMob { pos });
