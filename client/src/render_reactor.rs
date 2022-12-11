@@ -1,6 +1,6 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
-use super::render::chungus::chungus_pass;
+use super::render::chungus::{chungus_block_pass, chungus_fluid_pass};
 use crate::ClientState;
 use glam::Mat4;
 use glium::Surface;
@@ -31,6 +31,7 @@ pub struct RenderReactor {
     pub pre_world_render: Vec<RenderPass>,
     pub world_render: Vec<RenderPass>,
     pub post_world_render: Vec<RenderPass>,
+    pub post_block_render: Vec<RenderPass>,
 
     pub hud_3d_render: Vec<RenderPass>,
     pub hud_2d_render: Vec<RenderPass>,
@@ -69,7 +70,8 @@ impl Default for RenderReactor {
         Self {
             pre_world_render: vec![Box::new(clear_pass)],
             world_render: vec![Box::new(view_pass)],
-            post_world_render: vec![Box::new(chungus_pass)],
+            post_world_render: vec![Box::new(chungus_block_pass)],
+            post_block_render: vec![Box::new(chungus_fluid_pass)],
 
             hud_3d_render: vec![],
             hud_2d_render: vec![],
@@ -128,6 +130,7 @@ impl RenderReactor {
         };
         let iter = self.hud_2d_render.iter();
         let iter = self.hud_3d_render.iter().chain(iter);
+        let iter = self.post_block_render.iter().chain(iter);
         let iter = self.post_world_render.iter().chain(iter);
         let iter = self.world_render.iter().chain(iter);
         let iter = self.pre_world_render.iter().chain(iter);
