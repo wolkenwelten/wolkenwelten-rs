@@ -129,6 +129,19 @@ impl Mob {
         self.set_state(MobState::ChasePlayer(Instant::now()));
     }
 
+    pub fn turn_towards(&mut self, goal: Vec3) {
+        let a = goal.y - self.rot().y;
+        let b = goal.y + 360.0 - self.rot().y;
+        let mut rot = self.rot();
+        let c = if a.abs() < b.abs() { a } else { b };
+        if c > 0.0 {
+            rot.y += 1.0;
+        } else {
+            rot.y -= 1.0;
+        }
+        self.set_rot(rot);
+    }
+
     #[inline]
     pub fn tick(
         &mut self,
@@ -193,13 +206,15 @@ impl Mob {
             }
             MobState::FightPlayer(_t) | MobState::ChasePlayer(_t) => {
                 let player_pos = player.pos();
-                let diff = (player_pos - self.pos()).xz();
+                let diff = player_pos - self.pos();
                 let distance = diff.length_squared();
                 if distance > MOB_STOP_FIGHTING_DISTANCE * MOB_STOP_FIGHTING_DISTANCE {
                     self.set_idle_state();
                 } else {
-                    let deg = diff.y.atan2(diff.x).to_degrees();
-                    self.set_rot(Vec3::new(0.0, -deg - 90.0, 0.0));
+                    let diff_2d = (player_pos - self.pos()).xz();
+                    let deg = diff_2d.y.atan2(diff_2d.x).to_degrees();
+                    let rot = Vec3::new(0.0, -deg - 90.0, 0.0);
+                    self.turn_towards(rot);
                     if distance > 2.0 * 2.0 {
                         goal_vel = self.ent.walk_direction();
                         if let MobState::FightPlayer(_) = self.state {
@@ -219,6 +234,13 @@ impl Mob {
                 }
             }
         };
+
+        if self.ent.is_colliding(world) {
+            let pos = self.pos() + Vec3::new(0.0, 1.0, 0.0);
+            if !self.ent.would_collide_at(world, pos) {
+                self.ent.vel.y = 0.04;
+            }
+        }
 
         let accel = if goal_vel.xz().length() > 0.01 {
             MOB_ACCELERATION

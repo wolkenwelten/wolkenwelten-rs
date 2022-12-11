@@ -80,14 +80,17 @@ impl Entity {
         )
     }
 
-    pub fn is_colliding(&self, world: &Chungus) -> bool {
-        let pos = self.pos();
+    pub fn would_collide_at(&self, world: &Chungus, pos: Vec3) -> bool {
         world.is_solid(pos + Vec3::new(-ENTITY_SIZE * self.size, 0.0, 0.0))
             | world.is_solid(pos + Vec3::new(ENTITY_SIZE * self.size, 0.0, 0.0))
             | world.is_solid(pos + Vec3::new(0.0, -ENTITY_SIZE * self.size, 0.0))
             | world.is_solid(pos + Vec3::new(0.0, ENTITY_SIZE * self.size, 0.0))
             | world.is_solid(pos + Vec3::new(0.0, 0.0, -ENTITY_SIZE * self.size))
             | world.is_solid(pos + Vec3::new(0.0, 0.0, ENTITY_SIZE * self.size))
+    }
+
+    pub fn is_colliding(&self, world: &Chungus) -> bool {
+        self.would_collide_at(world, self.pos())
     }
 
     pub fn tick(&mut self, world: &Chungus) -> bool {
