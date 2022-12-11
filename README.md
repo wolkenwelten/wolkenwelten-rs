@@ -1,5 +1,5 @@
 # WolkenWelten
-![Have a screenshot](https://github.com/wolkenwelten/wolkenwelten-screenshots/raw/main/screenshot.jpg)
+![Have a screenshot](https://github.com/wolkenwelten/wolkenwelten-screenshots/raw/main/2022_12_08.jpg)
 
 WolkenWelten tries to be an **action-packed voxel rogue-lite**, with a flexible engine that allows mods to extend or completely alter the game.
 
