@@ -116,6 +116,9 @@ impl Mob {
     }
 
     fn player_aggresive(&mut self, player: &Character) {
+        if player.no_clip() {
+            return;
+        }
         match self.state {
             MobState::ChasePlayer(_) | MobState::FightPlayer(_) => return,
             _ => (),
@@ -235,11 +238,16 @@ impl Mob {
             }
         };
 
-        if self.ent.is_colliding(world) {
-            let pos = self.pos() + Vec3::new(0.0, 1.0, 0.0);
-            if !self.ent.would_collide_at(world, pos) {
-                self.ent.vel.y = 0.04;
+        match self.state {
+            MobState::Run(_) | MobState::ChasePlayer(_) => {
+                if self.ent.is_colliding(world) {
+                    let pos = self.pos() + Vec3::new(0.0, 1.0, 0.0);
+                    if !self.ent.would_collide_at(world, pos) {
+                        self.ent.vel.y = 0.04;
+                    }
+                }
             }
+            _ => (),
         }
 
         let accel = if goal_vel.xz().length() > 0.01 {
@@ -265,7 +273,7 @@ impl Mob {
         projection: &Mat4,
     ) -> Result<()> {
         let rot = self.rot();
-        let pos = self.pos();
+        let pos = self.pos() + Vec3::new(0.0, -3.0 / 32.0, 0.0);
         let model = Mat4::from_scale(Vec3::new(1.0 / 16.0, 1.0 / 16.0, 1.0 / 16.0));
         let model = Mat4::from_rotation_x(rot.x.to_radians()) * model;
         let model = Mat4::from_rotation_y(rot.y.to_radians()) * model;

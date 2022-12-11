@@ -275,7 +275,7 @@ impl InputState {
     #[inline]
     pub fn get_speed(&self) -> f32 {
         if self.button_states[Key::Sprint] {
-            1.4
+            1.6
         } else {
             1.0
         }

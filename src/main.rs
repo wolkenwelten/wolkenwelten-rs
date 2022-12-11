@@ -16,16 +16,22 @@ pub fn main() {
         render_init_fun.push(Box::new(wolkenwelten_sound::init));
     }
 
-    #[cfg(feature = "block-mining")]
-    {
-        extern crate wolkenwelten_block_mining;
-        render_init_fun.push(Box::new(wolkenwelten_block_mining::init));
-    }
-
     #[cfg(feature = "sky")]
     {
         extern crate wolkenwelten_sky;
         render_init_fun.push(Box::new(wolkenwelten_sky::init));
+    }
+
+    #[cfg(feature = "shadow")]
+    {
+        extern crate wolkenwelten_shadow;
+        render_init_fun.push(Box::new(wolkenwelten_shadow::init));
+    }
+
+    #[cfg(feature = "block-mining")]
+    {
+        extern crate wolkenwelten_block_mining;
+        render_init_fun.push(Box::new(wolkenwelten_block_mining::init));
     }
 
     #[cfg(feature = "mob")]
@@ -44,12 +50,6 @@ pub fn main() {
     {
         extern crate wolkenwelten_item_drop;
         render_init_fun.push(Box::new(wolkenwelten_item_drop::init));
-    }
-
-    #[cfg(feature = "shadow")]
-    {
-        extern crate wolkenwelten_shadow;
-        render_init_fun.push(Box::new(wolkenwelten_shadow::init));
     }
 
     #[cfg(feature = "particles")]

@@ -100,6 +100,7 @@ pub fn init(args: RenderInitArgs) -> RenderInitArgs {
                         },
                         depth: glium::draw_parameters::Depth {
                             test: glium::draw_parameters::DepthTest::IfLessOrEqual,
+                            write: false,
                             ..Default::default()
                         },
                         polygon_offset: PolygonOffset {

@@ -350,7 +350,7 @@ impl Character {
 
     pub fn tick(&mut self, reactor: &Reactor<Message>, world: &Chungus, cur_tick: u64) {
         if self.no_clip {
-            self.pos += self.vel;
+            self.pos += self.vel * 0.2;
             return;
         }
 
