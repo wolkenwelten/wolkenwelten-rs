@@ -103,7 +103,7 @@ impl Mob {
 
     pub fn anime_index(&self) -> usize {
         match self.state {
-            MobState::FightPlayer(t) => 6 + (t.elapsed().as_millis() as usize / 400) % 2,
+            MobState::FightPlayer(t) => 6 + (t.elapsed().as_millis() as usize / 400) % 3,
             MobState::Idle(t) => (t.elapsed().as_millis() as usize / 1000) % 2,
             MobState::TurnLeft(t)
             | MobState::TurnRight(t)
@@ -256,7 +256,7 @@ impl Mob {
             MOB_STOP_RATE
         };
 
-        self.ent.set_vel(Vec3::new(
+        self.set_vel(Vec3::new(
             self.ent.vel.x * (1.0 - accel) + (goal_vel.x * 0.02) * accel,
             self.ent.vel.y,
             self.ent.vel.z * (1.0 - accel) + (goal_vel.z * 0.02) * accel,
