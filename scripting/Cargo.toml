@@ -16,6 +16,6 @@ wolkenwelten-core = { path = "../core" }
 
 [build-dependencies]
 anyhow = "1.0"
-swc = "0.235"
+swc = "0.236"
 swc_common = "0.29"
 swc_ecma_parser = { version = "0.123", features = ["typescript"] }
