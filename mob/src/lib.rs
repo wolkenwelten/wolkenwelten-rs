@@ -271,6 +271,7 @@ impl Mob {
         meshes: &[VoxelMesh],
         view: &Mat4,
         projection: &Mat4,
+        color_alpha: f32,
     ) -> Result<()> {
         let rot = self.rot();
         let pos = self.pos() + Vec3::new(0.0, -3.0 / 32.0, 0.0);
@@ -281,7 +282,13 @@ impl Mob {
         let vp = projection.mul_mat4(view);
         let mvp = vp.mul_mat4(&model);
 
-        meshes[self.anime_index()].draw(frame, fe.block_indeces(), &fe.shaders.block, &mvp, 1.0)
+        meshes[self.anime_index()].draw(
+            frame,
+            fe.block_indeces(),
+            &fe.shaders.block,
+            &mvp,
+            color_alpha,
+        )
     }
 }
 
@@ -460,16 +467,18 @@ pub fn init(args: RenderInitArgs) -> RenderInitArgs {
             .push(Box::new(move |args: RenderPassArgs| {
                 let mvp = args.projection * args.view;
                 let frustum = Frustum::extract(&mvp);
-                for entity in mobs.borrow().iter() {
-                    if frustum
-                        .contains_cube(entity.pos() - entity.ent.size(), entity.ent.size() * 2.0)
-                    {
-                        let _ = entity.draw(
+                for mob in mobs.borrow().iter() {
+                    if frustum.contains_cube(mob.pos() - mob.ent.size(), mob.ent.size() * 2.0) {
+                        let player_pos = args.game.player().pos();
+                        let dist = (mob.pos() - player_pos).length();
+                        let color_alpha = ((args.render_distance - dist) / 32.0).clamp(0.0, 1.0);
+                        let _ = mob.draw(
                             args.frame,
                             args.fe,
-                            &meshes[entity.model_index() as usize],
+                            &meshes[mob.model_index() as usize],
                             &args.view,
                             &args.projection,
+                            color_alpha,
                         );
                     }
                 }
