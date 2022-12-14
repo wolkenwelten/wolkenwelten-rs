@@ -10,7 +10,7 @@ use std::collections::HashMap;
 use std::rc::Rc;
 use wolkenwelten_client::RenderInitArgs;
 use wolkenwelten_client::{ClientState, Mesh, MeshVertex, Texture};
-use wolkenwelten_core::{Message, Reactor};
+use wolkenwelten_core::{Message, Reactor, BLOCKS};
 
 #[derive(Clone, Copy, Debug, Default)]
 struct BlockMining {
@@ -139,18 +139,19 @@ pub fn init(args: RenderInitArgs) -> RenderInitArgs {
                 let player = player.borrow();
                 if let Some((pos, block)) = player.mining() {
                     let mut world = world.borrow_mut();
-                    let blocks = world.blocks_rc();
-                    let bt = blocks.borrow();
-                    if let Some(bt) = bt.get(block as usize) {
-                        let mut mining = mining.borrow_mut();
-                        if mining.mine(pos, block, 2, bt.block_health()) {
-                            world.set_block(pos, 0);
-                            reactor.defer(Message::BlockBreak { pos, block });
+                    BLOCKS.with(|blocks| {
+                        let bt = blocks.borrow();
+                        if let Some(bt) = bt.get(block as usize) {
+                            let mut mining = mining.borrow_mut();
+                            if mining.mine(pos, block, 2, bt.block_health()) {
+                                world.set_block(pos, 0);
+                                reactor.defer(Message::BlockBreak { pos, block });
+                            }
                         }
-                    }
-                    if (ticks & 0x7F) == 0 {
-                        reactor.defer(Message::BlockMine { pos, block });
-                    }
+                        if (ticks & 0x7F) == 0 {
+                            reactor.defer(Message::BlockMine { pos, block });
+                        }
+                    });
                 }
             }
         };

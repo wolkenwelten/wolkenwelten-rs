@@ -6,11 +6,10 @@ use std::rc::Rc;
 use std::time::Instant;
 use v8::{ContextScope, HandleScope};
 use wolkenwelten_client::{start_client, RenderInit};
-use wolkenwelten_core::{Chungus, GameLog, GameState, Message, Reactor, SfxId};
+use wolkenwelten_core::{Chungus, GameState, Message, Reactor, SfxId, GAME_LOG};
 
 thread_local! {
     static WORLD: RefCell<Option<Rc<RefCell<Chungus>>>> = RefCell::new(None);
-    static GAME_LOG: RefCell<Option<Rc<RefCell<GameLog>>>> = RefCell::new(None);
     static MSG_QUEUE: RefCell<Vec<Message>> = RefCell::new(vec![]);
 }
 
@@ -31,10 +30,7 @@ fn fun_log(
         .unwrap()
         .to_rust_string_lossy(scope);
     GAME_LOG.with(|log| {
-        if let Some(log) = &*log.borrow() {
-            let mut log = log.borrow_mut();
-            log.push(message);
-        }
+        log.borrow_mut().push(message);
     });
 }
 
@@ -170,12 +166,6 @@ pub fn start_runtime(
         let world = game_state.world_rc();
         WORLD.with(move |f| {
             f.replace(Some(world));
-        });
-    }
-    {
-        let game_log = game_state.log_rc();
-        GAME_LOG.with(move |f| {
-            f.replace(Some(game_log));
         });
     }
 

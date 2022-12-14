@@ -1,6 +1,10 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
-use std::{collections::VecDeque, time::Instant};
+use std::{cell::RefCell, collections::VecDeque, time::Instant};
+
+thread_local! {
+    pub static GAME_LOG:RefCell<GameLog> = RefCell::new(GameLog::new())
+}
 
 #[derive(Clone, Debug)]
 pub struct GameLog {

@@ -12,13 +12,17 @@ use wolkenwelten_client::{ClientState, Frustum, RenderInitArgs, RenderPassArgs, 
 use wolkenwelten_core::Character;
 use wolkenwelten_core::{BlockItem, Chungus, Entity, Health, Item, Message, Reactor, SfxId};
 
+thread_local! {
+    pub static MOBS:RefCell<MobList> = RefCell::new(MobList::new());
+}
+
 const MOB_ACCELERATION: f32 = 0.005;
 const MOB_STOP_RATE: f32 = MOB_ACCELERATION * 2.0;
 const MOB_STOP_FIGHTING_DISTANCE: f32 = 24.0;
 const MOB_START_CHASING_DISTANCE: f32 = 12.0;
 
 #[derive(Copy, Clone, Debug)]
-enum MobState {
+pub enum MobState {
     Idle(Instant),
     Walk(Instant),
     Run(Instant),
@@ -36,7 +40,7 @@ impl Default for MobState {
 }
 
 #[derive(Clone, Default, Debug)]
-struct Mob {
+pub struct Mob {
     ent: Entity,
     model_index: i32,
     state: MobState,
@@ -293,7 +297,7 @@ impl Mob {
 }
 
 #[derive(Clone, Default, Debug)]
-struct MobList {
+pub struct MobList {
     mobs: Vec<Mob>,
 }
 
@@ -340,23 +344,24 @@ impl MobList {
 }
 
 pub fn init(args: RenderInitArgs) -> RenderInitArgs {
-    let mobs: Rc<RefCell<MobList>> = Rc::new(RefCell::new(MobList::new()));
     let rng = Rc::new(RefCell::new(XorShiftRng::from_entropy()));
     {
         let player = args.game.player_rc();
-        let mobs = mobs.clone();
         let world = args.game.world_rc();
         let rng = rng.clone();
         let f = move |reactor: &Reactor<Message>, _msg: Message| {
             let mut rng = rng.borrow_mut();
-            mobs.borrow_mut()
-                .tick_all(reactor, &player.borrow(), &world.borrow(), &mut rng);
+            MOBS.with(|mobs| {
+                let player = player.borrow();
+                let world = world.borrow();
+                mobs.borrow_mut()
+                    .tick_all(reactor, &player, &world, &mut rng);
+            });
         };
         args.reactor
             .add_sink(Message::GameTick { ticks: 0 }, Box::new(f));
     }
     {
-        let mobs = mobs.clone();
         let f = move |reactor: &Reactor<Message>, msg: Message| {
             if let Message::CharacterAttack {
                 char_pos,
@@ -365,33 +370,35 @@ pub fn init(args: RenderInitArgs) -> RenderInitArgs {
                 ..
             } = msg
             {
-                mobs.borrow_mut()
-                    .iter_mut()
-                    .filter(|m| (attack_pos - m.pos()).length_squared() < 2.0 * 2.0)
-                    .for_each(|m| {
-                        let mut dir = (char_pos - m.pos()).normalize();
-                        dir.y = -0.5;
-                        m.set_vel(dir * -0.04);
-                        m.health -= damage;
-                        m.set_state(MobState::ChasePlayer(Instant::now()));
-                        if m.health.is_dead() {
-                            reactor.defer(Message::CharacterGainExperience {
+                MOBS.with(|mobs| {
+                    mobs.borrow_mut()
+                        .iter_mut()
+                        .filter(|m| (attack_pos - m.pos()).length_squared() < 2.0 * 2.0)
+                        .for_each(|m| {
+                            let mut dir = (char_pos - m.pos()).normalize();
+                            dir.y = -0.5;
+                            m.set_vel(dir * -0.04);
+                            m.health -= damage;
+                            m.set_state(MobState::ChasePlayer(Instant::now()));
+                            if m.health.is_dead() {
+                                reactor.defer(Message::CharacterGainExperience {
+                                    pos: m.pos(),
+                                    xp: 8,
+                                });
+                            }
+                            let msg = Message::MobHurt {
                                 pos: m.pos(),
-                                xp: 8,
+                                damage,
+                            };
+                            reactor.reply(msg);
+                            reactor.defer(msg);
+                            reactor.defer(Message::SfxPlay {
+                                pos: m.pos(),
+                                volume: 0.3,
+                                sfx: SfxId::Punch,
                             });
-                        }
-                        let msg = Message::MobHurt {
-                            pos: m.pos(),
-                            damage,
-                        };
-                        reactor.reply(msg);
-                        reactor.defer(msg);
-                        reactor.defer(Message::SfxPlay {
-                            pos: m.pos(),
-                            volume: 0.3,
-                            sfx: SfxId::Punch,
                         });
-                    });
+                });
             }
         };
         args.reactor.add_sink(
@@ -404,26 +411,27 @@ pub fn init(args: RenderInitArgs) -> RenderInitArgs {
         );
     }
     {
-        let mobs = mobs.clone();
         let f = move |reactor: &Reactor<Message>, msg: Message| {
             if let Message::Explosion { pos, power } = msg {
                 let p = power * power;
-                mobs.borrow_mut()
-                    .iter_mut()
-                    .filter(|m| (pos - m.pos()).length_squared() < p)
-                    .for_each(|m| {
-                        let d = pos - m.pos();
-                        let p = d.length() * 0.2;
-                        let mut dir = d.normalize() * d * 0.2;
-                        dir.y = -0.5;
-                        m.set_vel(dir * -0.04);
-                        let damage = p.ceil() as i16;
-                        m.health -= damage;
-                        reactor.defer(Message::MobHurt {
-                            pos: m.pos(),
-                            damage,
+                MOBS.with(|mobs| {
+                    mobs.borrow_mut()
+                        .iter_mut()
+                        .filter(|m| (pos - m.pos()).length_squared() < p)
+                        .for_each(|m| {
+                            let d = pos - m.pos();
+                            let p = d.length() * 0.2;
+                            let mut dir = d.normalize() * d * 0.2;
+                            dir.y = -0.5;
+                            m.set_vel(dir * -0.04);
+                            let damage = p.ceil() as i16;
+                            m.health -= damage;
+                            reactor.defer(Message::MobHurt {
+                                pos: m.pos(),
+                                damage,
+                            });
                         });
-                    });
+                });
             }
         };
         args.reactor.add_sink(
@@ -435,28 +443,29 @@ pub fn init(args: RenderInitArgs) -> RenderInitArgs {
         );
     }
     {
-        let mobs = mobs.clone();
         let f = move |_reactor: &Reactor<Message>, msg: Message| {
             if let Message::WorldgenSpawnMob { pos, .. } = msg {
                 let mut rng = rng.borrow_mut();
-                //let model_index = rng.gen_range(0..=1);
-                let model_index = 0;
-                mobs.borrow_mut().add(
-                    pos,
-                    Vec3::new(0.0, rng.gen_range(0.0..360.0), 0.0),
-                    model_index,
-                );
+                MOBS.with(|mobs| {
+                    let model_index = 0;
+                    mobs.borrow_mut().add(
+                        pos,
+                        Vec3::new(0.0, rng.gen_range(0.0..360.0), 0.0),
+                        model_index,
+                    );
+                });
             }
         };
         args.reactor
             .add_sink(Message::WorldgenSpawnMob { pos: Vec3::ZERO }, Box::new(f));
     }
     {
-        let mobs = mobs.clone();
         args.render_reactor.entity_provider.push(Box::new(move |v| {
-            for e in mobs.borrow().iter() {
-                v.push(e.ent.clone());
-            }
+            MOBS.with(|mobs| {
+                for e in mobs.borrow().iter() {
+                    v.push(e.ent.clone());
+                }
+            });
         }));
     }
     {
@@ -467,21 +476,24 @@ pub fn init(args: RenderInitArgs) -> RenderInitArgs {
             .push(Box::new(move |args: RenderPassArgs| {
                 let mvp = args.projection * args.view;
                 let frustum = Frustum::extract(&mvp);
-                for mob in mobs.borrow().iter() {
-                    if frustum.contains_cube(mob.pos() - mob.ent.size(), mob.ent.size() * 2.0) {
-                        let player_pos = args.game.player().pos();
-                        let dist = (mob.pos() - player_pos).length();
-                        let color_alpha = ((args.render_distance - dist) / 32.0).clamp(0.0, 1.0);
-                        let _ = mob.draw(
-                            args.frame,
-                            args.fe,
-                            &meshes[mob.model_index() as usize],
-                            &args.view,
-                            &args.projection,
-                            color_alpha,
-                        );
+                MOBS.with(|mobs| {
+                    for mob in mobs.borrow().iter() {
+                        if frustum.contains_cube(mob.pos() - mob.ent.size(), mob.ent.size() * 2.0) {
+                            let player_pos = args.game.player().pos();
+                            let dist = (mob.pos() - player_pos).length();
+                            let color_alpha =
+                                ((args.render_distance - dist) / 32.0).clamp(0.0, 1.0);
+                            let _ = mob.draw(
+                                args.frame,
+                                args.fe,
+                                &meshes[mob.model_index() as usize],
+                                &args.view,
+                                &args.projection,
+                                color_alpha,
+                            );
+                        }
                     }
-                }
+                });
                 args
             }));
     }

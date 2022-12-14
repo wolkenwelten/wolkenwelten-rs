@@ -191,7 +191,7 @@ pub fn start_client(
     render_init_fun: Vec<RenderInit>,
 ) {
     let (event_loop, display) = init();
-    let render_state = ClientState::new(display, &game_state).expect("Can't create ClientState");
+    let render_state = ClientState::new(display).expect("Can't create ClientState");
 
     run_event_loop(
         AppState {

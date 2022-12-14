@@ -13,16 +13,18 @@ use noise::utils::{NoiseMap, NoiseMapBuilder, PlaneMapBuilder};
 use noise::{Perlin, Seedable};
 use rand::Rng;
 use rand_xorshift::XorShiftRng;
-use std::cell::{Ref, RefCell};
+use std::cell::RefCell;
 use std::collections::hash_map::DefaultHasher;
 use std::collections::{HashMap, HashSet};
 use std::hash::{Hash, Hasher};
-use std::rc::Rc;
 use std::time::Instant;
 
+thread_local! {
+    pub static BLOCKS:RefCell<Vec<BlockType>> = RefCell::new(BlockType::new_default());
+    pub static FLUIDS:RefCell<Vec<BlockType>> = RefCell::new(BlockType::new_default_fluids());
+}
+
 pub struct Chungus {
-    blocks: Rc<RefCell<Vec<BlockType>>>,
-    fluids: Rc<RefCell<Vec<BlockType>>>,
     chunks_block: HashMap<IVec3, ChunkBlockData>,
     chunks_fluid: HashMap<IVec3, ChunkFluidData>,
     chunks_simple_light: HashMap<IVec3, ChunkLightData>,
@@ -587,18 +589,6 @@ impl Chungus {
         self.get_fluid(&cp).map(|chnk| chnk.get(pos & CHUNK_MASK))
     }
 
-    pub fn blocks(&self) -> Ref<Vec<BlockType>> {
-        self.blocks.borrow()
-    }
-
-    pub fn blocks_rc(&self) -> Rc<RefCell<Vec<BlockType>>> {
-        self.blocks.clone()
-    }
-
-    pub fn fluids(&self) -> Ref<Vec<BlockType>> {
-        self.fluids.borrow()
-    }
-
     pub fn add_explosion(
         &mut self,
         pos: Vec3,
@@ -653,8 +643,6 @@ impl Chungus {
         let assets = WorldgenAssetList::new()?;
 
         Ok(Self {
-            blocks: Rc::new(RefCell::new(BlockType::new_default())),
-            fluids: Rc::new(RefCell::new(BlockType::new_default_fluids())),
             chunks_fluid: HashMap::with_capacity(1024),
             chunks_simple_light: HashMap::with_capacity(1024),
             chunks_complex_light: HashMap::with_capacity(1024),

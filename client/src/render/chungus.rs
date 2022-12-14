@@ -4,7 +4,9 @@ use crate::{meshes::BlockMesh, ClientState, Frustum, QueueEntry, RenderPassArgs}
 use anyhow::Result;
 use glam::{IVec3, Mat4};
 use std::{collections::HashSet, time::Instant};
-use wolkenwelten_core::{Chungus, ChunkBlockData, ChunkFluidData, ChunkRequestQueue, GameState};
+use wolkenwelten_core::{
+    Chungus, ChunkBlockData, ChunkFluidData, ChunkRequestQueue, GameState, BLOCKS, FLUIDS,
+};
 
 pub fn should_update(mesh: &BlockMesh, chunks: &[&ChunkBlockData; 27]) -> bool {
     let mlu = mesh.last_updated();
@@ -37,66 +39,74 @@ pub fn handle_requests(
     let mut light_reqs: HashSet<IVec3> = HashSet::new();
     let mut block_reqs: HashSet<IVec3> = HashSet::new();
     let world = game.world_mut();
-    request.get_mesh_mut().iter().for_each(|pos| {
-        if let Some(lights) = world.get_tri_complex_light(pos, &mut light_reqs) {
-            if let Some(chunks) = world.get_tri_chunk(pos, &mut block_reqs) {
-                let block_types = world.blocks();
-                if let Some(mesh) = fe.world_mesh.get_mut(pos) {
-                    if lights[13].last_updated() >= mesh.last_updated()
-                        || should_update(mesh, &chunks)
-                    {
-                        let _ = mesh.update(&fe.display, &chunks, &lights, &block_types, now);
-                    }
-                } else {
-                    let mesh = BlockMesh::new(&fe.display);
-                    if let Ok(mut mesh) = mesh {
-                        let r = mesh.update(&fe.display, &chunks, &lights, &block_types, now);
-                        if r.is_ok() {
-                            fe.world_mesh.insert(*pos, mesh);
-                        }
-                    }
-                }
-            }
-        }
-    });
-    request.get_fluid().iter().for_each(|pos| {
-        if let Some(lights) = world.get_tri_complex_light(pos, &mut light_reqs) {
-            if let Some(chunks) = world.get_tri_chunk(pos, &mut block_reqs) {
-                if let Some(fluids) = world.get_tri_fluids(pos, &mut block_reqs) {
-                    if let Some(mesh) = fe.fluid_mesh.get_mut(pos) {
+
+    BLOCKS.with(|blocks| {
+        let block_types = blocks.borrow();
+        request.get_mesh_mut().iter().for_each(|pos| {
+            if let Some(lights) = world.get_tri_complex_light(pos, &mut light_reqs) {
+                if let Some(chunks) = world.get_tri_chunk(pos, &mut block_reqs) {
+                    if let Some(mesh) = fe.world_mesh.get_mut(pos) {
                         if lights[13].last_updated() >= mesh.last_updated()
-                            || should_update_fluid(mesh, &fluids)
                             || should_update(mesh, &chunks)
                         {
-                            let _ = mesh.update_fluid(
-                                &fe.display,
-                                &chunks,
-                                &lights,
-                                &fluids,
-                                &world.fluids(),
-                                now,
-                            );
+                            let _ = mesh.update(&fe.display, &chunks, &lights, &block_types, now);
                         }
                     } else {
                         let mesh = BlockMesh::new(&fe.display);
                         if let Ok(mut mesh) = mesh {
-                            let r = mesh.update_fluid(
-                                &fe.display,
-                                &chunks,
-                                &lights,
-                                &fluids,
-                                &world.fluids(),
-                                now,
-                            );
+                            let r = mesh.update(&fe.display, &chunks, &lights, &block_types, now);
                             if r.is_ok() {
-                                fe.fluid_mesh.insert(*pos, mesh);
+                                fe.world_mesh.insert(*pos, mesh);
                             }
                         }
                     }
                 }
             }
-        }
+        });
     });
+
+    FLUIDS.with(|fluids| {
+        let fluid_types = fluids.borrow();
+        request.get_fluid().iter().for_each(|pos| {
+            if let Some(lights) = world.get_tri_complex_light(pos, &mut light_reqs) {
+                if let Some(chunks) = world.get_tri_chunk(pos, &mut block_reqs) {
+                    if let Some(fluids) = world.get_tri_fluids(pos, &mut block_reqs) {
+                        if let Some(mesh) = fe.fluid_mesh.get_mut(pos) {
+                            if lights[13].last_updated() >= mesh.last_updated()
+                                || should_update_fluid(mesh, &fluids)
+                                || should_update(mesh, &chunks)
+                            {
+                                let _ = mesh.update_fluid(
+                                    &fe.display,
+                                    &chunks,
+                                    &lights,
+                                    &fluids,
+                                    &fluid_types,
+                                    now,
+                                );
+                            }
+                        } else {
+                            let mesh = BlockMesh::new(&fe.display);
+                            if let Ok(mut mesh) = mesh {
+                                let r = mesh.update_fluid(
+                                    &fe.display,
+                                    &chunks,
+                                    &lights,
+                                    &fluids,
+                                    &fluid_types,
+                                    now,
+                                );
+                                if r.is_ok() {
+                                    fe.fluid_mesh.insert(*pos, mesh);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    });
+
     light_reqs
         .iter()
         .for_each(|pos| request.complex_light(*pos));

@@ -9,8 +9,7 @@ use std::{
 };
 
 use crate::{
-    Character, Chungus, ChunkRequestQueue, GameLog, Message, Reactor, CHUNK_BITS, CHUNK_MASK,
-    CHUNK_SIZE,
+    Character, Chungus, ChunkRequestQueue, Message, Reactor, CHUNK_BITS, CHUNK_MASK, CHUNK_SIZE,
 };
 
 const MS_PER_TICK: u64 = 4;
@@ -21,7 +20,6 @@ pub struct GameState {
     world: Rc<RefCell<Chungus>>,
     player: Rc<RefCell<Character>>,
     running: Rc<RefCell<bool>>,
-    log: Rc<RefCell<GameLog>>,
 }
 
 impl GameState {
@@ -32,7 +30,6 @@ impl GameState {
             clock: Rc::new(RefCell::new(Instant::now())),
             running: Rc::new(RefCell::new(true)),
             player,
-            log: Rc::new(RefCell::new(GameLog::new())),
             ticks_elapsed: 0,
             world: Rc::new(RefCell::new(Chungus::new()?)),
         })
@@ -61,15 +58,6 @@ impl GameState {
     #[inline]
     pub fn player_rc(&self) -> Rc<RefCell<Character>> {
         self.player.clone()
-    }
-
-    #[inline]
-    pub fn log_rc(&self) -> Rc<RefCell<GameLog>> {
-        self.log.clone()
-    }
-    #[inline]
-    pub fn log(&self) -> Ref<GameLog> {
-        self.log.borrow()
     }
 
     #[inline]
