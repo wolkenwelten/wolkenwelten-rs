@@ -723,9 +723,17 @@ impl Character {
 
         {
             let player = game.player_rc();
-            let f = move |_: &Reactor<Message>, msg: Message| {
+            let f = move |reactor: &Reactor<Message>, msg: Message| {
                 if let Message::MobStrike { damage, .. } = msg {
-                    player.borrow_mut().damage(damage);
+                    let pos = {
+                        let mut player = player.borrow_mut();
+                        player.damage(damage);
+                        player.pos()
+                    };
+                    reactor.dispatch(Message::CharacterDamage {
+                        pos,
+                        damage,
+                    });
                 }
             };
             reactor.add_sink(
