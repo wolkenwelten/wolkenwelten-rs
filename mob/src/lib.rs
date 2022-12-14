@@ -6,6 +6,7 @@ use glium::Display;
 use rand::prelude::*;
 use rand::Rng;
 use rand_xorshift::XorShiftRng;
+use std::f32::consts::PI;
 use std::rc::Rc;
 use std::{cell::RefCell, time::Instant};
 use wolkenwelten_client::{ClientState, Frustum, RenderInitArgs, RenderPassArgs, VoxelMesh};
@@ -16,10 +17,21 @@ thread_local! {
     pub static MOBS:RefCell<MobList> = RefCell::new(MobList::new());
 }
 
-const MOB_ACCELERATION: f32 = 0.005;
+const MOB_SIZE: f32 = 0.4;
+const MOB_ACCELERATION: f32 = 0.01;
 const MOB_STOP_RATE: f32 = MOB_ACCELERATION * 2.0;
 const MOB_STOP_FIGHTING_DISTANCE: f32 = 24.0;
 const MOB_START_CHASING_DISTANCE: f32 = 12.0;
+
+const COL_WIDTH: f32 = 0.8;
+const COL_DEPTH: f32 = 0.8;
+
+const COL_POINT_TOP: Vec3 = Vec3::new(0.0, MOB_SIZE, 0.0);
+const COL_POINT_BOTTOM: Vec3 = Vec3::new(0.0, -MOB_SIZE * 1.5, 0.0);
+const COL_POINT_LEFT: Vec3 = Vec3::new(-COL_WIDTH, 0.0, 0.0);
+const COL_POINT_RIGHT: Vec3 = Vec3::new(COL_WIDTH, 0.0, 0.0);
+const COL_POINT_FRONT: Vec3 = Vec3::new(0.0, 0.0, COL_DEPTH);
+const COL_POINT_BACK: Vec3 = Vec3::new(0.0, 0.0, -COL_DEPTH);
 
 #[derive(Copy, Clone, Debug)]
 pub enum MobState {
@@ -31,6 +43,7 @@ pub enum MobState {
     TurnLeft(Instant),
     ChasePlayer(Instant),
     FightPlayer(Instant),
+    InstantAttackPlayer(Instant),
 }
 
 impl Default for MobState {
@@ -39,12 +52,16 @@ impl Default for MobState {
     }
 }
 
-#[derive(Clone, Default, Debug)]
+#[derive(Clone, Debug)]
 pub struct Mob {
-    ent: Entity,
+    pos: Vec3,
+    vel: Vec3,
+    rot: Vec3,
+    movement: Vec3,
     model_index: i32,
     state: MobState,
     health: Health,
+    cooldown: Instant,
 }
 
 fn mob_load_meshes(display: &Display) -> Result<Vec<Vec<VoxelMesh>>> {
@@ -67,30 +84,34 @@ impl Mob {
         ent.set_pos(pos);
         rot.x = 0.0;
         rot.z = 0.0;
-        ent.set_rot(rot);
+        let vel = Vec3::ZERO;
         ent.set_size(2.0);
         Self {
-            ent,
+            pos,
+            rot,
+            vel,
+            movement: Vec3::ZERO,
             model_index,
             state: MobState::Walk(Instant::now()),
-            health: Health::new(12),
+            health: Health::new(20),
+            cooldown: Instant::now(),
         }
     }
     #[inline]
     pub fn pos(&self) -> Vec3 {
-        self.ent.pos()
+        self.pos
     }
     #[inline]
     pub fn rot(&self) -> Vec3 {
-        self.ent.rot()
+        self.rot
     }
     #[inline]
     pub fn set_rot(&mut self, rot: Vec3) {
-        self.ent.set_rot(rot);
+        self.rot = rot;
     }
     #[inline]
     pub fn set_vel(&mut self, vel: Vec3) {
-        self.ent.set_vel(vel);
+        self.vel = vel;
     }
     #[inline]
     pub fn model_index(&self) -> i32 {
@@ -105,9 +126,20 @@ impl Mob {
         self.state = MobState::Idle(Instant::now());
     }
 
+    #[inline]
+    pub fn may_instant_attach(&self) -> bool {
+        self.cooldown.elapsed().as_millis() > 1200
+    }
+
+    #[inline]
+    pub fn cooldown(&mut self) {
+        self.cooldown = Instant::now();
+    }
+
     pub fn anime_index(&self) -> usize {
         match self.state {
-            MobState::FightPlayer(t) => 6 + (t.elapsed().as_millis() as usize / 400) % 3,
+            MobState::InstantAttackPlayer(_) => 8,
+            MobState::FightPlayer(t) => 6 + (t.elapsed().as_millis() as usize / 200) % 3,
             MobState::Idle(t) => (t.elapsed().as_millis() as usize / 1000) % 2,
             MobState::TurnLeft(t)
             | MobState::TurnRight(t)
@@ -120,11 +152,13 @@ impl Mob {
     }
 
     fn player_aggresive(&mut self, player: &Character) {
-        if player.no_clip() {
+        if player.no_clip() || player.is_dead() {
             return;
         }
         match self.state {
-            MobState::ChasePlayer(_) | MobState::FightPlayer(_) => return,
+            MobState::InstantAttackPlayer(_)
+            | MobState::ChasePlayer(_)
+            | MobState::FightPlayer(_) => return,
             _ => (),
         }
         let player_pos = player.pos();
@@ -149,6 +183,131 @@ impl Mob {
         self.set_rot(rot);
     }
 
+    pub fn walk_direction(&self) -> Vec3 {
+        let a = self.rot;
+        Vec3::new(
+            ((-a.y - 90.0) * PI / 180.0).cos(),
+            0.0,
+            ((-a.y - 90.0) * PI / 180.0).sin(),
+        )
+        .normalize()
+    }
+
+    pub fn direction(&self) -> Vec3 {
+        let a = self.rot;
+        Vec3::new(
+            ((a.x - 90.0) * PI / 180.0).cos() * (-a.y * PI / 180.0).cos(),
+            (-a.y * PI / 180.0).sin(),
+            ((a.x - 90.0) * PI / 180.0).sin() * (-a.y * PI / 180.0).cos(),
+        )
+    }
+
+    pub fn to_entity(&self) -> Entity {
+        Entity {
+            pos: self.pos,
+            rot: self.rot,
+            vel: self.vel,
+            size: 2.0,
+        }
+    }
+
+    pub fn would_collide_at(&self, world: &Chungus, pos: Vec3) -> bool {
+        world.is_solid(pos + Vec3::new(-MOB_SIZE, 0.0, 0.0))
+            | world.is_solid(pos + Vec3::new(MOB_SIZE, 0.0, 0.0))
+            | world.is_solid(pos + Vec3::new(0.0, -MOB_SIZE, 0.0))
+            | world.is_solid(pos + Vec3::new(0.0, MOB_SIZE, 0.0))
+            | world.is_solid(pos + Vec3::new(0.0, 0.0, -MOB_SIZE))
+            | world.is_solid(pos + Vec3::new(0.0, 0.0, MOB_SIZE))
+    }
+
+    pub fn is_colliding(&self, world: &Chungus) -> bool {
+        self.would_collide_at(world, self.pos())
+    }
+
+    fn is_underwater_point(world: &Chungus, pos: Vec3) -> bool {
+        if let Some(fluid) = world.get_fluid_block(pos.as_ivec3()) {
+            fluid != 0
+        } else {
+            false
+        }
+    }
+
+    fn is_solid_pillar(&self, pos: Vec3, world: &Chungus) -> bool {
+        world.is_solid(pos)
+            || world.is_solid(pos + Vec3::new(0.0, -0.4, 0.0))
+            || world.is_solid(pos + Vec3::new(0.0, 0.8, 0.0))
+    }
+
+    pub fn is_underwater(&self, world: &Chungus) -> bool {
+        Self::is_underwater_point(world, self.pos() + Vec3::new(0.0, -0.8, 0.0))
+    }
+
+    #[inline]
+    pub fn may_jump(&self, world: &Chungus) -> bool {
+        world.is_solid(self.pos + COL_POINT_BOTTOM)
+    }
+
+    pub fn tick_physics(&mut self, world: &Chungus) {
+        if !world.is_loaded(self.pos) {
+            return; // Just freeze the mob until we have loaded the area, this shouldn't happen if at all possible
+        }
+        let underwater = self.is_underwater(world);
+
+        let accel = if self.movement.xz().length() > 0.01 {
+            MOB_ACCELERATION
+        } else {
+            MOB_STOP_RATE
+        };
+        let accel = if underwater { accel * 0.5 } else { accel };
+
+        self.vel.x = self.vel.x * (1.0 - accel) + (self.movement.x * 0.01) * accel;
+        self.vel.z = self.vel.z * (1.0 - accel) + (self.movement.z * 0.01) * accel;
+
+        self.vel.y -= if underwater { 0.0001 } else { 0.0005 };
+        let old = self.vel;
+
+        if underwater {
+            self.vel *= 0.99;
+            self.vel.y *= 0.997;
+        }
+
+        if self.is_solid_pillar(self.pos + COL_POINT_LEFT, world) {
+            self.vel.x = self.vel.x.max(0.0);
+        }
+        if self.is_solid_pillar(self.pos + COL_POINT_RIGHT, world) {
+            self.vel.x = self.vel.x.min(0.0);
+        }
+
+        if world.is_solid(self.pos + COL_POINT_BOTTOM) {
+            self.vel.y = self.vel.y.max(0.0);
+        }
+        if world.is_solid(self.pos + COL_POINT_TOP) {
+            self.vel.y = self.vel.y.min(0.0);
+        }
+
+        if self.is_solid_pillar(self.pos + COL_POINT_FRONT, world) {
+            self.vel.z = self.vel.z.min(0.0);
+        }
+        if self.is_solid_pillar(self.pos + COL_POINT_BACK, world) {
+            self.vel.z = self.vel.z.max(0.0);
+        }
+
+        let force = (old - self.vel).length();
+        if force > 0.05 {
+            let amount = (force * 14.0) as i16;
+            if amount > 0 {
+                let damage = amount * amount;
+                self.health.damage(damage);
+            }
+        }
+
+        let len = self.vel.length();
+        if len > 0.5 {
+            self.vel *= 1.0 - (len - 0.2).clamp(0.0001, 1.0);
+        }
+        self.pos += self.vel;
+    }
+
     #[inline]
     pub fn tick(
         &mut self,
@@ -157,12 +316,11 @@ impl Mob {
         player: &Character,
         reactor: &Reactor<Message>,
     ) {
-        if !world.is_loaded(self.ent.pos) {
+        if !world.is_loaded(self.pos) {
             return; // Just freeze the mob until we have loaded the area, this shouldn't happen if at all possible
         }
 
         self.player_aggresive(player);
-        let mut goal_vel = Vec3::ZERO;
         match self.state {
             MobState::Idle(_t) => {
                 if rng.gen_range(0..10000) == 0 {
@@ -180,36 +338,45 @@ impl Mob {
                 if rng.gen_range(0..500) == 0 {
                     self.state = MobState::TurnRight(Instant::now())
                 }
+                self.movement = Vec3::ZERO;
             }
             MobState::Run(_t) => {
                 if rng.gen_range(0..400) == 0 {
                     self.set_idle_state();
                 };
-                goal_vel = self.ent.walk_direction();
+                self.movement = self.walk_direction() * 2.0;
             }
             MobState::Walk(_t) => {
                 if rng.gen_range(0..4000) == 0 {
                     self.set_idle_state();
                 };
-                goal_vel = self.ent.walk_direction() * 0.5;
+                self.movement = self.walk_direction() * 1.5;
             }
             MobState::WalkBack(_t) => {
                 if rng.gen_range(0..1000) == 0 {
                     self.set_idle_state();
                 };
-                goal_vel = self.ent.walk_direction() * -0.15;
+                self.movement = self.walk_direction() * -1.15;
             }
             MobState::TurnLeft(_t) => {
                 if rng.gen_range(0..100) == 0 {
                     self.set_idle_state();
                 };
-                self.ent.set_rot(self.ent.rot() - Vec3::new(0.0, 0.1, 0.0));
+                self.set_rot(self.rot() - Vec3::new(0.0, 0.1, 0.0));
+                self.movement = Vec3::ZERO;
             }
             MobState::TurnRight(_t) => {
                 if rng.gen_range(0..100) == 0 {
                     self.set_idle_state();
                 };
-                self.ent.set_rot(self.ent.rot() + Vec3::new(0.0, 0.1, 0.0));
+                self.set_rot(self.rot() + Vec3::new(0.0, 0.1, 0.0));
+                self.movement = Vec3::ZERO;
+            }
+            MobState::InstantAttackPlayer(t) => {
+                if t.elapsed().as_millis() > 200 {
+                    self.set_state(MobState::FightPlayer(Instant::now()));
+                }
+                self.movement = Vec3::ZERO;
             }
             MobState::FightPlayer(_t) | MobState::ChasePlayer(_t) => {
                 let player_pos = player.pos();
@@ -222,15 +389,28 @@ impl Mob {
                     let deg = diff_2d.y.atan2(diff_2d.x).to_degrees();
                     let rot = Vec3::new(0.0, -deg - 90.0, 0.0);
                     self.turn_towards(rot);
+                    self.movement = Vec3::ZERO;
                     if distance > 2.0 * 2.0 {
-                        goal_vel = self.ent.walk_direction();
+                        self.movement = self.walk_direction() * 1.2;
                         if let MobState::FightPlayer(_) = self.state {
                             self.set_state(MobState::ChasePlayer(Instant::now()));
                         }
                     } else if let MobState::ChasePlayer(_) = self.state {
-                        self.set_state(MobState::FightPlayer(Instant::now()));
+                        if self.may_instant_attach() {
+                            self.cooldown();
+                            reactor.defer(Message::MobStrike {
+                                pos: self.pos(),
+                                damage: 2,
+                            });
+                            self.set_state(MobState::InstantAttackPlayer(Instant::now()));
+                        } else {
+                            self.set_state(MobState::FightPlayer(Instant::now()));
+                        }
                     } else if let MobState::FightPlayer(t) = self.state {
-                        if t.elapsed().as_millis() > 1000 {
+                        if distance > 1.3 * 1.3 {
+                            self.movement = self.walk_direction() * 1.2;
+                        }
+                        if t.elapsed().as_millis() > 600 {
                             reactor.defer(Message::MobStrike {
                                 pos: self.pos(),
                                 damage: 2,
@@ -244,28 +424,23 @@ impl Mob {
 
         match self.state {
             MobState::Run(_) | MobState::ChasePlayer(_) => {
-                if self.ent.is_colliding(world) {
+                if self.may_jump(world) {
                     let pos = self.pos() + Vec3::new(0.0, 1.0, 0.0);
-                    if !self.ent.would_collide_at(world, pos) {
-                        self.ent.vel.y = 0.04;
+                    if !self.would_collide_at(world, pos)
+                        && self.vel.length_squared() < self.movement.length_squared() * 0.000002
+                        && rng.gen_ratio(1, 50)
+                    {
+                        self.vel.y = 0.04;
+                        let accel = 0.03;
+                        self.vel.x = self.vel.x * (1.0 - accel) + (self.movement.x * accel);
+                        self.vel.z = self.vel.z * (1.0 - accel) + (self.movement.z * accel);
                     }
                 }
             }
             _ => (),
         }
 
-        let accel = if goal_vel.xz().length() > 0.01 {
-            MOB_ACCELERATION
-        } else {
-            MOB_STOP_RATE
-        };
-
-        self.set_vel(Vec3::new(
-            self.ent.vel.x * (1.0 - accel) + (goal_vel.x * 0.02) * accel,
-            self.ent.vel.y,
-            self.ent.vel.z * (1.0 - accel) + (goal_vel.z * 0.02) * accel,
-        ));
-        self.ent.tick(world);
+        self.tick_physics(world);
     }
 
     fn draw(
@@ -278,7 +453,7 @@ impl Mob {
         color_alpha: f32,
     ) -> Result<()> {
         let rot = self.rot();
-        let pos = self.pos() + Vec3::new(0.0, -3.0 / 32.0, 0.0);
+        let pos = self.pos() + Vec3::new(0.0, -8.0 / 32.0, 0.0);
         let model = Mat4::from_scale(Vec3::new(1.0 / 16.0, 1.0 / 16.0, 1.0 / 16.0));
         let model = Mat4::from_rotation_x(rot.x.to_radians()) * model;
         let model = Mat4::from_rotation_y(rot.y.to_radians()) * model;
@@ -376,8 +551,8 @@ pub fn init(args: RenderInitArgs) -> RenderInitArgs {
                         .filter(|m| (attack_pos - m.pos()).length_squared() < 2.0 * 2.0)
                         .for_each(|m| {
                             let mut dir = (char_pos - m.pos()).normalize();
-                            dir.y = -0.5;
-                            m.set_vel(dir * -0.04);
+                            dir.y -= 0.2;
+                            m.set_vel(m.vel + dir * -0.01);
                             m.health -= damage;
                             m.set_state(MobState::ChasePlayer(Instant::now()));
                             if m.health.is_dead() {
@@ -463,7 +638,7 @@ pub fn init(args: RenderInitArgs) -> RenderInitArgs {
         args.render_reactor.entity_provider.push(Box::new(move |v| {
             MOBS.with(|mobs| {
                 for e in mobs.borrow().iter() {
-                    v.push(e.ent.clone());
+                    v.push(e.to_entity());
                 }
             });
         }));
@@ -478,7 +653,7 @@ pub fn init(args: RenderInitArgs) -> RenderInitArgs {
                 let frustum = Frustum::extract(&mvp);
                 MOBS.with(|mobs| {
                     for mob in mobs.borrow().iter() {
-                        if frustum.contains_cube(mob.pos() - mob.ent.size(), mob.ent.size() * 2.0) {
+                        if frustum.contains_cube(mob.pos() - MOB_SIZE, MOB_SIZE * 2.0) {
                             let player_pos = args.game.player().pos();
                             let dist = (mob.pos() - player_pos).length();
                             let color_alpha =
