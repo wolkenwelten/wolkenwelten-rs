@@ -71,15 +71,6 @@ impl Entity {
         )
     }
 
-    pub fn walk_direction(&self) -> Vec3 {
-        let a = self.rot;
-        Vec3::new(
-            ((-a.y - 90.0) * PI / 180.0).cos(),
-            0.0,
-            ((-a.y - 90.0) * PI / 180.0).sin(),
-        )
-    }
-
     pub fn would_collide_at(&self, world: &Chungus, pos: Vec3) -> bool {
         world.is_solid(pos + Vec3::new(-ENTITY_SIZE * self.size, 0.0, 0.0))
             | world.is_solid(pos + Vec3::new(ENTITY_SIZE * self.size, 0.0, 0.0))
