@@ -67,7 +67,6 @@ impl Character {
         self.health.set_max_health(12);
         self.health.set_full_health();
         self.experience_mut().reset();
-        self.experience_mut().gain(8);
     }
 
     #[inline]
