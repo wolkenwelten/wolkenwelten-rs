@@ -730,10 +730,7 @@ impl Character {
                         player.damage(damage);
                         player.pos()
                     };
-                    reactor.dispatch(Message::CharacterDamage {
-                        pos,
-                        damage,
-                    });
+                    reactor.dispatch(Message::CharacterDamage { pos, damage });
                 }
             };
             reactor.add_sink(

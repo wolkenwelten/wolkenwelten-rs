@@ -141,7 +141,7 @@ impl BlockType {
                     RGBA8::new(0x20, 0x12, 0x00, 0xFF),
                 )
                 .with_mining_cat(MiningCategory::Shovel(1))
-                .with_block_health(200),
+                .with_block_health(2000),
             BlockType::new("Grass")
                 .with_texture(16)
                 .with_texture_top(0)
@@ -151,7 +151,7 @@ impl BlockType {
                     RGBA8::new(0x11, 0x0A, 0x00, 0xFF),
                 )
                 .with_mining_cat(MiningCategory::Shovel(1))
-                .with_block_health(250),
+                .with_block_health(2500),
             BlockType::new("Stone")
                 .with_texture(2)
                 .with_colors(
@@ -159,7 +159,7 @@ impl BlockType {
                     RGBA8::new(0x48, 0x48, 0x48, 0xFF),
                 )
                 .with_mining_cat(MiningCategory::Pickaxe(1))
-                .with_block_health(800),
+                .with_block_health(8000),
             BlockType::new("Coal")
                 .with_texture(3)
                 .with_colors(
@@ -167,7 +167,7 @@ impl BlockType {
                     RGBA8::new(0x10, 0x10, 0x10, 0xFF),
                 )
                 .with_mining_cat(MiningCategory::Pickaxe(1))
-                .with_block_health(700),
+                .with_block_health(7000),
             BlockType::new("Spruce log")
                 .with_texture(4)
                 .with_colors(
@@ -175,14 +175,14 @@ impl BlockType {
                     RGBA8::new(0x1D, 0x16, 0x07, 0xFF),
                 )
                 .with_mining_cat(MiningCategory::Axe(1))
-                .with_block_health(600),
+                .with_block_health(6000),
             BlockType::new("Spruce leaves")
                 .with_texture(5)
                 .with_colors(
                     RGBA8::new(0x12, 0x2C, 0x01, 0xFF),
                     RGBA8::new(0x0F, 0x25, 0x01, 0xFF),
                 )
-                .with_block_health(100),
+                .with_block_health(1000),
             BlockType::new("Dry grass")
                 .with_texture(22)
                 .with_texture_top(6)
@@ -192,7 +192,7 @@ impl BlockType {
                     RGBA8::new(0x4F, 0x23, 0x0A, 0xFF),
                 )
                 .with_mining_cat(MiningCategory::Shovel(1))
-                .with_block_health(200),
+                .with_block_health(2000),
             BlockType::new("Roots")
                 .with_texture(7)
                 .with_colors(
@@ -200,7 +200,7 @@ impl BlockType {
                     RGBA8::new(0x29, 0x20, 0x0D, 0xFF),
                 )
                 .with_mining_cat(MiningCategory::Shovel(1))
-                .with_block_health(500),
+                .with_block_health(5000),
             BlockType::new("Obsidian")
                 .with_texture(8)
                 .with_colors(
@@ -208,7 +208,7 @@ impl BlockType {
                     RGBA8::new(0x17, 0x17, 0x17, 0xFF),
                 )
                 .with_mining_cat(MiningCategory::Pickaxe(2))
-                .with_block_health(1400),
+                .with_block_health(14000),
             BlockType::new("Oak log")
                 .with_texture(9)
                 .with_colors(
@@ -216,14 +216,14 @@ impl BlockType {
                     RGBA8::new(0x2E, 0x24, 0x08, 0xFF),
                 )
                 .with_mining_cat(MiningCategory::Axe(1))
-                .with_block_health(700),
+                .with_block_health(7000),
             BlockType::new("Oak leaves")
                 .with_texture(10)
                 .with_colors(
                     RGBA8::new(0x27, 0x42, 0x00, 0xFF),
                     RGBA8::new(0x18, 0x33, 0x00, 0xFF),
                 )
-                .with_block_health(100),
+                .with_block_health(1000),
             BlockType::new("Iron ore (hematite)")
                 .with_texture(11)
                 .with_colors(
@@ -231,7 +231,7 @@ impl BlockType {
                     RGBA8::new(0x5E, 0x5E, 0x5E, 0xFF),
                 )
                 .with_mining_cat(MiningCategory::Pickaxe(1))
-                .with_block_health(1000),
+                .with_block_health(10000),
             BlockType::new("Marble block")
                 .with_texture(12)
                 .with_colors(
@@ -239,7 +239,7 @@ impl BlockType {
                     RGBA8::new(0xF0, 0xF0, 0xF0, 0xFF),
                 )
                 .with_mining_cat(MiningCategory::Pickaxe(1))
-                .with_block_health(1000),
+                .with_block_health(10000),
             BlockType::new("Marble pillar")
                 .with_texture(13)
                 .with_texture_top(12)
@@ -249,7 +249,7 @@ impl BlockType {
                     RGBA8::new(0xF0, 0xF0, 0xF0, 0xFF),
                 )
                 .with_mining_cat(MiningCategory::Pickaxe(1))
-                .with_block_health(1000),
+                .with_block_health(10000),
             BlockType::new("Marble blocks")
                 .with_texture(14)
                 .with_colors(
@@ -257,14 +257,14 @@ impl BlockType {
                     RGBA8::new(0xF0, 0xF0, 0xF0, 0xFF),
                 )
                 .with_mining_cat(MiningCategory::Pickaxe(1))
-                .with_block_health(1000),
+                .with_block_health(10000),
             BlockType::new("Acacia leaves")
                 .with_texture(15)
                 .with_colors(
                     RGBA8::new(0x02, 0x30, 0x00, 0xFF),
                     RGBA8::new(0x32, 0x6F, 0x1C, 0xFF),
                 )
-                .with_block_health(100),
+                .with_block_health(1000),
             BlockType::new("Boards")
                 .with_texture(17)
                 .with_colors(
@@ -272,7 +272,7 @@ impl BlockType {
                     RGBA8::new(0xAF, 0x80, 0x13, 0xFF),
                 )
                 .with_mining_cat(MiningCategory::Axe(1))
-                .with_block_health(400),
+                .with_block_health(4000),
             BlockType::new("Crystals")
                 .with_texture(18)
                 .with_colors(
@@ -280,14 +280,14 @@ impl BlockType {
                     RGBA8::new(0xB5, 0x24, 0x4D, 0xFF),
                 )
                 .with_mining_cat(MiningCategory::Pickaxe(3))
-                .with_block_health(2000),
+                .with_block_health(20000),
             BlockType::new("Sakura leaves")
                 .with_texture(19)
                 .with_colors(
                     RGBA8::new(0xE8, 0x7C, 0x99, 0xFF),
                     RGBA8::new(0xB5, 0x25, 0x4D, 0xFF),
                 )
-                .with_block_health(100),
+                .with_block_health(1000),
             BlockType::new("Birch log")
                 .with_texture(20)
                 .with_colors(
@@ -295,28 +295,28 @@ impl BlockType {
                     RGBA8::new(0xA5, 0xA2, 0xA2, 0xFF),
                 )
                 .with_mining_cat(MiningCategory::Axe(1))
-                .with_block_health(600),
+                .with_block_health(6000),
             BlockType::new("Flower bush")
                 .with_texture(21)
                 .with_colors(
                     RGBA8::new(0x27, 0x42, 0x00, 0xFF),
                     RGBA8::new(0x18, 0x33, 0x00, 0xFF),
                 )
-                .with_block_health(100),
+                .with_block_health(1000),
             BlockType::new("Date bush")
                 .with_texture(23)
                 .with_colors(
                     RGBA8::new(0x4F, 0x33, 0x00, 0xFF),
                     RGBA8::new(0x94, 0x83, 0x12, 0xFF),
                 )
-                .with_block_health(100),
+                .with_block_health(1000),
             BlockType::new("Sand")
                 .with_texture(24)
                 .with_colors(
                     RGBA8::new(0xEC, 0xD1, 0x95, 0xFF),
                     RGBA8::new(0xD3, 0xA7, 0x48, 0xFF),
                 )
-                .with_block_health(140),
+                .with_block_health(1400),
         ]
     }
 
