@@ -1,14 +1,27 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
 mod block_type;
+mod character;
+mod chungus;
 mod chunk;
+mod entity;
 mod experience;
+mod game_log;
+mod health;
 mod item;
 mod iter;
 mod message;
 mod queue;
 mod reactor;
+mod state;
+mod worldgen;
 
+pub use self::character::{Character, CharacterAnimation, RaycastReturn};
+pub use self::chungus::{Chungus, BLOCKS, FLUIDS};
+pub use self::entity::Entity;
+pub use self::game_log::{GameLog, GAME_LOG};
+pub use self::health::Health;
+pub use self::state::GameState;
 pub use block_type::*;
 pub use chunk::*;
 pub use experience::*;
@@ -47,17 +60,3 @@ impl From<Side> for usize {
         s as usize
     }
 }
-pub use self::character::{Character, CharacterAnimation, RaycastReturn};
-pub use self::chungus::Chungus;
-pub use self::entity::Entity;
-pub use self::game_log::GameLog;
-pub use self::health::Health;
-pub use self::state::GameState;
-
-mod character;
-mod chungus;
-mod entity;
-mod game_log;
-mod health;
-mod state;
-mod worldgen;

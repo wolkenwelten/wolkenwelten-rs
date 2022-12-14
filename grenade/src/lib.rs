@@ -5,12 +5,15 @@ use glam::{Mat4, Vec3};
 use rand::prelude::*;
 use rand_xorshift::XorShiftRng;
 use std::cell::RefCell;
-use std::rc::Rc;
 use wolkenwelten_client::{ClientState, RenderInitArgs, RenderPassArgs, VoxelMesh};
 use wolkenwelten_core::{Chungus, Entity, Message, Reactor};
 
+thread_local! {
+    pub static GRENADES:RefCell<Vec<Grenade>> = RefCell::new(vec![])
+}
+
 #[derive(Clone, Debug, Default)]
-struct Grenade {
+pub struct Grenade {
     ent: Entity,
 }
 
@@ -67,17 +70,9 @@ impl Grenade {
 }
 
 pub fn init(args: RenderInitArgs) -> RenderInitArgs {
-    let grenades: Rc<RefCell<Vec<Grenade>>> = Rc::new(RefCell::new(vec![]));
-
-    let grenade_mesh: Rc<RefCell<VoxelMesh>> = Rc::new(RefCell::new(
-        VoxelMesh::from_vox_data(&args.fe.display, include_bytes!("../assets/grenade.vox"))
-            .expect("Error while loading grenade.vox"),
-    ));
-
     {
         let player = args.game.player_rc();
         let clock = args.game.clock_rc();
-        let grenades = grenades.clone();
         let f = move |reactor: &Reactor<Message>, _msg: Message| {
             let mut player = player.borrow_mut();
             let now = clock.borrow().elapsed().as_millis() as u64;
@@ -87,7 +82,9 @@ pub fn init(args: RenderInitArgs) -> RenderInitArgs {
                 let mut e = Grenade::new();
                 e.set_pos(player.pos());
                 e.set_vel(player.direction() * 0.4);
-                grenades.borrow_mut().push(e);
+                GRENADES.with(|grenades| {
+                    grenades.borrow_mut().push(e);
+                });
                 reactor.dispatch(Message::CharacterShoot { pos: player.pos() });
             }
         };
@@ -96,21 +93,22 @@ pub fn init(args: RenderInitArgs) -> RenderInitArgs {
     {
         let player = args.game.player_rc();
         let world = args.game.world_rc();
-        let grenades = grenades.clone();
         let f = move |reactor: &Reactor<Message>, _msg: Message| {
-            let mut grenades = grenades.borrow_mut();
-            let world = world.borrow();
-            let player_pos = player.borrow().pos();
-            grenades.retain_mut(|g| {
-                let bounce = g.tick(&world);
+            GRENADES.with(|grenades| {
+                let mut grenades = grenades.borrow_mut();
+                let world = world.borrow();
+                let player_pos = player.borrow().pos();
+                grenades.retain_mut(|g| {
+                    let bounce = g.tick(&world);
 
-                if bounce {
-                    reactor.defer(Message::EntityCollision { pos: g.pos() })
-                }
+                    if bounce {
+                        reactor.defer(Message::EntityCollision { pos: g.pos() })
+                    }
 
-                let dist = g.pos() - player_pos;
-                let dd = dist.x * dist.x + dist.y * dist.y + dist.z * dist.z;
-                !bounce && (dd < (256.0 * 256.0))
+                    let dist = g.pos() - player_pos;
+                    let dd = dist.x * dist.x + dist.y * dist.y + dist.z * dist.z;
+                    !bounce && (dd < (256.0 * 256.0))
+                });
             });
         };
         args.reactor
@@ -130,19 +128,22 @@ pub fn init(args: RenderInitArgs) -> RenderInitArgs {
         args.reactor
             .add_sink(Message::EntityCollision { pos: Vec3::ZERO }, Box::new(f));
     }
-    {
-        let grenades = grenades.clone();
-        args.render_reactor.entity_provider.push(Box::new(move |v| {
+
+    args.render_reactor.entity_provider.push(Box::new(move |v| {
+        GRENADES.with(|grenades| {
             for e in grenades.borrow().iter() {
                 v.push(e.ent.clone());
             }
-        }));
-    }
-    {
-        args.render_reactor
-            .world_render
-            .push(Box::new(move |args: RenderPassArgs| {
-                let mesh = grenade_mesh.borrow();
+        });
+    }));
+
+    let mesh: VoxelMesh =
+        VoxelMesh::from_vox_data(&args.fe.display, include_bytes!("../assets/grenade.vox"))
+            .expect("Error while loading grenade.vox");
+    args.render_reactor
+        .world_render
+        .push(Box::new(move |args: RenderPassArgs| {
+            GRENADES.with(|grenades| {
                 for entity in grenades.borrow().iter() {
                     let _ = draw(
                         &mesh,
@@ -153,9 +154,10 @@ pub fn init(args: RenderInitArgs) -> RenderInitArgs {
                         &args.projection,
                     );
                 }
-                args
-            }));
-    }
+            });
+            args
+        }));
+
     args
 }
 

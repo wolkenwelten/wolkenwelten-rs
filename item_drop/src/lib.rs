@@ -3,14 +3,17 @@
 use anyhow::Result;
 use glam::{IVec3, Mat4, Vec3};
 use std::cell::RefCell;
-use std::rc::Rc;
 use wolkenwelten_client::{ClientState, RenderInitArgs, RenderPassArgs};
 use wolkenwelten_core::{BlockItem, Chungus, Entity, Item, Message, Reactor};
+
+thread_local! {
+    pub static DROPS: RefCell<ItemDropList> = RefCell::new(ItemDropList::new());
+}
 
 const ITEM_DROP_PICKUP_RANGE: f32 = 1.5;
 
 #[derive(Clone, Default, Debug)]
-struct ItemDrop {
+pub struct ItemDrop {
     item: Item,
     ent: Entity,
 }
@@ -79,7 +82,7 @@ impl ItemDrop {
 }
 
 #[derive(Clone, Default, Debug)]
-struct ItemDropList {
+pub struct ItemDropList {
     drops: Vec<ItemDrop>,
 }
 
@@ -131,25 +134,24 @@ impl ItemDropList {
 }
 
 pub fn init(args: RenderInitArgs) -> RenderInitArgs {
-    let drops: Rc<RefCell<ItemDropList>> = Rc::new(RefCell::new(ItemDropList::new()));
     {
         let player = args.game.player_rc();
-        let drops = drops.clone();
         let world = args.game.world_rc();
         let f = move |reactor: &Reactor<Message>, _msg: Message| {
             let player_pos = player.borrow().pos();
-            drops
-                .borrow_mut()
-                .tick_all(reactor, player_pos, &world.borrow());
+            DROPS.with(|drops| {
+                drops
+                    .borrow_mut()
+                    .tick_all(reactor, player_pos, &world.borrow());
+            });
         };
         args.reactor
             .add_sink(Message::GameTick { ticks: 0 }, Box::new(f));
     }
     {
-        let drops = drops.clone();
         let f = move |_reactor: &Reactor<Message>, msg: Message| {
             if let Message::BlockBreak { pos, block } = msg {
-                drops.borrow_mut().add_from_block_break(pos, block)
+                DROPS.with(|drops| drops.borrow_mut().add_from_block_break(pos, block));
             }
         };
         args.reactor.add_sink(
@@ -161,10 +163,11 @@ pub fn init(args: RenderInitArgs) -> RenderInitArgs {
         );
     }
     {
-        let drops = drops.clone();
         let f = move |_reactor: &Reactor<Message>, msg: Message| {
             if let Message::ItemDropNew { pos, item } = msg {
-                drops.borrow_mut().add(pos, Vec3::ZERO, item);
+                DROPS.with(|drops| {
+                    drops.borrow_mut().add(pos, Vec3::ZERO, item);
+                });
             }
         };
         args.reactor.add_sink(
@@ -176,20 +179,21 @@ pub fn init(args: RenderInitArgs) -> RenderInitArgs {
         );
     }
     {
-        let drops = drops.clone();
         let f = move |_reactor: &Reactor<Message>, msg: Message| {
             if let Message::Explosion { pos, power } = msg {
                 let p = power * power;
-                drops
-                    .borrow_mut()
-                    .iter_mut()
-                    .filter(|m| (pos - m.pos()).length_squared() < p)
-                    .for_each(|m| {
-                        let d = pos - m.pos();
-                        let mut dir = d.normalize() * d * 0.2;
-                        dir.y = -0.5;
-                        m.set_vel(dir * -0.04);
-                    });
+                DROPS.with(|drops| {
+                    drops
+                        .borrow_mut()
+                        .iter_mut()
+                        .filter(|m| (pos - m.pos()).length_squared() < p)
+                        .for_each(|m| {
+                            let d = pos - m.pos();
+                            let mut dir = d.normalize() * d * 0.2;
+                            dir.y = -0.5;
+                            m.set_vel(dir * -0.04);
+                        });
+                });
             }
         };
         args.reactor.add_sink(
@@ -200,40 +204,41 @@ pub fn init(args: RenderInitArgs) -> RenderInitArgs {
             Box::new(f),
         );
     }
-    {
-        let drops = drops.clone();
-        let f = move |_reactor: &Reactor<Message>, msg: Message| {
+
+    args.reactor.add_sink(
+        Message::CharacterDropItem {
+            pos: Vec3::ZERO,
+            vel: Vec3::ZERO,
+            item: Item::None,
+        },
+        Box::new(move |_reactor: &Reactor<Message>, msg: Message| {
             if let Message::CharacterDropItem { pos, vel, item } = msg {
-                drops.borrow_mut().add(pos, vel, item);
+                DROPS.with(|drops| {
+                    drops.borrow_mut().add(pos, vel, item);
+                });
             }
-        };
-        args.reactor.add_sink(
-            Message::CharacterDropItem {
-                pos: Vec3::ZERO,
-                vel: Vec3::ZERO,
-                item: Item::None,
-            },
-            Box::new(f),
-        );
-    }
-    {
-        let drops = drops.clone();
-        args.render_reactor.entity_provider.push(Box::new(move |v| {
+        }),
+    );
+
+    args.render_reactor.entity_provider.push(Box::new(move |v| {
+        DROPS.with(|drops| {
             for e in drops.borrow().iter() {
                 v.push(e.ent.clone());
             }
-        }));
-    }
-    {
-        args.render_reactor
-            .world_render
-            .push(Box::new(move |args: RenderPassArgs| {
+        });
+    }));
+
+    args.render_reactor
+        .world_render
+        .push(Box::new(move |args: RenderPassArgs| {
+            DROPS.with(|drops| {
                 for entity in drops.borrow().iter() {
                     let _ =
                         item_drop_draw(args.frame, args.fe, entity, &args.view, &args.projection);
                 }
-                args
-            }));
-    }
+            });
+            args
+        }));
+
     args
 }

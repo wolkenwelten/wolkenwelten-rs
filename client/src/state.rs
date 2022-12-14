@@ -6,7 +6,7 @@ use anyhow::Result;
 use glam::{f32::Vec3, i32::IVec3};
 use rgb::RGBA8;
 use std::{collections::HashMap, time::Instant};
-use wolkenwelten_core::{Character, GameState, CHUNK_SIZE};
+use wolkenwelten_core::{Character, CHUNK_SIZE};
 
 pub mod static_meshes;
 pub mod static_shaders;
@@ -44,11 +44,11 @@ pub struct ClientState {
 }
 
 impl ClientState {
-    pub fn new(display: glium::Display, world: &GameState) -> Result<Self> {
-        let meshes = MeshList::new(&display, world)?;
+    pub fn new(display: glium::Display) -> Result<Self> {
+        let meshes = MeshList::new(&display)?;
         let shaders = ShaderList::new(&display)?;
         let ui_mesh = TextMesh::new(&display)?;
-        let textures = TextureList::new(&display, world)?;
+        let textures = TextureList::new(&display)?;
         const MAX_SQUARE: usize = CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE * 6;
         let block_index_buffer = BlockMesh::gen_index_buffer(&display, MAX_SQUARE / 4)?;
 

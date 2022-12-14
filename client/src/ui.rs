@@ -165,7 +165,7 @@ pub fn prepare(fe: &mut ClientState, game: &GameState, request: &ChunkRequestQue
 
     prepare_debug_text(fe, game, request);
     inventory::prepare(fe, game);
-    log::prepare(fe, game);
+    log::prepare(fe);
 
     fe.ui_mesh.prepare(&fe.display);
 }
