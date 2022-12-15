@@ -366,7 +366,7 @@ impl InputState {
             }
 
             if self.button_states[Key::Tertiary] {
-                reactor.dispatch(Message::PlayerShoot);
+                //reactor.dispatch(Message::PlayerShoot);
             }
 
             if self.button_states[Key::Drop] {
