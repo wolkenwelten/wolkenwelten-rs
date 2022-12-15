@@ -24,6 +24,7 @@ pub enum Message {
     },
     GameQuit,
     GameInit,
+    ResetEverything,
 
     CharacterPosRotVel {
         pos: Vec3,

@@ -77,6 +77,11 @@ impl ClientState {
         })
     }
 
+    pub fn clear(&mut self) {
+        self.world_mesh.clear();
+        self.fluid_mesh.clear();
+    }
+
     #[inline]
     pub fn ticks(&self) -> u64 {
         self.ticks

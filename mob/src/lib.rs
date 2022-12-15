@@ -44,6 +44,7 @@ pub enum MobState {
     ChasePlayer(Instant),
     FightPlayer(Instant),
     InstantAttackPlayer(Instant),
+    Dance(Instant),
 }
 
 impl Default for MobState {
@@ -139,7 +140,9 @@ impl Mob {
     pub fn anime_index(&self) -> usize {
         match self.state {
             MobState::InstantAttackPlayer(_) => 8,
-            MobState::FightPlayer(t) => 6 + (t.elapsed().as_millis() as usize / 200) % 3,
+            MobState::Dance(t) | MobState::FightPlayer(t) => {
+                6 + (t.elapsed().as_millis() as usize / 200) % 3
+            }
             MobState::Idle(t) => (t.elapsed().as_millis() as usize / 1000) % 2,
             MobState::TurnLeft(t)
             | MobState::TurnRight(t)
@@ -352,6 +355,13 @@ impl Mob {
                 };
                 self.movement = self.walk_direction() * 1.5;
             }
+            MobState::Dance(t) => {
+                if t.elapsed().as_millis() > 500 {
+                    self.set_idle_state();
+                };
+                self.set_rot(self.rot() - Vec3::new(0.0, 0.1, 0.0));
+                self.movement = self.walk_direction() * -1.15;
+            }
             MobState::WalkBack(_t) => {
                 if rng.gen_range(0..1000) == 0 {
                     self.set_idle_state();
@@ -382,7 +392,9 @@ impl Mob {
                 let player_pos = player.pos();
                 let diff = player_pos - self.pos();
                 let distance = diff.length_squared();
-                if distance > MOB_STOP_FIGHTING_DISTANCE * MOB_STOP_FIGHTING_DISTANCE {
+                if player.is_dead() {
+                    self.set_state(MobState::Dance(Instant::now()));
+                } else if distance > MOB_STOP_FIGHTING_DISTANCE * MOB_STOP_FIGHTING_DISTANCE {
                     self.set_idle_state();
                 } else {
                     let diff_2d = (player_pos - self.pos()).xz();
@@ -479,6 +491,10 @@ pub struct MobList {
 impl MobList {
     pub fn new() -> Self {
         Self::default()
+    }
+
+    pub fn clear(&mut self) {
+        self.mobs.clear();
     }
 
     pub fn add(&mut self, pos: Vec3, rot: Vec3, model_index: i32) {
@@ -634,15 +650,23 @@ pub fn init(args: RenderInitArgs) -> RenderInitArgs {
         args.reactor
             .add_sink(Message::WorldgenSpawnMob { pos: Vec3::ZERO }, Box::new(f));
     }
-    {
-        args.render_reactor.entity_provider.push(Box::new(move |v| {
+
+    args.reactor.add_sink(
+        Message::ResetEverything,
+        Box::new(move |_: &Reactor<Message>, _msg: Message| {
             MOBS.with(|mobs| {
-                for e in mobs.borrow().iter() {
-                    v.push(e.to_entity());
-                }
+                mobs.borrow_mut().clear();
             });
-        }));
-    }
+        }),
+    );
+
+    args.render_reactor.entity_provider.push(Box::new(move |v| {
+        MOBS.with(|mobs| {
+            for e in mobs.borrow().iter() {
+                v.push(e.to_entity());
+            }
+        });
+    }));
     {
         let meshes: Vec<Vec<VoxelMesh>> =
             mob_load_meshes(&args.fe.display).expect("Error loading crab mesh");

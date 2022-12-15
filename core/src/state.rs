@@ -25,7 +25,7 @@ pub struct GameState {
 impl GameState {
     pub fn new() -> Result<Self> {
         let player = Rc::new(RefCell::new(Character::new()));
-        player.borrow_mut().rebirth();
+        player.borrow_mut().init();
         Ok(Self {
             clock: Rc::new(RefCell::new(Instant::now())),
             running: Rc::new(RefCell::new(true)),
@@ -48,6 +48,12 @@ impl GameState {
     #[inline]
     pub fn player(&self) -> Ref<Character> {
         self.player.borrow()
+    }
+
+    pub fn score(&self) -> u64 {
+        let player = self.player();
+        let xp = player.experience();
+        xp.xp_total() + xp.xp()
     }
 
     #[inline]

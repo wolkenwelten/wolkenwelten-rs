@@ -91,6 +91,10 @@ impl ItemDropList {
         Self::default()
     }
 
+    pub fn clear(&mut self) {
+        self.drops.clear();
+    }
+
     pub fn add_from_block_break(&mut self, pos: IVec3, block: u8) {
         let pos = pos.as_vec3() + Vec3::new(0.5, 0.5, 0.5);
         let item = BlockItem::new(block, 1).into();
@@ -227,6 +231,15 @@ pub fn init(args: RenderInitArgs) -> RenderInitArgs {
             }
         });
     }));
+
+    args.reactor.add_sink(
+        Message::ResetEverything,
+        Box::new(move |_: &Reactor<Message>, _msg: Message| {
+            DROPS.with(|drops| {
+                drops.borrow_mut().clear();
+            });
+        }),
+    );
 
     args.render_reactor
         .world_render

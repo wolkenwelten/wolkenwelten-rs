@@ -29,6 +29,10 @@ impl BlockMiningMap {
         Self::default()
     }
 
+    pub fn clear(&mut self) {
+        self.map.clear();
+    }
+
     pub fn tick(&mut self) {
         self.map.retain(|_, p| {
             p.damage -= 1;
@@ -129,6 +133,15 @@ pub fn init(args: RenderInitArgs) -> RenderInitArgs {
         };
         args.reactor
             .add_sink(Message::GameTick { ticks: 0 }, Box::new(f));
+    }
+    {
+        let mining = mining.clone();
+        args.reactor.add_sink(
+            Message::ResetEverything,
+            Box::new(move |_reactor: &Reactor<Message>, _msg: Message| {
+                mining.borrow_mut().clear();
+            }),
+        );
     }
     {
         let player = args.game.player_rc();

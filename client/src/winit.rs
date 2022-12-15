@@ -171,7 +171,9 @@ fn run_event_loop(
             }
 
             Event::MainEventsCleared => {
-                input.tick(&game, &reactor);
+                if input.tick(&game, &reactor) {
+                    render.clear();
+                }
                 game.tick(&reactor, &mut request);
                 game.world_mut().handle_requests(&mut request, &reactor);
                 render.request_redraw();
