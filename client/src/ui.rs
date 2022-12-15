@@ -179,7 +179,8 @@ fn prepare_death_overlay(fe: &mut ClientState, game: &GameState) {
 
     let x = x + 48;
     let y = y + 56;
-    fe.ui_mesh.push_string(x, y, 2, rgba, "Press R to try once more");
+    fe.ui_mesh
+        .push_string(x, y, 2, rgba, "Press R to try once more");
 }
 
 pub fn prepare(fe: &mut ClientState, game: &GameState, request: &ChunkRequestQueue) {
