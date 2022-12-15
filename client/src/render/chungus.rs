@@ -38,7 +38,7 @@ pub fn handle_requests(
     let now = Instant::now();
     let mut light_reqs: HashSet<IVec3> = HashSet::new();
     let mut block_reqs: HashSet<IVec3> = HashSet::new();
-    let world = game.world_mut();
+    let world = game.world();
 
     BLOCKS.with(|blocks| {
         let block_types = blocks.borrow();

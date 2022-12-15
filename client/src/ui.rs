@@ -157,12 +157,37 @@ fn prepare_crosshair(fe: &mut ClientState) {
     fe.ui_mesh.push_box(pos, tex, [0xFF, 0xFF, 0xFF, 0x7F]);
 }
 
+fn prepare_death_overlay(fe: &mut ClientState, game: &GameState) {
+    if !game.player().is_dead() {
+        return;
+    }
+    let (window_width, window_height) = fe.window_size();
+
+    let x = window_width as i16 / 2 - 128;
+    let y = window_height as i16 / 2 - 16;
+    let rgba = [0xFF, 0xFF, 0xFF, 0xFF];
+    let text = "You died";
+    fe.ui_mesh.push_string(x, y, 4, rgba, text);
+    let x = x - 128;
+    let y = y + 48;
+    let text = format!(
+        "You reached level {} with a score of {}",
+        game.player().experience().level(),
+        game.score()
+    );
+    fe.ui_mesh.push_string(x, y, 2, rgba, &text);
+
+    let x = x + 48;
+    let y = y + 56;
+    fe.ui_mesh.push_string(x, y, 2, rgba, "Press R to try once more");
+}
+
 pub fn prepare(fe: &mut ClientState, game: &GameState, request: &ChunkRequestQueue) {
     prepare_fps(fe);
     prepare_crosshair(fe);
     prepare_healthbar(fe, game, 96, 16, true);
     prepare_experience(fe, game, 16, 16, 64);
-
+    prepare_death_overlay(fe, game);
     prepare_debug_text(fe, game, request);
     inventory::prepare(fe, game);
     log::prepare(fe);

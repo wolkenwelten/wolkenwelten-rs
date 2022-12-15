@@ -26,6 +26,7 @@ pub enum Key {
     Primary,
     Secondary,
     Tertiary,
+    Reload,
 }
 
 #[derive(Clone, Debug, Default)]
@@ -257,6 +258,12 @@ impl InputState {
 
                 KeyboardInput {
                     state,
+                    virtual_keycode: Some(VirtualKeyCode::R),
+                    ..
+                } => self.key_up_down(Key::Reload, state == ElementState::Pressed),
+
+                KeyboardInput {
+                    state,
                     virtual_keycode: Some(VirtualKeyCode::LShift),
                     ..
                 } => self.key_up_down(Key::Sprint, state == ElementState::Pressed),
@@ -313,51 +320,59 @@ impl InputState {
         )
     }
 
-    pub fn tick(&mut self, game: &GameState, reactor: &Reactor<Message>) {
-        let view = glam::Mat4::from_rotation_y(-game.player().rot[0].to_radians());
-        if game.player().no_clip() {
-            let view = view * glam::Mat4::from_rotation_x(-game.player().rot[1].to_radians());
-            let v = glam::Vec4::from((self.get_movement_vector(), 1.0_f32));
-            let move_vec = (view * v).xyz();
-
-            reactor.dispatch(Message::PlayerFly {
-                direction: move_vec * self.get_speed(),
-            });
+    pub fn tick(&mut self, game: &GameState, reactor: &Reactor<Message>) -> bool {
+        if game.player().is_dead() {
+            if self.button_states[Key::Reload] && game.player().is_dead() {
+                reactor.dispatch(Message::ResetEverything);
+                return true;
+            }
         } else {
-            let m = self.get_movement_vector();
-            let v = glam::Vec4::from((m, 1.0_f32));
-            let move_vec = (view * v).xyz() * self.get_speed();
+            let view = glam::Mat4::from_rotation_y(-game.player().rot[0].to_radians());
+            if game.player().no_clip() {
+                let view = view * glam::Mat4::from_rotation_x(-game.player().rot[1].to_radians());
+                let v = glam::Vec4::from((self.get_movement_vector(), 1.0_f32));
+                let move_vec = (view * v).xyz();
 
-            reactor.dispatch(Message::PlayerMove {
-                direction: Vec3::new(move_vec.x, m.y, move_vec.z),
-            });
-        };
+                reactor.dispatch(Message::PlayerFly {
+                    direction: move_vec * self.get_speed(),
+                });
+            } else {
+                let m = self.get_movement_vector();
+                let v = glam::Vec4::from((m, 1.0_f32));
+                let move_vec = (view * v).xyz() * self.get_speed();
 
-        if self.button_states[Key::Primary] {
-            reactor.dispatch(Message::PlayerStrike);
-            let o = game.player().raycast(&game.world(), RaycastReturn::Within);
-            if let Some(pos) = o {
-                reactor.dispatch(Message::PlayerBlockMine { pos: Some(pos) });
+                reactor.dispatch(Message::PlayerMove {
+                    direction: Vec3::new(move_vec.x, m.y, move_vec.z),
+                });
+            };
+
+            if self.button_states[Key::Primary] {
+                reactor.dispatch(Message::PlayerStrike);
+                let o = game.player().raycast(&game.world(), RaycastReturn::Within);
+                if let Some(pos) = o {
+                    reactor.dispatch(Message::PlayerBlockMine { pos: Some(pos) });
+                } else {
+                    reactor.dispatch(Message::PlayerBlockMine { pos: None });
+                }
             } else {
                 reactor.dispatch(Message::PlayerBlockMine { pos: None });
             }
-        } else {
-            reactor.dispatch(Message::PlayerBlockMine { pos: None });
-        }
 
-        if self.button_states[Key::Secondary] {
-            let o = game.player().raycast(&game.world(), RaycastReturn::Front);
-            if let Some(pos) = o {
-                reactor.dispatch(Message::PlayerBlockPlace { pos });
+            if self.button_states[Key::Secondary] {
+                let o = game.player().raycast(&game.world(), RaycastReturn::Front);
+                if let Some(pos) = o {
+                    reactor.dispatch(Message::PlayerBlockPlace { pos });
+                }
+            }
+
+            if self.button_states[Key::Tertiary] {
+                reactor.dispatch(Message::PlayerShoot);
+            }
+
+            if self.button_states[Key::Drop] {
+                reactor.dispatch(Message::PlayerDropItem);
             }
         }
-
-        if self.button_states[Key::Tertiary] {
-            reactor.dispatch(Message::PlayerShoot);
-        }
-
-        if self.button_states[Key::Drop] {
-            reactor.dispatch(Message::PlayerDropItem);
-        }
+        false
     }
 }

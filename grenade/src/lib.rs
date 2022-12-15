@@ -129,6 +129,15 @@ pub fn init(args: RenderInitArgs) -> RenderInitArgs {
             .add_sink(Message::EntityCollision { pos: Vec3::ZERO }, Box::new(f));
     }
 
+    args.reactor.add_sink(
+        Message::ResetEverything,
+        Box::new(move |_: &Reactor<Message>, _msg: Message| {
+            GRENADES.with(|grenades| {
+                grenades.borrow_mut().clear();
+            });
+        }),
+    );
+
     args.render_reactor.entity_provider.push(Box::new(move |v| {
         GRENADES.with(|grenades| {
             for e in grenades.borrow().iter() {

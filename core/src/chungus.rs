@@ -318,6 +318,16 @@ impl Chungus {
                 Box::new(f),
             );
         }
+
+        {
+            let world = game.world_rc();
+            reactor.add_sink(
+                Message::ResetEverything,
+                Box::new(move |_: &Reactor<Message>, _msg: Message| {
+                    world.borrow_mut().init();
+                }),
+            );
+        }
     }
 
     pub fn handle_requests(&mut self, request: &mut ChunkRequestQueue, reactor: &Reactor<Message>) {
@@ -617,6 +627,13 @@ impl Chungus {
                 }
             }
         }
+    }
+
+    pub fn init(&mut self) {
+        self.chunks_block.clear();
+        self.chunks_fluid.clear();
+        self.chunks_simple_light.clear();
+        self.chunks_complex_light.clear();
     }
 
     pub fn new() -> Result<Self> {

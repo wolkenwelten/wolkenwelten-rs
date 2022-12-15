@@ -25,7 +25,9 @@ fn calc_fov(fov: f32, player: &Character) -> f32 {
 }
 
 fn prepare_overlay(fe: &mut ClientState, game: &GameState) {
-    let overlay_goal_color = if game.player().is_underwater(&game.world()) {
+    let overlay_goal_color = if game.player().is_dead() {
+        [190, 56, 48, 156].into()
+    } else if game.player().is_underwater(&game.world()) {
         [0, 24, 242, 178].into()
     } else {
         [0; 4].into()

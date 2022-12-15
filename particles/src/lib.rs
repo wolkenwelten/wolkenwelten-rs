@@ -49,6 +49,10 @@ impl ParticleMesh {
         Default::default()
     }
 
+    pub fn clear(&mut self) {
+        self.particles.clear();
+    }
+
     /// Here we do the actual particle updates, as soon as a particle's size goes below 1,
     /// or it is far away it will be removed from the list.
     fn update(&mut self, player_pos: Vec3, delta: f32, render_distance: f32) {
@@ -401,6 +405,15 @@ pub fn init(args: RenderInitArgs) -> RenderInitArgs {
                 if let Message::EntityCollision { pos } = msg {
                     particles.borrow_mut().fx_explosion(pos, 9.0);
                 }
+            });
+        }),
+    );
+
+    args.reactor.add_sink(
+        Message::ResetEverything,
+        Box::new(move |_: &Reactor<Message>, _msg: Message| {
+            PARTICLES.with(|particles| {
+                particles.borrow_mut().clear();
             });
         }),
     );

@@ -30,6 +30,10 @@ impl Experience {
         self.xp
     }
     #[inline]
+    pub fn xp_total(&self) -> u64 {
+        self.xp_total
+    }
+    #[inline]
     pub fn next_level(&self) -> u64 {
         self.next_level
     }

@@ -57,7 +57,7 @@ impl Character {
         Self::default()
     }
 
-    pub fn rebirth(&mut self) {
+    pub fn init(&mut self) {
         self.set_pos(Vec3::new(-32.0, -16.0, 338.0));
         self.set_rot(Vec3::new(-130.0, 0.0, 0.0));
         let inv = self.inventory_mut();
@@ -348,6 +348,10 @@ impl Character {
     }
 
     pub fn tick(&mut self, reactor: &Reactor<Message>, world: &Chungus, cur_tick: u64) {
+        if self.health().is_dead() {
+            return;
+        }
+
         if self.no_clip {
             self.pos += self.vel * 0.2;
             return;
@@ -420,7 +424,6 @@ impl Character {
 
         if self.health().is_dead() {
             reactor.dispatch(Message::CharacterDeath { pos: self.pos });
-            self.rebirth();
         }
 
         let len = self.vel.length();
@@ -739,6 +742,16 @@ impl Character {
                     damage: 0,
                 },
                 Box::new(f),
+            );
+        }
+
+        {
+            let player = game.player_rc();
+            reactor.add_sink(
+                Message::ResetEverything,
+                Box::new(move |_: &Reactor<Message>, _msg: Message| {
+                    player.borrow_mut().init();
+                }),
             );
         }
     }
