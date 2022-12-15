@@ -1,15 +1,17 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
-use glam::{IVec3, Vec3};
 use std::cell::RefCell;
 use std::rc::Rc;
 use std::time::Instant;
 use v8::{ContextScope, HandleScope};
 use wolkenwelten_client::{start_client, RenderInit};
-use wolkenwelten_core::{Chungus, GameState, Message, Reactor, SfxId, GAME_LOG};
+use wolkenwelten_core::{Chungus, GameState, Message, Reactor};
+
+mod io;
+mod world;
 
 thread_local! {
-    static WORLD: RefCell<Option<Rc<RefCell<Chungus>>>> = RefCell::new(None);
+    pub static WORLD: RefCell<Option<Rc<RefCell<Chungus>>>> = RefCell::new(None);
     static MSG_QUEUE: RefCell<Vec<Message>> = RefCell::new(vec![]);
 }
 
@@ -19,119 +21,7 @@ fn eval(scope: &mut ContextScope<HandleScope>, source: &str) {
     let _result = script.run(scope).unwrap();
 }
 
-fn fun_log(
-    scope: &mut v8::HandleScope,
-    args: v8::FunctionCallbackArguments,
-    mut _retval: v8::ReturnValue,
-) {
-    let message = args
-        .get(0)
-        .to_string(scope)
-        .unwrap()
-        .to_rust_string_lossy(scope);
-    GAME_LOG.with(|log| {
-        log.borrow_mut().push(message);
-    });
-}
-
-fn fun_print(
-    scope: &mut v8::HandleScope,
-    args: v8::FunctionCallbackArguments,
-    mut _retval: v8::ReturnValue,
-) {
-    let message = args
-        .get(0)
-        .to_string(scope)
-        .unwrap()
-        .to_rust_string_lossy(scope);
-    print!("{}", message);
-}
-
-fn fun_eprint(
-    scope: &mut v8::HandleScope,
-    args: v8::FunctionCallbackArguments,
-    mut _retval: v8::ReturnValue,
-) {
-    let message = args
-        .get(0)
-        .to_string(scope)
-        .unwrap()
-        .to_rust_string_lossy(scope);
-    eprint!("{}", message);
-}
-
-fn fun_get_block(
-    scope: &mut v8::HandleScope,
-    args: v8::FunctionCallbackArguments,
-    mut retval: v8::ReturnValue,
-) {
-    let x = args.get(0).int32_value(scope);
-    let y = args.get(1).int32_value(scope);
-    let z = args.get(2).int32_value(scope);
-    if let (Some(x), Some(y), Some(z)) = (x, y, z) {
-        let pos = IVec3::new(x, y, z);
-        WORLD.with(|world| {
-            let world = &*world.borrow();
-            let world = world.as_ref().unwrap();
-            let world = world.borrow_mut().get_block(pos);
-            if let Some(b) = world {
-                retval.set_int32(b as i32);
-            } else {
-                retval.set_null();
-            }
-        });
-    }
-}
-
-fn fun_set_block(
-    scope: &mut v8::HandleScope,
-    args: v8::FunctionCallbackArguments,
-    mut _retval: v8::ReturnValue,
-) {
-    let x = args.get(0).int32_value(scope);
-    let y = args.get(1).int32_value(scope);
-    let z = args.get(2).int32_value(scope);
-    let b = args.get(3).int32_value(scope);
-    if let (Some(x), Some(y), Some(z), Some(block)) = (x, y, z, b) {
-        let pos = IVec3::new(x, y, z);
-        WORLD.with(|world| {
-            let world = &*world.borrow();
-            let world = world.as_ref().unwrap();
-            world.borrow_mut().set_block(pos, block as u8);
-        });
-    }
-}
-
-fn fun_sfx_play(
-    scope: &mut v8::HandleScope,
-    args: v8::FunctionCallbackArguments,
-    mut _retval: v8::ReturnValue,
-) {
-    let x = args.get(0).number_value(scope);
-    let y = args.get(1).number_value(scope);
-    let z = args.get(2).number_value(scope);
-    let volume = args.get(3).number_value(scope);
-    let sfx = args.get(4).int32_value(scope);
-    if let (Some(x), Some(y), Some(z), Some(volume), Some(sfx)) = (x, y, z, volume, sfx) {
-        let pos = Vec3::new(x as f32, y as f32, z as f32);
-        let sfx = match sfx {
-            1 => SfxId::Jump,
-            2 => SfxId::HookFire,
-            3 => SfxId::Ungh,
-            4 => SfxId::Step,
-            5 => SfxId::Stomp,
-            6 => SfxId::Bomb,
-            7 => SfxId::Pock,
-            8 => SfxId::Tock,
-            _ => SfxId::Void,
-        };
-        let volume = volume as f32;
-        let msg = Message::SfxPlay { pos, volume, sfx };
-        MSG_QUEUE.with(|q| q.borrow_mut().push(msg));
-    }
-}
-
-fn add_fun(
+pub fn defun(
     scope: &mut ContextScope<HandleScope>,
     obj: &v8::Local<v8::ObjectTemplate>,
     key: &str,
@@ -142,7 +32,7 @@ fn add_fun(
     obj.set(key.into(), value.into());
 }
 
-fn add_string(
+pub fn add_string(
     scope: &mut ContextScope<HandleScope>,
     obj: &v8::Local<v8::ObjectTemplate>,
     key: &str,
@@ -214,12 +104,8 @@ pub fn start_runtime(
                 "VERSION",
                 env!("CARGO_PKG_VERSION"),
             );
-            add_fun(&mut scope.borrow_mut(), &wwc, "eprint", fun_eprint);
-            add_fun(&mut scope.borrow_mut(), &wwc, "print", fun_print);
-            add_fun(&mut scope.borrow_mut(), &wwc, "getBlock", fun_get_block);
-            add_fun(&mut scope.borrow_mut(), &wwc, "setBlock", fun_set_block);
-            add_fun(&mut scope.borrow_mut(), &wwc, "sfxPlay", fun_sfx_play);
-            add_fun(&mut scope.borrow_mut(), &wwc, "game_log", fun_log);
+            io::init(&mut scope.borrow_mut(), &wwc);
+            world::init(&mut scope.borrow_mut(), &wwc);
             {
                 let key = v8::String::new(&mut scope.borrow_mut(), "WWC").unwrap();
                 let global = context.global(&mut scope.borrow_mut());
@@ -227,7 +113,6 @@ pub fn start_runtime(
                 global.set(&mut scope.borrow_mut(), key.into(), wwc.into());
             }
         }
-
         eval(
             &mut scope.borrow_mut(),
             include_str!("../../modules/main.js"),
