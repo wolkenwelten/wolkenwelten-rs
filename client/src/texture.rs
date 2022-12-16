@@ -2,7 +2,7 @@
 // All rights reserved. AGPL-3.0+ license.
 use anyhow::Result;
 use glium::{
-    texture::{RawImage2d, SrgbTexture2d, SrgbTexture2dArray},
+    texture::{RawImage2d, Texture2d, Texture2dArray},
     uniforms::Sampler,
 };
 use image::{DynamicImage, Rgba};
@@ -10,12 +10,12 @@ use wolkenwelten_core::BLOCKS;
 
 #[derive(Debug)]
 pub struct Texture {
-    texture: glium::texture::SrgbTexture2d,
+    texture: glium::texture::Texture2d,
 }
 
 #[derive(Debug)]
 pub struct TextureArray {
-    texture: glium::texture::SrgbTexture2dArray,
+    texture: glium::texture::Texture2dArray,
 }
 
 impl Texture {
@@ -25,7 +25,7 @@ impl Texture {
 
         let image_dimensions = img.dimensions();
         let img = RawImage2d::from_raw_rgba(img.into_raw(), image_dimensions);
-        let texture = SrgbTexture2d::new(display, img)?;
+        let texture = Texture2d::new(display, img)?;
         Ok(Self { texture })
     }
 
@@ -116,16 +116,16 @@ impl Texture {
         }
 
         let img = RawImage2d::from_raw_rgba(img.into_raw(), image_dimensions);
-        let texture = SrgbTexture2d::new(display, img)?;
+        let texture = Texture2d::new(display, img)?;
         Ok(Self { texture })
     }
 
     #[inline]
-    pub fn texture(&self) -> &SrgbTexture2d {
+    pub fn texture(&self) -> &Texture2d {
         &self.texture
     }
 
-    pub fn texture_nn(&self) -> Sampler<'_, glium::texture::SrgbTexture2d> {
+    pub fn texture_nn(&self) -> Sampler<'_, glium::texture::Texture2d> {
         self.texture()
             .sampled()
             .magnify_filter(glium::uniforms::MagnifySamplerFilter::Nearest)
@@ -154,13 +154,13 @@ impl TextureArray {
             })
             .collect();
 
-        let texture = SrgbTexture2dArray::new(display, tiles)?;
+        let texture = Texture2dArray::new(display, tiles)?;
 
         Ok(Self { texture })
     }
 
     #[inline]
-    pub fn texture(&self) -> &SrgbTexture2dArray {
+    pub fn texture(&self) -> &Texture2dArray {
         &self.texture
     }
 }

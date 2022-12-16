@@ -3,7 +3,7 @@
 use crate::{meshes::TextMesh, ClientState};
 use anyhow::Result;
 use glam::Mat4;
-use glium::{texture::SrgbTexture2d, uniform, uniforms::Sampler, Surface};
+use glium::{uniform, uniforms::Sampler, Surface, Texture2d};
 use wolkenwelten_core::{Character, ChunkRequestQueue, GameState, CHUNK_SIZE};
 
 pub mod chungus;
@@ -53,7 +53,7 @@ fn render_overlay(
     frame: &mut glium::Frame,
     fe: &ClientState,
     mat_mvp: [[f32; 4]; 4],
-    cur_tex: Sampler<SrgbTexture2d>,
+    cur_tex: Sampler<Texture2d>,
 ) -> Result<()> {
     let color = fe.overlay_color();
     if color.a == 0 {

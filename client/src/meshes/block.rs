@@ -1,7 +1,7 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
 use anyhow::Result;
-use glium::texture::SrgbTexture2dArray;
+use glium::texture::Texture2dArray;
 use glium::uniforms::Sampler;
 use glium::{uniform, Surface};
 use std::time::Instant;
@@ -150,7 +150,7 @@ impl BlockMesh {
         entry: &QueueEntry,
         mat_mv: [[f32; 4]; 4],
         mat_mvp: [[f32; 4]; 4],
-        cur_tex: Sampler<SrgbTexture2dArray>,
+        cur_tex: Sampler<Texture2dArray>,
         alpha: f32,
     ) -> Result<()> {
         let mask = entry.mask;
