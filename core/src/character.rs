@@ -308,13 +308,7 @@ impl Character {
         if self.rot[0] > 360.0 {
             self.rot[0] -= 360.0;
         }
-
-        if self.rot[1] < -90.0 {
-            self.rot[1] = -90.0;
-        }
-        if self.rot[1] > 90.0 {
-            self.rot[1] = 90.0;
-        }
+        self.rot[1] = self.rot[1].clamp(-90.0, 90.0);
     }
 
     fn is_solid_pillar(&self, pos: Vec3, world: &Chungus) -> bool {

@@ -1,7 +1,7 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
 use crate::Frustum;
-use crate::{BlockMesh, FADE_DISTANCE, RENDER_DISTANCE};
+use crate::{BlockMesh, RENDER_DISTANCE};
 use glam::{IVec3, Vec3};
 use std::cmp::Ordering;
 use std::collections::BinaryHeap;
@@ -19,17 +19,15 @@ pub struct QueueEntry {
     pub pos: IVec3,
     pub trans: Vec3,
     pub mask: u8,
-    pub alpha: f32,
 }
 
 impl QueueEntry {
-    fn new(pos: IVec3, trans: Vec3, dist: i64, mask: u8, alpha: f32) -> Self {
+    fn new(pos: IVec3, trans: Vec3, dist: i64, mask: u8) -> Self {
         Self {
             dist,
             pos,
             trans,
             mask,
-            alpha,
         }
     }
 
@@ -65,16 +63,11 @@ impl QueueEntry {
                             )
                             - player_pos;
                         let dist = dist.length();
-                        if dist < RENDER_DISTANCE {
-                            let alpha = if dist < (RENDER_DISTANCE - FADE_DISTANCE) {
-                                1.0
-                            } else {
-                                1.0 - ((dist - (RENDER_DISTANCE - FADE_DISTANCE)) / FADE_DISTANCE)
-                            };
+                        if dist < RENDER_DISTANCE + CHUNK_SIZE as f32 {
                             let dist = (dist * 8192.0) as i64;
                             let pos = IVec3::new(x, y, z);
                             let mask = BlockMesh::calc_mask(cx, cy, cz);
-                            render_queue.push(Self::new(pos, trans, dist, mask, alpha));
+                            render_queue.push(Self::new(pos, trans, dist, mask));
                         }
                     }
                 }

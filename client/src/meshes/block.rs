@@ -9,7 +9,7 @@ use wolkenwelten_core::{BlockType, ChunkBlockData, ChunkFluidData, ChunkLightDat
 use wolkenwelten_meshgen;
 use wolkenwelten_meshgen::BlockVertex;
 
-use crate::{ClientState, QueueEntry};
+use crate::{ClientState, QueueEntry, RENDER_DISTANCE};
 
 #[derive(Debug)]
 pub struct BlockMesh {
@@ -142,11 +142,13 @@ impl BlockMesh {
         Ok(())
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn draw(
         &self,
         frame: &mut glium::Frame,
         fe: &ClientState,
         entry: &QueueEntry,
+        mat_mv: [[f32; 4]; 4],
         mat_mvp: [[f32; 4]; 4],
         cur_tex: Sampler<SrgbTexture2dArray>,
         alpha: f32,
@@ -156,6 +158,8 @@ impl BlockMesh {
         let uniforms = uniform! {
             color_alpha: alpha,
             mat_mvp: mat_mvp,
+            mat_mv: mat_mv,
+            fade_distance: RENDER_DISTANCE,
             trans_pos: trans_pos,
             cur_tex: cur_tex,
         };

@@ -34,8 +34,6 @@ impl TextMesh {
     }
 
     pub fn new(display: &glium::Display) -> Result<Self, glium::vertex::BufferCreationError> {
-        //let vao = Vao::new_empty("Text Mesh");
-        //Vertex2D::vertex_attrib_pointers();
         let buffer = glium::VertexBuffer::empty(display, 0)?;
         Ok(Self {
             buffer,
@@ -82,7 +80,7 @@ impl TextMesh {
     }
 
     pub fn push_glyph(&mut self, x: i16, y: i16, size: i16, rgba: [u8; 4], c: char) -> &mut Self {
-        let glyph_width: i16 = (8 * size) as i16;
+        let glyph_width: i16 = 8 * size;
 
         if x < -glyph_width {
             return self;

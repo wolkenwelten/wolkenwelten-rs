@@ -43,6 +43,6 @@ pub fn draw(
         Item::None => fe
             .meshes
             .fist
-            .draw(frame, fe.block_indeces(), &fe.shaders.block, &mvp, 1.0),
+            .draw(frame, fe.block_indeces(), &fe.shaders.voxel, &mvp, 1.0),
     }
 }

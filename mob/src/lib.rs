@@ -476,7 +476,7 @@ impl Mob {
         meshes[self.anime_index()].draw(
             frame,
             fe.block_indeces(),
-            &fe.shaders.block,
+            &fe.shaders.voxel,
             &mvp,
             color_alpha,
         )

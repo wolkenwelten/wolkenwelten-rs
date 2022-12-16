@@ -10,13 +10,11 @@ pub mod chungus;
 mod held_item;
 
 pub const RENDER_DISTANCE: f32 = if cfg!(target_arch = "arm") || cfg!(target_arch = "aarch64") {
-    156.0
-} else if cfg!(debug_assertions) {
-    192.0
+    128.0
 } else {
-    256.0
+    156.0
 };
-pub const FADE_DISTANCE: f32 = 32.0;
+pub const FADE_DISTANCE: f32 = 16.0;
 
 /// Calculate the FoV based on player veolicty
 fn calc_fov(fov: f32, player: &Character) -> f32 {

@@ -34,7 +34,7 @@ fn draw(
     let model = Mat4::from_translation(pos) * model;
     let vp = projection.mul_mat4(view);
     let mvp = vp.mul_mat4(&model);
-    mesh.draw(frame, fe.block_indeces(), &fe.shaders.block, &mvp, 1.0)
+    mesh.draw(frame, fe.block_indeces(), &fe.shaders.voxel, &mvp, 1.0)
 }
 
 impl Grenade {

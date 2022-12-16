@@ -121,12 +121,14 @@ fn chungus_draw_blocks(
     frame: &mut glium::Frame,
     fe: &ClientState,
     game: &GameState,
+    mv: &Mat4,
     mvp: &Mat4,
     request: &mut ChunkRequestQueue,
 ) -> Result<()> {
     let frustum = Frustum::extract(mvp);
     let render_queue = QueueEntry::build(game.player().pos, &frustum);
     let now = Instant::now();
+    let mat_mv = mv.to_cols_array_2d();
     let mat_mvp = mvp.to_cols_array_2d();
 
     let block_tex = fe
@@ -143,8 +145,8 @@ fn chungus_draw_blocks(
         if let Some(mesh) = fe.world_mesh.get(&entry.pos) {
             let td = (now - mesh.get_first_created()).as_millis();
             let fade_in = (td as f32 / 500.0).clamp(0.0, 1.0);
-            let alpha = entry.alpha * fade_in;
-            mesh.draw(frame, fe, entry, mat_mvp, block_tex, alpha)?;
+            let alpha = fade_in;
+            mesh.draw(frame, fe, entry, mat_mv, mat_mvp, block_tex, alpha)?;
         }
     }
     Ok(())
@@ -154,12 +156,14 @@ fn chungus_draw_fluids(
     frame: &mut glium::Frame,
     fe: &ClientState,
     game: &GameState,
+    mv: &Mat4,
     mvp: &Mat4,
     request: &mut ChunkRequestQueue,
 ) -> Result<()> {
     let frustum = Frustum::extract(mvp);
     let render_queue = QueueEntry::build(game.player().pos, &frustum);
     let now = Instant::now();
+    let mat_mv = mv.to_cols_array_2d();
     let mat_mvp = mvp.to_cols_array_2d();
 
     let fluid_tex = fe
@@ -176,23 +180,25 @@ fn chungus_draw_fluids(
         if let Some(mesh) = fe.fluid_mesh.get(&entry.pos) {
             let td = (now - mesh.get_first_created()).as_millis();
             let fade_in = (td as f32 / 500.0).clamp(0.0, 1.0);
-            let alpha = entry.alpha * fade_in * 0.8;
-            mesh.draw(frame, fe, entry, mat_mvp, fluid_tex, alpha)?;
+            let alpha = fade_in * 0.8;
+            mesh.draw(frame, fe, entry, mat_mv, mat_mvp, fluid_tex, alpha)?;
         }
     }
     Ok(())
 }
 
 pub fn chungus_block_pass(args: RenderPassArgs) -> RenderPassArgs {
+    let mv = args.view;
     let mvp = args.projection * args.view;
-    chungus_draw_blocks(args.frame, args.fe, args.game, &mvp, args.request)
+    chungus_draw_blocks(args.frame, args.fe, args.game, &mv, &mvp, args.request)
         .expect("Error while drawing voxel chunks");
     args
 }
 
 pub fn chungus_fluid_pass(args: RenderPassArgs) -> RenderPassArgs {
+    let mv = args.view;
     let mvp = args.projection * args.view;
-    chungus_draw_fluids(args.frame, args.fe, args.game, &mvp, args.request)
+    chungus_draw_fluids(args.frame, args.fe, args.game, &mv, &mvp, args.request)
         .expect("Error while drawing voxel chunks");
     args
 }

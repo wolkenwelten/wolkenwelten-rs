@@ -28,6 +28,6 @@ impl Iterator for ChunkPosIter {
         let y = (self.i >> CHUNK_BITS) & CHUNK_MASK as usize;
         let z = self.i & CHUNK_MASK as usize;
         self.i += 1;
-        Some((x as usize, y as usize, z as usize))
+        Some((x, y, z))
     }
 }
