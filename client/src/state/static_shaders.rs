@@ -8,6 +8,7 @@ pub struct ShaderList {
     pub block: glium::Program,
     pub mesh: glium::Program,
     pub text: glium::Program,
+    pub voxel: glium::Program,
 }
 
 /// This is the prefix that has to be prepended to all vertex shaders,
@@ -107,7 +108,17 @@ impl ShaderList {
             include_str!("../shaders/block.vert"),
             include_str!("../shaders/block.frag"),
         )?;
+        let voxel = Self::new_program(
+            display,
+            include_str!("../shaders/voxel.vert"),
+            include_str!("../shaders/voxel.frag"),
+        )?;
 
-        Ok(Self { block, mesh, text })
+        Ok(Self {
+            block,
+            mesh,
+            text,
+            voxel,
+        })
     }
 }

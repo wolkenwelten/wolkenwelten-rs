@@ -22,7 +22,7 @@ fn gen_fluid(chnk: &ChunkBlockData, water_y: i32) -> ChunkFluidData {
                 let x = x as usize;
                 let y = y as usize;
                 let z = z as usize;
-                ret.data[x][y][z] = if chnk.data[x][y][z] == 0 { 1 } else { 0 };
+                ret.data[x][y][z] = (chnk.data[x][y][z] == 0) as u8;
             }
         }
     }
@@ -151,6 +151,6 @@ pub fn chunk(
             }
         }
     }
-    let fluid = gen_fluid(&r, (-35 - py) as i32);
+    let fluid = gen_fluid(&r, -35 - py);
     (r, fluid)
 }
