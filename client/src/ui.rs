@@ -190,8 +190,7 @@ pub fn prepare(fe: &mut ClientState, game: &GameState, request: &ChunkRequestQue
     prepare_experience(fe, game, 16, 16, 64);
     prepare_death_overlay(fe, game);
     prepare_debug_text(fe, game, request);
-    inventory::prepare(fe, game);
     log::prepare(fe);
-
+    inventory::prepare(fe, game);
     fe.ui_mesh.prepare(&fe.display);
 }
