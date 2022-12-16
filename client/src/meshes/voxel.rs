@@ -2,7 +2,7 @@
 // All rights reserved. AGPL-3.0+ license.
 use crate::BlockMesh;
 use anyhow::{anyhow, Result};
-use glium::texture::SrgbTexture2dArray;
+use glium::texture::Texture2dArray;
 use glium::{uniform, Surface};
 use std::time::Instant;
 use wolkenwelten_core::{BlockType, ChunkBlockData, ChunkLightData};
@@ -12,7 +12,7 @@ use wolkenwelten_meshgen::BlockVertex;
 #[derive(Debug)]
 pub struct VoxelMesh {
     mesh: BlockMesh,
-    texture: glium::texture::SrgbTexture2dArray,
+    texture: glium::texture::Texture2dArray,
     trans_pos: [f32; 3],
 }
 
@@ -61,7 +61,7 @@ impl VoxelMesh {
         self.mesh.buffer()
     }
 
-    pub fn texture(&self) -> &glium::texture::SrgbTexture2dArray {
+    pub fn texture(&self) -> &glium::texture::Texture2dArray {
         &self.texture
     }
 
@@ -72,7 +72,7 @@ impl VoxelMesh {
     fn texture_from_palette(
         display: &glium::Display,
         palette: &vox_format::types::Palette,
-    ) -> Result<SrgbTexture2dArray> {
+    ) -> Result<Texture2dArray> {
         let tiles = palette
             .iter()
             .map(|(_i, c)| {
@@ -80,7 +80,7 @@ impl VoxelMesh {
                 glium::texture::RawImage2d::from_raw_rgba_reversed(&buf[0..], (1, 1))
             })
             .collect();
-        let ret = SrgbTexture2dArray::new(display, tiles)?;
+        let ret = Texture2dArray::new(display, tiles)?;
         Ok(ret)
     }
 
