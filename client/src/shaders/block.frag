@@ -8,7 +8,7 @@ in float light_value;
 
 out vec4 frag_color;
 
-float fade_start = fade_distance - 16.0;
+float fade_start = fade_distance - 8.0;
 
 void main() {
 /* Very simple shader, we look up the currents pixel color according to
