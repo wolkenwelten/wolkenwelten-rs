@@ -52,9 +52,11 @@ fn init() -> (EventLoop<()>, glium::Display) {
     let cb = if cfg!(target_arch = "arm") || cfg!(target_arch = "aarch64") {
         let req = glium::glutin::GlRequest::Specific(glium::glutin::Api::OpenGlEs, (3, 0));
         cb.with_gl(req)
-    } else {
+    } else if !cfg!(target_os = "macos") {
         let req = glium::glutin::GlRequest::Specific(glium::glutin::Api::OpenGl, (3, 1));
         cb.with_gl(req)
+    } else {
+        cb
     };
 
     let display = glium::Display::new(wb, cb, &event_loop).unwrap();
