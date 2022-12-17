@@ -46,17 +46,15 @@ fn init() -> (EventLoop<()>, glium::Display) {
         .with_decorations(false)
         .with_maximized(true);
 
-    let cb = glium::glutin::ContextBuilder::new();
+    let cb = glium::glutin::ContextBuilder::new().with_vsync(true);
 
     // Disable vsync on ARM devices like the RPI4 where it seems to have a detrimental effect on the FPS
     let cb = if cfg!(target_arch = "arm") || cfg!(target_arch = "aarch64") {
         let req = glium::glutin::GlRequest::Specific(glium::glutin::Api::OpenGlEs, (3, 0));
-        cb.with_gl(req).with_vsync(true)
+        cb.with_gl(req)
     } else {
         let req = glium::glutin::GlRequest::Specific(glium::glutin::Api::OpenGl, (3, 1));
         cb.with_gl(req)
-            .with_vsync(true)
-            .with_gl_profile(glium::glutin::GlProfile::Core)
     };
 
     let display = glium::Display::new(wb, cb, &event_loop).unwrap();
