@@ -61,7 +61,19 @@ impl ShaderList {
     pub fn new_program(display: &glium::Display, vert: &str, frag: &str) -> Result<glium::Program> {
         let vert = format!("{}\n{}", VERT_PREFIX, vert);
         let frag = format!("{}\n{}", FRAG_PREFIX, frag);
-        Ok(glium::Program::from_source(display, &vert, &frag, None)?)
+        Ok(glium::Program::new(
+            display,
+            glium::program::ProgramCreationInput::SourceCode {
+                vertex_shader: &vert,
+                fragment_shader: &frag,
+                geometry_shader: None,
+                tessellation_control_shader: None,
+                tessellation_evaluation_shader: None,
+                transform_feedback_varyings: None,
+                outputs_srgb: true,
+                uses_point_size: false,
+            },
+        )?)
     }
 
     /// Create a new shader program from 2 vert/frag source slices where the appropriate #version prefix
@@ -85,7 +97,7 @@ impl ShaderList {
                 tessellation_control_shader: None,
                 tessellation_evaluation_shader: None,
                 transform_feedback_varyings: None,
-                outputs_srgb: false,
+                outputs_srgb: true,
                 uses_point_size: !cfg!(any(target_arch = "aarch64", target_arch = "armv7")), // Work around the GLES bug
             },
         )?)
