@@ -94,7 +94,7 @@ impl Mob {
             movement: Vec3::ZERO,
             model_index,
             state: MobState::Walk(Instant::now()),
-            health: Health::new(20),
+            health: Health::new(12),
             cooldown: Instant::now(),
         }
     }
@@ -128,7 +128,7 @@ impl Mob {
     }
 
     #[inline]
-    pub fn may_instant_attach(&self) -> bool {
+    pub fn may_instant_attack(&self) -> bool {
         self.cooldown.elapsed().as_millis() > 1200
     }
 
@@ -408,11 +408,11 @@ impl Mob {
                             self.set_state(MobState::ChasePlayer(Instant::now()));
                         }
                     } else if let MobState::ChasePlayer(_) = self.state {
-                        if self.may_instant_attach() {
+                        if self.may_instant_attack() {
                             self.cooldown();
                             reactor.defer(Message::MobStrike {
                                 pos: self.pos(),
-                                damage: 2,
+                                damage: 1,
                             });
                             self.set_state(MobState::InstantAttackPlayer(Instant::now()));
                         } else {
@@ -425,7 +425,7 @@ impl Mob {
                         if t.elapsed().as_millis() > 600 {
                             reactor.defer(Message::MobStrike {
                                 pos: self.pos(),
-                                damage: 2,
+                                damage: 3,
                             });
                             self.set_state(MobState::FightPlayer(Instant::now()));
                         }

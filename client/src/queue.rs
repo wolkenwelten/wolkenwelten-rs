@@ -38,7 +38,7 @@ impl QueueEntry {
         let px = (player_pos.x.floor() as i32) >> CHUNK_BITS;
         let py = (player_pos.y.floor() as i32) >> CHUNK_BITS;
         let pz = (player_pos.z.floor() as i32) >> CHUNK_BITS;
-        let view_steps = (RENDER_DISTANCE as i32 / CHUNK_SIZE as i32) + 1;
+        let view_steps = (RENDER_DISTANCE / CHUNK_SIZE as f32).ceil() as i32;
 
         for cx in -view_steps..=view_steps {
             for cy in -view_steps..=view_steps {

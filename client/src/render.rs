@@ -9,12 +9,13 @@ use wolkenwelten_core::{Character, ChunkRequestQueue, GameState, CHUNK_SIZE};
 pub mod chungus;
 mod held_item;
 
+// Should be in CHUNK_SIZE multiples, since otherwise we render a lot of transparent fragments
 pub const RENDER_DISTANCE: f32 = if cfg!(target_arch = "arm") || cfg!(target_arch = "aarch64") {
-    128.0
+    (CHUNK_SIZE * 4) as f32
 } else {
-    156.0
+    (CHUNK_SIZE * 5) as f32
 };
-pub const FADE_DISTANCE: f32 = 16.0;
+pub const FADE_DISTANCE: f32 = 8.0;
 
 /// Calculate the FoV based on player veolicty
 fn calc_fov(fov: f32, player: &Character) -> f32 {
