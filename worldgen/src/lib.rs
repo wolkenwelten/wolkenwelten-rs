@@ -152,7 +152,7 @@ pub fn init(args: RenderInitArgs) -> RenderInitArgs {
     let mut world = args.game.world_mut();
     let wg = world.generator_mut();
     {
-        wg.chunk_insert_primary("ROOT".to_owned(), island_test_primary);
+        wg.chunk_insert_primary("Root".to_owned(), island_test_primary);
     }
     args
 }
