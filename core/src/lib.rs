@@ -30,6 +30,7 @@ pub use iter::*;
 pub use message::*;
 pub use queue::*;
 pub use reactor::*;
+pub use worldgen::*;
 
 pub const CHUNK_BITS: i32 = 5;
 pub const CHUNK_SIZE: usize = 1 << CHUNK_BITS;

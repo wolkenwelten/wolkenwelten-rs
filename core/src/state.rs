@@ -1,6 +1,5 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
-use anyhow::Result;
 use glam::IVec3;
 use std::{
     cell::{Ref, RefCell, RefMut},
@@ -22,17 +21,28 @@ pub struct GameState {
     running: Rc<RefCell<bool>>,
 }
 
+impl Default for GameState {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl GameState {
-    pub fn new() -> Result<Self> {
+    pub fn new() -> Self {
         let player = Rc::new(RefCell::new(Character::new()));
         player.borrow_mut().init();
-        Ok(Self {
+        Self {
             clock: Rc::new(RefCell::new(Instant::now())),
             running: Rc::new(RefCell::new(true)),
             player,
             ticks_elapsed: 0,
-            world: Rc::new(RefCell::new(Chungus::new()?)),
-        })
+            world: Rc::new(RefCell::new(Chungus::new())),
+        }
+    }
+
+    pub fn with_handler(self, reactor: &mut Reactor<Message>) -> Self {
+        self.add_handler(reactor);
+        self
     }
 
     #[inline]

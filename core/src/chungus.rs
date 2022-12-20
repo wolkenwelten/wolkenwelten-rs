@@ -1,18 +1,13 @@
+use crate::worldgen::WorldGenerator;
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
 use crate::{blit_chunk_buffer, blit_chunk_data, ChunkBuffer, ChunkPosIter};
 use crate::{
-    worldgen, worldgen::WorldgenAssetList, BlockType, ChunkBlockData, ChunkFluidData,
-    ChunkLightData, ChunkRequestQueue, GameState, Message, Reactor, CHUNK_BITS, CHUNK_MASK,
-    CHUNK_SIZE,
+    BlockType, ChunkBlockData, ChunkFluidData, ChunkLightData, ChunkRequestQueue, GameState,
+    Message, Reactor, CHUNK_BITS, CHUNK_MASK, CHUNK_SIZE,
 };
-use anyhow::Result;
 use glam::f32::Vec3;
 use glam::i32::IVec3;
-use noise::utils::{NoiseMap, NoiseMapBuilder, PlaneMapBuilder};
-use noise::{Perlin, Seedable};
-use rand::Rng;
-use rand_xorshift::XorShiftRng;
 use std::cell::RefCell;
 use std::collections::hash_map::DefaultHasher;
 use std::collections::{HashMap, HashSet};
@@ -29,10 +24,7 @@ pub struct Chungus {
     chunks_fluid: HashMap<IVec3, ChunkFluidData>,
     chunks_simple_light: HashMap<IVec3, ChunkLightData>,
     chunks_complex_light: HashMap<IVec3, ChunkLightData>,
-    elevation: NoiseMap,
-    displacement: NoiseMap,
-    noise_map: NoiseMap,
-    assets: WorldgenAssetList,
+    generator: WorldGenerator,
 }
 
 impl Chungus {
@@ -374,9 +366,9 @@ impl Chungus {
         for pos in request.get_block_mut().drain() {
             let chunk = self.chunks_block.get(&pos);
             if chunk.is_none() {
-                let wg = worldgen::chunk(self, pos, reactor);
-                self.chunks_block.insert(pos, wg.0);
-                self.chunks_fluid.insert(pos, wg.1);
+                let wg = self.generator.chunk_generate(pos, reactor);
+                self.chunks_block.insert(pos, wg.block);
+                self.chunks_fluid.insert(pos, wg.fluid);
             }
         }
     }
@@ -494,23 +486,13 @@ impl Chungus {
     }
 
     #[inline]
-    pub fn elevation(&self) -> &NoiseMap {
-        &self.elevation
+    pub fn generator(&self) -> &WorldGenerator {
+        &self.generator
     }
 
     #[inline]
-    pub fn displacement(&self) -> &NoiseMap {
-        &self.displacement
-    }
-
-    #[inline]
-    pub fn noise_map(&self) -> &NoiseMap {
-        &self.noise_map
-    }
-
-    #[inline]
-    pub fn assets(&self) -> &WorldgenAssetList {
-        &self.assets
+    pub fn generator_mut(&mut self) -> &mut WorldGenerator {
+        &mut self.generator
     }
 
     #[inline]
@@ -599,16 +581,11 @@ impl Chungus {
         self.get_fluid(&cp).map(|chnk| chnk.get(pos & CHUNK_MASK))
     }
 
-    pub fn add_explosion(
-        &mut self,
-        pos: Vec3,
-        power: f32,
-        rng: &mut XorShiftRng,
-        reactor: &Reactor<Message>,
-    ) {
+    pub fn add_explosion(&mut self, pos: Vec3, power: f32, reactor: &Reactor<Message>) {
         let pos = pos.floor().as_ivec3();
         let p = power.round() as i32;
         let pp = p * p;
+        let mut i = pos.x ^ pos.y ^ pos.z;
         for x in -p..=p {
             for y in -p..=p {
                 for z in -p..=p {
@@ -617,9 +594,10 @@ impl Chungus {
                         let pos = pos + IVec3::new(x, y, z);
                         if let Some(block) = self.get_block(pos) {
                             if block != 0 {
-                                if rng.gen_ratio(1, 100) {
+                                if i & 127 == 0 {
                                     reactor.defer(Message::BlockBreak { pos, block });
                                 }
+                                i += 1;
                                 self.set_block(pos, 0);
                             }
                         };
@@ -636,38 +614,14 @@ impl Chungus {
         self.chunks_complex_light.clear();
     }
 
-    pub fn new() -> Result<Self> {
-        let simplex: Perlin = Perlin::default();
-        simplex.set_seed(1234);
-        let elevation: NoiseMap = PlaneMapBuilder::<Perlin, 2>::new(simplex)
-            .set_size(2048, 2048)
-            .set_x_bounds(-5.0, 5.0)
-            .set_y_bounds(-5.0, 5.0)
-            .build();
-
-        let simplex: Perlin = Perlin::default();
-        simplex.set_seed(2345);
-        let displacement: NoiseMap = PlaneMapBuilder::<Perlin, 2>::new(simplex)
-            .set_size(128, 128)
-            .build();
-
-        let simplex: Perlin = Perlin::default();
-        simplex.set_seed(3456);
-        let noise_map: NoiseMap = PlaneMapBuilder::<Perlin, 2>::new(simplex)
-            .set_size(128, 128)
-            .build();
-
-        let assets = WorldgenAssetList::new()?;
-
-        Ok(Self {
+    pub fn new() -> Self {
+        let generator = WorldGenerator::new();
+        Self {
             chunks_fluid: HashMap::with_capacity(1024),
             chunks_simple_light: HashMap::with_capacity(1024),
             chunks_complex_light: HashMap::with_capacity(1024),
             chunks_block: HashMap::with_capacity(1024),
-            elevation,
-            displacement,
-            noise_map,
-            assets,
-        })
+            generator,
+        }
     }
 }

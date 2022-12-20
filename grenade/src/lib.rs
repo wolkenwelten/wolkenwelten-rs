@@ -2,8 +2,6 @@
 // All rights reserved. AGPL-3.0+ license.
 use anyhow::Result;
 use glam::{Mat4, Vec3};
-use rand::prelude::*;
-use rand_xorshift::XorShiftRng;
 use std::cell::RefCell;
 use wolkenwelten_client::{ClientState, RenderInitArgs, RenderPassArgs, VoxelMesh};
 use wolkenwelten_core::{Chungus, Entity, Message, Reactor};
@@ -116,12 +114,9 @@ pub fn init(args: RenderInitArgs) -> RenderInitArgs {
     }
     {
         let world = args.game.world_rc();
-        let rng = RefCell::new(XorShiftRng::from_entropy());
         let f = move |reactor: &Reactor<Message>, msg: Message| {
             if let Message::EntityCollision { pos, .. } = msg {
-                world
-                    .borrow_mut()
-                    .add_explosion(pos, 7.0, &mut rng.borrow_mut(), reactor);
+                world.borrow_mut().add_explosion(pos, 7.0, reactor);
                 reactor.defer(Message::Explosion { pos, power: 7.0 });
             }
         };
