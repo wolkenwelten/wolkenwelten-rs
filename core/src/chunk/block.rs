@@ -74,6 +74,16 @@ impl ChunkBlockData {
             self.data[pos.x as usize][y as usize][pos.z as usize] = block;
         }
     }
+
+    pub fn fill(&mut self, block: u8) {
+        for s in self.data.iter_mut() {
+            for s in s {
+                for s in s {
+                    *s = block;
+                }
+            }
+        }
+    }
 }
 
 #[cfg(test)]

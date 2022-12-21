@@ -5,14 +5,17 @@ use rand::prelude::*;
 use rand::Rng;
 use rand_xorshift::XorShiftRng;
 use wolkenwelten_client::RenderInitArgs;
+use wolkenwelten_core::worldgen_intern;
+use wolkenwelten_core::WorldBox;
+use wolkenwelten_core::WorldGenOutline;
+use wolkenwelten_core::CHUNK_BITS;
 use wolkenwelten_core::{
-    point_lies_within_chunk, ChunkBlockData, ChunkGeneratorResult, Message, Reactor, CHUNK_SIZE,
+    point_lies_within_chunk, BlockGeneratorResult, ChunkBlockData, Message, Reactor, CHUNK_SIZE,
 };
-
 mod asset;
-pub use asset::*;
+use asset::*;
 
-fn gen_fluid(mut ret: ChunkGeneratorResult, water_y: i32) -> ChunkGeneratorResult {
+fn gen_fluid(mut ret: BlockGeneratorResult, water_y: i32) -> BlockGeneratorResult {
     for x in 0..CHUNK_SIZE as i32 {
         for y in 0..CHUNK_SIZE as i32 {
             if y > water_y {
@@ -49,26 +52,33 @@ fn grass_height(x: i32, z: i32) -> i32 {
     }
 }
 
-pub fn island_test_primary(
+fn calc_ground_height(x: i32, z: i32) -> i32 {
+    (-28).max(grass_height(x, z))
+}
+
+fn island_test_primary(
     pos: IVec3,
     reactor: &Reactor<Message>,
-    mut result: ChunkGeneratorResult,
-) -> ChunkGeneratorResult {
+    mut result: BlockGeneratorResult,
+) -> BlockGeneratorResult {
     ASSETS.with(|assets| {
+        let rngx = pos.x >> CHUNK_BITS;
+        let rngy = pos.y >> CHUNK_BITS;
+        let rngz = pos.z >> CHUNK_BITS;
         let mut rng = XorShiftRng::seed_from_u64(
-            (pos.x * pos.x + pos.y * pos.y + pos.z * pos.z)
+            (rngx * rngx + rngy * rngy + rngz * rngz)
                 .try_into()
                 .unwrap(),
         );
-        let px = pos.x * CHUNK_SIZE as i32;
-        let py = pos.y * CHUNK_SIZE as i32;
-        let pz = pos.z * CHUNK_SIZE as i32;
+        let px = pos.x;
+        let py = pos.y;
+        let pz = pos.z;
 
         for x in 0..CHUNK_SIZE as i32 {
             for z in 0..CHUNK_SIZE as i32 {
                 let pxx = px + x;
                 let pzz = pz + z;
-                let floor_y = (-28).max(grass_height(pxx, pzz));
+                let floor_y = calc_ground_height(pxx, pzz);
                 if floor_y < 3 {
                     result
                         .block
@@ -103,8 +113,7 @@ pub fn island_test_primary(
                             result.block.blit(&assets.bushes[i], pos);
                         }
                     } else if rng.gen_range(1..800) == 1 {
-                        let mut mob_pos =
-                            ((pos * CHUNK_SIZE as i32) + IVec3::new(x, 0, z)).as_vec3();
+                        let mut mob_pos = (pos + IVec3::new(x, 0, z)).as_vec3();
                         mob_pos.y = floor_y as f32 + 1.0;
                         if point_lies_within_chunk(mob_pos, pos) {
                             reactor.dispatch(Message::WorldgenSpawnMob { pos: mob_pos });
@@ -151,8 +160,99 @@ pub fn island_test_primary(
 pub fn init(args: RenderInitArgs) -> RenderInitArgs {
     let mut world = args.game.world_mut();
     let wg = world.generator_mut();
+
+    let root_sym = worldgen_intern("Root".to_string());
+    let sky_sym = worldgen_intern("Sky".to_string());
+    let ground_sym = worldgen_intern("Ground".to_string());
+    let underground_sym = worldgen_intern("Underground".to_string());
+    let island_sym = worldgen_intern("Island".to_string());
+    let ocean_sym = worldgen_intern("Ocean".to_string());
     {
-        wg.chunk_insert_primary("Root".to_owned(), island_test_primary);
+        wg.outline_insert_primary(
+            root_sym,
+            Box::new(
+                move |_position: WorldBox,
+                      _outline: &WorldGenOutline,
+                      queue: &mut Vec<WorldGenOutline>| {
+                    queue.push(WorldGenOutline {
+                        position: WorldBox::new(
+                            IVec3::new(i32::MIN, 4096, i32::MIN),
+                            IVec3::new(i32::MAX, i32::MAX, i32::MAX),
+                        ),
+                        name: sky_sym,
+                        variant: 0,
+                        level: 1,
+                    });
+                    queue.push(WorldGenOutline {
+                        position: WorldBox::new(
+                            IVec3::new(i32::MIN, -4096, i32::MIN),
+                            IVec3::new(i32::MAX, 4096, i32::MAX),
+                        ),
+                        name: ground_sym,
+                        variant: 0,
+                        level: 1,
+                    });
+                    queue.push(WorldGenOutline {
+                        position: WorldBox::new(
+                            IVec3::new(i32::MIN, i32::MIN, i32::MIN),
+                            IVec3::new(i32::MAX, -4096, i32::MAX),
+                        ),
+                        name: underground_sym,
+                        variant: 0,
+                        level: 1,
+                    });
+                },
+            ),
+        );
+
+        wg.outline_insert_primary(
+            ground_sym,
+            Box::new(
+                move |position: WorldBox,
+                      _outline: &WorldGenOutline,
+                      queue: &mut Vec<WorldGenOutline>| {
+                    let floor_height = [
+                        calc_ground_height(position.a.x, position.a.z),
+                        calc_ground_height(position.a.x, position.b.z),
+                        calc_ground_height(position.b.x, position.a.z),
+                        calc_ground_height(position.b.x, position.b.z),
+                    ];
+                    if floor_height.iter().any(|y| *y > 0) {
+                        queue.push(WorldGenOutline {
+                            position,
+                            name: island_sym,
+                            variant: 0,
+                            level: 2,
+                        });
+                    } else {
+                        queue.push(WorldGenOutline {
+                            position,
+                            name: ocean_sym,
+                            variant: 0,
+                            level: 2,
+                        });
+                    }
+                },
+            ),
+        );
+    }
+    {
+        wg.block_insert_primary(
+            sky_sym,
+            Box::new(
+                |_pos: IVec3, _reactor: &Reactor<Message>, result: BlockGeneratorResult| result,
+            ),
+        );
+        wg.block_insert_primary(ground_sym, Box::new(island_test_primary));
+        wg.block_insert_primary(
+            underground_sym,
+            Box::new(
+                |_pos: IVec3, _reactor: &Reactor<Message>, mut result: BlockGeneratorResult| {
+                    result.block.fill(3);
+                    result
+                },
+            ),
+        );
     }
     args
 }

@@ -1,64 +1,39 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
-use crate::{ChunkBlockData, ChunkFluidData, Message, Reactor};
+use crate::{Message, Reactor, CHUNK_SIZE};
 use glam::IVec3;
-use std::collections::HashMap;
+use std::{cell::RefCell, collections::HashMap};
 use string_interner::{DefaultSymbol, StringInterner};
 
-pub struct WorldGenOutline {
-    pub position: IVec3,
-    pub size: IVec3,
+mod block;
+mod outline;
+mod worldbox;
+pub use block::*;
+pub use outline::*;
+pub use worldbox::*;
+
+thread_local! {
+    pub static WORLDGEN_INTERNER: RefCell<StringInterner> = RefCell::new(StringInterner::new());
 }
 
-#[derive(Clone, Default, Debug)]
-pub struct ChunkGeneratorResult {
-    pub block: ChunkBlockData,
-    pub fluid: ChunkFluidData,
-}
-pub type ChunkGenerator = fn(
-    pos: IVec3,
-    reactor: &Reactor<Message>,
-    result: ChunkGeneratorResult,
-) -> ChunkGeneratorResult;
-
-#[derive(Clone)]
-pub struct ChunkGeneratorEntry {
-    primary: ChunkGenerator,
+pub fn worldgen_intern(s: String) -> DefaultSymbol {
+    WORLDGEN_INTERNER.with(|interner| interner.borrow_mut().get_or_intern(s))
 }
 
-impl ChunkGeneratorEntry {
-    pub fn new(primary: ChunkGenerator) -> Self {
-        Self { primary }
-    }
-}
-
-impl ChunkGeneratorEntry {
-    pub fn run(
-        &self,
-        pos: IVec3,
-        reactor: &Reactor<Message>,
-        result: ChunkGeneratorResult,
-    ) -> ChunkGeneratorResult {
-        (self.primary)(pos, reactor, result)
-    }
-}
-
-#[derive(Clone)]
 pub struct WorldGenerator {
-    interner: StringInterner,
-    chunk: HashMap<DefaultSymbol, ChunkGeneratorEntry>,
+    outline: HashMap<DefaultSymbol, OutlineGeneratorEntry>,
+    block: HashMap<DefaultSymbol, BlockGeneratorEntry>,
 
     symbol_root: DefaultSymbol,
 }
 
 impl Default for WorldGenerator {
     fn default() -> Self {
-        let mut interner = StringInterner::new();
-        let symbol_root = interner.get_or_intern_static("Root");
+        let symbol_root = worldgen_intern("Root".to_string());
         Self {
-            interner,
             symbol_root,
-            chunk: HashMap::new(),
+            block: HashMap::new(),
+            outline: HashMap::new(),
         }
     }
 }
@@ -68,22 +43,68 @@ impl WorldGenerator {
         Default::default()
     }
 
-    pub fn chunk_insert_primary(&mut self, k: String, λ: ChunkGenerator) {
-        let sym = self.interner.get_or_intern(k);
-        self.chunk.insert(sym, ChunkGeneratorEntry::new(λ));
+    pub fn outline_insert_primary(&mut self, k: DefaultSymbol, λ: OutlineGenerator) {
+        self.outline.insert(k, OutlineGeneratorEntry::new(λ));
     }
 
-    pub fn chunk_generate(
-        &mut self,
-        pos: IVec3,
-        reactor: &Reactor<Message>,
-    ) -> ChunkGeneratorResult {
-        let result = ChunkGeneratorResult::default();
+    pub fn block_insert_primary(&mut self, k: DefaultSymbol, λ: BlockGenerator) {
+        self.block.insert(k, BlockGeneratorEntry::new(λ));
+    }
 
-        if let Some(e) = self.chunk.get(&self.symbol_root) {
-            e.run(pos, reactor, result)
-        } else {
-            result
+    fn outline_resolve(
+        &mut self,
+        position: WorldBox,
+        outline: &WorldGenOutline,
+        queue: &mut Vec<WorldGenOutline>,
+    ) {
+        if let Some(h) = self.outline.get(&outline.name) {
+            h.run(position, outline, queue)
         }
+    }
+
+    pub fn outline_generate(&mut self, position: WorldBox) -> Vec<WorldGenOutline> {
+        let mut ret = vec![];
+        let mut tmp = vec![];
+        let mut queue = vec![WorldGenOutline {
+            position,
+            name: self.symbol_root,
+            variant: 0,
+            level: 0,
+        }];
+        loop {
+            for outline in queue.iter() {
+                self.outline_resolve(position, outline, &mut tmp);
+                if outline.position.intersects(&position) {
+                    ret.push(*outline);
+                }
+            }
+            {
+                if tmp.is_empty() {
+                    return ret;
+                }
+                std::mem::swap(&mut queue, &mut tmp);
+                tmp.clear()
+            }
+        }
+    }
+
+    pub fn generate(&mut self, pos: IVec3, reactor: &Reactor<Message>) -> BlockGeneratorResult {
+        let pos = pos * CHUNK_SIZE as i32;
+        let position = WorldBox::new(
+            pos,
+            pos + IVec3::new(CHUNK_SIZE as i32, CHUNK_SIZE as i32, CHUNK_SIZE as i32),
+        );
+        let outlines = self.outline_generate(position);
+        let mut ret = outlines
+            .iter()
+            .fold(BlockGeneratorResult::default(), |result, outline| {
+                if let Some(gen) = self.block.get(&outline.name) {
+                    gen.run(pos, reactor, result)
+                } else {
+                    result
+                }
+            });
+        ret.outlines = outlines;
+        ret
     }
 }

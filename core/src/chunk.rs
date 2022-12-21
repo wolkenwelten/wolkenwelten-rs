@@ -13,7 +13,7 @@ pub use light::ChunkLightData;
 use crate::{ChunkBuffer, ChunkData, CHUNK_SIZE};
 
 pub fn point_lies_within_chunk(p: Vec3, chunk: IVec3) -> bool {
-    let chunk = (chunk * CHUNK_SIZE as i32).as_vec3();
+    let chunk = chunk.as_vec3();
     !(p.x < chunk.x
         || p.x > chunk.x + CHUNK_SIZE as f32
         || p.y < chunk.y

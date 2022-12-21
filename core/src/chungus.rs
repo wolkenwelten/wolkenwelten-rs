@@ -1,7 +1,9 @@
 use crate::worldgen::WorldGenerator;
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
-use crate::{blit_chunk_buffer, blit_chunk_data, ChunkBuffer, ChunkPosIter};
+use crate::{
+    blit_chunk_buffer, blit_chunk_data, ChunkBuffer, ChunkPosIter, WorldBox, WorldGenOutline,
+};
 use crate::{
     BlockType, ChunkBlockData, ChunkFluidData, ChunkLightData, ChunkRequestQueue, GameState,
     Message, Reactor, CHUNK_BITS, CHUNK_MASK, CHUNK_SIZE,
@@ -24,6 +26,7 @@ pub struct Chungus {
     chunks_fluid: HashMap<IVec3, ChunkFluidData>,
     chunks_simple_light: HashMap<IVec3, ChunkLightData>,
     chunks_complex_light: HashMap<IVec3, ChunkLightData>,
+    outlines: HashMap<IVec3, Vec<WorldGenOutline>>,
     generator: WorldGenerator,
 }
 
@@ -322,6 +325,18 @@ impl Chungus {
         }
     }
 
+    pub fn get_outlines(&self, position: WorldBox) -> Vec<WorldGenOutline> {
+        let pos = position.a >> CHUNK_BITS;
+        if let Some(v) = self.outlines.get(&pos) {
+            v.iter()
+                .filter(|o| o.position.intersects(&position))
+                .copied()
+                .collect()
+        } else {
+            vec![]
+        }
+    }
+
     pub fn handle_requests(&mut self, request: &mut ChunkRequestQueue, reactor: &Reactor<Message>) {
         let mut simple_light_reqs: HashSet<IVec3> = HashSet::new();
         let mut block_reqs: HashSet<IVec3> = HashSet::new();
@@ -366,9 +381,10 @@ impl Chungus {
         for pos in request.get_block_mut().drain() {
             let chunk = self.chunks_block.get(&pos);
             if chunk.is_none() {
-                let wg = self.generator.chunk_generate(pos, reactor);
+                let wg = self.generator.generate(pos, reactor);
                 self.chunks_block.insert(pos, wg.block);
                 self.chunks_fluid.insert(pos, wg.fluid);
+                self.outlines.insert(pos, wg.outlines);
             }
         }
     }
@@ -621,6 +637,7 @@ impl Chungus {
             chunks_simple_light: HashMap::with_capacity(1024),
             chunks_complex_light: HashMap::with_capacity(1024),
             chunks_block: HashMap::with_capacity(1024),
+            outlines: HashMap::with_capacity(1024),
             generator,
         }
     }
