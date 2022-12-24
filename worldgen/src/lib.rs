@@ -167,6 +167,7 @@ pub fn init(args: RenderInitArgs) -> RenderInitArgs {
     let underground_sym = worldgen_intern("Underground".to_string());
     let island_sym = worldgen_intern("Island".to_string());
     let ocean_sym = worldgen_intern("Ocean".to_string());
+
     {
         wg.outline_insert_primary(
             root_sym,
@@ -176,7 +177,7 @@ pub fn init(args: RenderInitArgs) -> RenderInitArgs {
                       queue: &mut Vec<WorldGenOutline>| {
                     queue.push(WorldGenOutline {
                         position: WorldBox::new(
-                            IVec3::new(i32::MIN, 4096, i32::MIN),
+                            IVec3::new(i32::MIN, 1024, i32::MIN),
                             IVec3::new(i32::MAX, i32::MAX, i32::MAX),
                         ),
                         name: sky_sym,
@@ -185,8 +186,8 @@ pub fn init(args: RenderInitArgs) -> RenderInitArgs {
                     });
                     queue.push(WorldGenOutline {
                         position: WorldBox::new(
-                            IVec3::new(i32::MIN, -4096, i32::MIN),
-                            IVec3::new(i32::MAX, 4096, i32::MAX),
+                            IVec3::new(i32::MIN, -1024, i32::MIN),
+                            IVec3::new(i32::MAX, 1024, i32::MAX),
                         ),
                         name: ground_sym,
                         variant: 0,
@@ -195,7 +196,7 @@ pub fn init(args: RenderInitArgs) -> RenderInitArgs {
                     queue.push(WorldGenOutline {
                         position: WorldBox::new(
                             IVec3::new(i32::MIN, i32::MIN, i32::MIN),
-                            IVec3::new(i32::MAX, -4096, i32::MAX),
+                            IVec3::new(i32::MAX, -1024, i32::MAX),
                         ),
                         name: underground_sym,
                         variant: 0,
@@ -217,7 +218,7 @@ pub fn init(args: RenderInitArgs) -> RenderInitArgs {
                         calc_ground_height(position.b.x, position.a.z),
                         calc_ground_height(position.b.x, position.b.z),
                     ];
-                    if floor_height.iter().any(|y| *y > 0) {
+                    if floor_height.iter().any(|y| *y > -28) {
                         queue.push(WorldGenOutline {
                             position,
                             name: island_sym,
@@ -243,7 +244,8 @@ pub fn init(args: RenderInitArgs) -> RenderInitArgs {
                 |_pos: IVec3, _reactor: &Reactor<Message>, result: BlockGeneratorResult| result,
             ),
         );
-        wg.block_insert_primary(ground_sym, Box::new(island_test_primary));
+        wg.block_insert_primary(island_sym, Box::new(island_test_primary));
+        wg.block_insert_primary(ocean_sym, Box::new(island_test_primary));
         wg.block_insert_primary(
             underground_sym,
             Box::new(

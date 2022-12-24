@@ -73,18 +73,16 @@ impl WorldGenerator {
         }];
         loop {
             for outline in queue.iter() {
-                self.outline_resolve(position, outline, &mut tmp);
                 if outline.position.intersects(&position) {
+                    self.outline_resolve(position, outline, &mut tmp);
                     ret.push(*outline);
                 }
             }
-            {
-                if tmp.is_empty() {
-                    return ret;
-                }
-                std::mem::swap(&mut queue, &mut tmp);
-                tmp.clear()
+            if tmp.is_empty() {
+                return ret;
             }
+            std::mem::swap(&mut queue, &mut tmp);
+            tmp.clear()
         }
     }
 
