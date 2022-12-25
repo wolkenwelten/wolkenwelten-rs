@@ -1,0 +1,36 @@
+[package]
+name = "wolkenwelten-slayer-mode"
+version = "0.1.2"
+edition = "2021"
+license = "AGPL-3.0-or-later"
+homepage = "https://wolkenwelten.net"
+description = """
+The default game-mode, meant to be some sort of hack'n'slay / Rogue-lite heavily influenced by ToME4 and Diablo II
+"""
+
+[dependencies]
+wolkenwelten-client = { path = "../client" }
+wolkenwelten-core = { path = "../core" }
+wolkenwelten-scripting = { path = "../scripting" }
+
+wolkenwelten-block-mining = { path = "../block_mining", optional = true }
+wolkenwelten-particles = { path = "../particles", optional = true }
+wolkenwelten-mob = { path = "../mob", optional = true }
+wolkenwelten-shadow = { path = "../shadow", optional = true }
+wolkenwelten-item-drop = { path = "../item_drop", optional = true }
+wolkenwelten-grenade = { path = "../grenade", optional = true }
+wolkenwelten-sky = { path = "../sky", optional = true }
+wolkenwelten-sound = { path = "../sound", optional = true }
+wolkenwelten-worldgen = { path = "../worldgen", optional = true }
+
+[features]
+default = ["block-mining", "item-drop", "grenade", "mob", "particles", "sky", "shadow", "sound", "worldgen"]
+block-mining = ["dep:wolkenwelten-block-mining"]
+grenade = ["dep:wolkenwelten-grenade"]
+mob = ["dep:wolkenwelten-mob"]
+sound = ["dep:wolkenwelten-sound"]
+sky = ["dep:wolkenwelten-sky"]
+shadow = ["dep:wolkenwelten-shadow"]
+particles = ["dep:wolkenwelten-particles"]
+item-drop = ["dep:wolkenwelten-item-drop"]
+worldgen = ["dep:wolkenwelten-worldgen"]

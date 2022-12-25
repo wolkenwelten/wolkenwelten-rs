@@ -4105,18 +4105,7 @@ name = "wolkenwelten"
 version = "0.1.2"
 dependencies = [
  "embed-resource",
- "wolkenwelten-block-mining",
- "wolkenwelten-client",
- "wolkenwelten-core",
- "wolkenwelten-grenade",
- "wolkenwelten-item-drop",
- "wolkenwelten-mob",
- "wolkenwelten-particles",
- "wolkenwelten-scripting",
- "wolkenwelten-shadow",
- "wolkenwelten-sky",
- "wolkenwelten-sound",
- "wolkenwelten-worldgen",
+ "wolkenwelten-slayer-mode",
 ]
 
 [[package]]
@@ -4253,6 +4242,24 @@ dependencies = [
  "glium",
  "wolkenwelten-client",
  "wolkenwelten-core",
+]
+
+[[package]]
+name = "wolkenwelten-slayer-mode"
+version = "0.1.2"
+dependencies = [
+ "wolkenwelten-block-mining",
+ "wolkenwelten-client",
+ "wolkenwelten-core",
+ "wolkenwelten-grenade",
+ "wolkenwelten-item-drop",
+ "wolkenwelten-mob",
+ "wolkenwelten-particles",
+ "wolkenwelten-scripting",
+ "wolkenwelten-shadow",
+ "wolkenwelten-sky",
+ "wolkenwelten-sound",
+ "wolkenwelten-worldgen",
 ]
 
 [[package]]

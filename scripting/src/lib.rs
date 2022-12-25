@@ -13,6 +13,13 @@ mod world;
 thread_local! {
     pub static WORLD: RefCell<Option<Rc<RefCell<Chungus>>>> = RefCell::new(None);
     static MSG_QUEUE: RefCell<Vec<Message>> = RefCell::new(vec![]);
+    static JS_INIT_VEC: RefCell<Vec<String>> = RefCell::new(vec![]);
+}
+
+pub fn push_init_code(code: &str) {
+    JS_INIT_VEC.with(|v| {
+        v.borrow_mut().push(code.to_string());
+    })
 }
 
 fn eval(scope: &mut ContextScope<HandleScope>, source: &str) {
@@ -113,10 +120,14 @@ pub fn start_runtime(
                 global.set(&mut scope.borrow_mut(), key.into(), wwc.into());
             }
         }
-        eval(
-            &mut scope.borrow_mut(),
-            include_str!("../../modules/main.js"),
-        );
+
+        JS_INIT_VEC.with(|v| {
+            let scope = &mut scope.borrow_mut();
+            v.borrow_mut().drain(0..).for_each(|source| {
+                eval(scope, &source);
+            });
+        });
+
         start_client(game_state, reactor, render_init_fun);
     }
 }

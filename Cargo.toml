@@ -14,20 +14,7 @@ An open voxel sandbox
 embed-resource = "1.6"
 
 [dependencies]
-
-wolkenwelten-client = { path = "client" }
-wolkenwelten-core = { path = "core" }
-wolkenwelten-scripting = { path = "scripting" }
-
-wolkenwelten-block-mining = { path = "block_mining", optional = true }
-wolkenwelten-particles = { path = "particles", optional = true }
-wolkenwelten-mob = { path = "mob", optional = true }
-wolkenwelten-shadow = { path = "shadow", optional = true }
-wolkenwelten-item-drop = { path = "item_drop", optional = true }
-wolkenwelten-grenade = { path = "grenade", optional = true }
-wolkenwelten-sky = { path = "sky", optional = true }
-wolkenwelten-sound = { path = "sound", optional = true }
-wolkenwelten-worldgen = { path = "worldgen", optional = true }
+wolkenwelten-slayer-mode = { path = "slayer_mode" }
 
 [profile.dev]
 opt-level = 2
@@ -40,17 +27,5 @@ codegen-units = 1
 strip = true
 panic = "abort"
 
-[features]
-default = ["block-mining", "item-drop", "grenade", "mob", "particles", "sky", "shadow", "sound", "worldgen"]
-block-mining = ["dep:wolkenwelten-block-mining"]
-grenade = ["dep:wolkenwelten-grenade"]
-mob = ["dep:wolkenwelten-mob"]
-sound = ["dep:wolkenwelten-sound"]
-sky = ["dep:wolkenwelten-sky"]
-shadow = ["dep:wolkenwelten-shadow"]
-particles = ["dep:wolkenwelten-particles"]
-item-drop = ["dep:wolkenwelten-item-drop"]
-worldgen = ["dep:wolkenwelten-worldgen"]
-
 [workspace]
-members = ["block_mining","client","core","grenade","item_drop","meshgen","mob","particles","scripting","shadow","sky","sound", "worldgen"]
+members = ["slayer_mode"]
