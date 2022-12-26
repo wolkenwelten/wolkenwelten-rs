@@ -31,6 +31,12 @@ pub fn add_init_functions() -> Vec<RenderInit> {
         render_init_fun.push(Box::new(wolkenwelten_block_mining::init));
     }
 
+    #[cfg(feature = "map")]
+    {
+        extern crate wolkenwelten_map;
+        render_init_fun.push(Box::new(wolkenwelten_map::init));
+    }
+
     #[cfg(feature = "mob")]
     {
         extern crate wolkenwelten_mob;

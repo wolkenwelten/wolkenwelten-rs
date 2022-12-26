@@ -4172,6 +4172,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "wolkenwelten-map"
+version = "0.1.2"
+dependencies = [
+ "anyhow",
+ "glam",
+ "glium",
+ "image",
+ "wolkenwelten-client",
+ "wolkenwelten-core",
+]
+
+[[package]]
 name = "wolkenwelten-meshgen"
 version = "0.1.2"
 dependencies = [
@@ -4253,6 +4265,7 @@ dependencies = [
  "wolkenwelten-core",
  "wolkenwelten-grenade",
  "wolkenwelten-item-drop",
+ "wolkenwelten-map",
  "wolkenwelten-mob",
  "wolkenwelten-particles",
  "wolkenwelten-scripting",

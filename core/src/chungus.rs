@@ -76,6 +76,14 @@ impl Chungus {
         });
     }
 
+    pub fn blocks(&self) -> &HashMap<IVec3, ChunkBlockData> {
+        &self.chunks_block
+    }
+
+    pub fn fluids(&self) -> &HashMap<IVec3, ChunkFluidData> {
+        &self.chunks_fluid
+    }
+
     fn fluid_tick_remove_blocked(buf: &mut ChunkBuffer, blocks: &ChunkBlockData) {
         for (x, y, z) in ChunkPosIter::new() {
             if blocks.data[x][y][z] == 0 {

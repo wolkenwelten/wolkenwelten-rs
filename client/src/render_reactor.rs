@@ -65,6 +65,19 @@ fn view_pass(mut a: RenderPassArgs) -> RenderPassArgs {
     a
 }
 
+fn projection_2d_pass(mut a: RenderPassArgs) -> RenderPassArgs {
+    let (window_width, window_height) = a.fe.window_size();
+    a.projection = Mat4::orthographic_rh_gl(
+        0.0,
+        window_width as f32,
+        window_height as f32,
+        0.0,
+        -10.0,
+        10.0,
+    );
+    a
+}
+
 impl Default for RenderReactor {
     fn default() -> Self {
         Self {
@@ -74,7 +87,7 @@ impl Default for RenderReactor {
             post_block_render: vec![Box::new(chungus_fluid_pass)],
 
             hud_3d_render: vec![],
-            hud_2d_render: vec![],
+            hud_2d_render: vec![Box::new(projection_2d_pass)],
 
             entity_provider: vec![],
         }

@@ -323,9 +323,18 @@ impl BlockType {
     pub fn new_default_fluids() -> Vec<Self> {
         vec![
             BlockType::new("Void").with_texture(0),
-            BlockType::new("Water").with_texture(0),
-            BlockType::new("Sea Water").with_texture(1),
-            BlockType::new("Lava").with_texture(2),
+            BlockType::new("Water").with_texture(0).with_colors(
+                RGBA8::new(0x00, 0x36, 0xD4, 0xFF),
+                RGBA8::new(0x00, 0x00, 0xBD, 0xFF),
+            ),
+            BlockType::new("Sea Water").with_texture(1).with_colors(
+                RGBA8::new(0x00, 0x1E, 0x98, 0xFF),
+                RGBA8::new(0x08, 0x00, 0x87, 0xFF),
+            ),
+            BlockType::new("Lava").with_texture(2).with_colors(
+                RGBA8::new(0xBD, 0x00, 0x1A, 0xFF),
+                RGBA8::new(0xBD, 0x00, 0x1A, 0xFF),
+            ),
         ]
     }
 }

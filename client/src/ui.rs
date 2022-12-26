@@ -47,18 +47,6 @@ fn prepare_experience(fe: &mut ClientState, game: &GameState, x: i16, y: i16, si
     }
 }
 
-fn prepare_fps(fe: &mut ClientState) {
-    let (window_width, _window_height) = fe.window_size();
-    let fps_text = format!("{}", fe.fps());
-    fe.ui_mesh.push_string(
-        window_width as i16 - 48,
-        8,
-        2,
-        [0xFF, 0xFF, 0xFF, 0xFF],
-        fps_text.as_str(),
-    );
-}
-
 fn prepare_crosshair(fe: &mut ClientState) {
     let (window_width, window_height) = fe.window_size();
 
@@ -99,7 +87,6 @@ fn prepare_death_overlay(fe: &mut ClientState, game: &GameState) {
 }
 
 pub fn prepare(fe: &mut ClientState, game: &GameState, request: &ChunkRequestQueue) {
-    prepare_fps(fe);
     prepare_crosshair(fe);
     healthbar::prepare(fe, game, 96, 16, true);
     prepare_experience(fe, game, 16, 16, 64);

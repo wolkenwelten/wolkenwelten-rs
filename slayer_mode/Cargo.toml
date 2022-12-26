@@ -15,6 +15,7 @@ wolkenwelten-scripting = { path = "../scripting" }
 
 wolkenwelten-block-mining = { path = "../block_mining", optional = true }
 wolkenwelten-particles = { path = "../particles", optional = true }
+wolkenwelten-map = { path = "../map", optional = true }
 wolkenwelten-mob = { path = "../mob", optional = true }
 wolkenwelten-shadow = { path = "../shadow", optional = true }
 wolkenwelten-item-drop = { path = "../item_drop", optional = true }
@@ -24,9 +25,10 @@ wolkenwelten-sound = { path = "../sound", optional = true }
 wolkenwelten-worldgen = { path = "../worldgen", optional = true }
 
 [features]
-default = ["block-mining", "item-drop", "grenade", "mob", "particles", "sky", "shadow", "sound", "worldgen"]
+default = ["block-mining", "item-drop", "grenade", "map", "mob", "particles", "sky", "shadow", "sound", "worldgen"]
 block-mining = ["dep:wolkenwelten-block-mining"]
 grenade = ["dep:wolkenwelten-grenade"]
+map = ["dep:wolkenwelten-map"]
 mob = ["dep:wolkenwelten-mob"]
 sound = ["dep:wolkenwelten-sound"]
 sky = ["dep:wolkenwelten-sky"]

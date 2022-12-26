@@ -39,6 +39,10 @@ pub fn prepare(fe: &mut ClientState, game: &GameState, request: &ChunkRequestQue
 
     let y = y + 20;
 
+    let fps_text = format!("FPS: {}", fe.fps());
+    fe.ui_mesh
+        .push_string(8, y, 2, [0xFF, 0xFF, 0xFF, 0xFF], fps_text.as_str());
+
     let position = {
         let player = game.player();
         WorldBox {

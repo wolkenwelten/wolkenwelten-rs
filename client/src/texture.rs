@@ -19,14 +19,17 @@ pub struct TextureArray {
 }
 
 impl Texture {
-    pub fn from_bytes(display: &glium::Display, bytes: &'static [u8]) -> Result<Self> {
-        let img = image::load_from_memory(bytes)?;
+    pub fn from_image(display: &glium::Display, img: DynamicImage) -> Result<Self> {
         let img = img.to_rgba8();
 
         let image_dimensions = img.dimensions();
         let img = RawImage2d::from_raw_rgba(img.into_raw(), image_dimensions);
         let texture = Texture2d::new(display, img)?;
         Ok(Self { texture })
+    }
+
+    pub fn from_bytes(display: &glium::Display, bytes: &'static [u8]) -> Result<Self> {
+        Self::from_image(display, image::load_from_memory(bytes)?)
     }
 
     pub fn build_block_icons(
