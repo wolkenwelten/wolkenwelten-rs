@@ -163,7 +163,14 @@ fn run_event_loop(
                 let mut frame = render.display.draw();
                 prepare_frame(&mut render, &game, &mut request)
                     .expect("Error during frame preparation");
-                render_reactor.run(&mut frame, &render, &game, &mut request, RENDER_DISTANCE);
+                render_reactor.run(
+                    &mut frame,
+                    &render,
+                    &game,
+                    &reactor,
+                    &mut request,
+                    RENDER_DISTANCE,
+                );
                 render_frame(&mut frame, &render, &game).expect("Error during rendering");
                 frame.finish().expect("Error during frame finish");
 

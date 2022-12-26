@@ -345,6 +345,13 @@ impl Chungus {
         }
     }
 
+    pub fn generate(&mut self, reactor: &Reactor<Message>, pos: IVec3) {
+        let wg = self.generator.generate(pos, reactor);
+        self.chunks_block.insert(pos, wg.block);
+        self.chunks_fluid.insert(pos, wg.fluid);
+        self.outlines.insert(pos, wg.outlines);
+    }
+
     pub fn handle_requests(&mut self, request: &mut ChunkRequestQueue, reactor: &Reactor<Message>) {
         let mut simple_light_reqs: HashSet<IVec3> = HashSet::new();
         let mut block_reqs: HashSet<IVec3> = HashSet::new();
@@ -389,10 +396,7 @@ impl Chungus {
         for pos in request.get_block_mut().drain() {
             let chunk = self.chunks_block.get(&pos);
             if chunk.is_none() {
-                let wg = self.generator.generate(pos, reactor);
-                self.chunks_block.insert(pos, wg.block);
-                self.chunks_fluid.insert(pos, wg.fluid);
-                self.outlines.insert(pos, wg.outlines);
+                self.generate(reactor, pos);
             }
         }
     }

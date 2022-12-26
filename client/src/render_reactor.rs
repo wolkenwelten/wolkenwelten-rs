@@ -13,6 +13,7 @@ pub struct RenderPassArgs<'a> {
     pub projection: Mat4,
     pub view: Mat4,
     pub request: &'a mut ChunkRequestQueue,
+    pub reactor: &'a Reactor<Message>,
     pub render_distance: f32,
     pub render_reactor: &'a RenderReactor,
 }
@@ -128,6 +129,7 @@ impl RenderReactor {
         frame: &mut glium::Frame,
         fe: &ClientState,
         game: &GameState,
+        reactor: &Reactor<Message>,
         request: &mut ChunkRequestQueue,
         render_distance: f32,
     ) {
@@ -137,6 +139,7 @@ impl RenderReactor {
             game,
             projection: Mat4::IDENTITY,
             view: Mat4::IDENTITY,
+            reactor,
             request,
             render_distance,
             render_reactor: self,

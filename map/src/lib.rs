@@ -1,7 +1,7 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
 use anyhow::Result;
-use glam::{IVec2, Mat4, Vec3};
+use glam::{IVec2, IVec3, Mat4, Vec3};
 use glium::{uniform, Surface};
 use image::DynamicImage;
 use std::{cell::RefCell, collections::HashMap};
@@ -25,8 +25,15 @@ pub struct MapCache {
     cache: Option<(IVec2, Texture)>,
 }
 
+static MAP_SIZE: (i32, i32) = (512, 512);
+
 impl MapCache {
-    fn render_image(&self, game: &GameState) -> DynamicImage {
+    fn render_image(
+        &self,
+        game: &GameState,
+        cam_pos: (i32, i32),
+        size: (i32, i32),
+    ) -> DynamicImage {
         let mut chunks: HashMap<IVec2, Vec<(i32, &ChunkBlockData, &ChunkFluidData)>> =
             HashMap::new();
         let world = game.world();
@@ -76,16 +83,16 @@ impl MapCache {
             })
             .collect();
 
-        let (x_off, z_off) = Self::map_off(game.player().pos());
+        let (x_off, z_off) = cam_pos;
         BLOCKS.with(|blocks| {
             FLUIDS.with(|fluids| {
                 let blocks = blocks.borrow();
                 let fluids = fluids.borrow();
-                let mut img = image::RgbaImage::new(512, 512);
+                let mut img = image::RgbaImage::new(size.0 as u32, size.1 as u32);
                 for (pos, entry) in entries {
                     let x_start = (pos.x << CHUNK_BITS) - x_off;
                     let z_start = (pos.y << CHUNK_BITS) - z_off;
-                    if !(0..512).contains(&x_start) || !(0..512).contains(&z_start) {
+                    if !(0..size.0).contains(&x_start) || !(0..size.1).contains(&z_start) {
                         continue;
                     }
                     for (xo, b) in entry.tile.iter().enumerate() {
@@ -112,21 +119,22 @@ impl MapCache {
         })
     }
 
-    fn map_off(cam_pos: Vec3) -> (i32, i32) {
-        let x_off = (cam_pos.x as i32 & !CHUNK_MASK) - 256;
-        let z_off = (cam_pos.z as i32 & !CHUNK_MASK) - 256;
+    fn map_off(cam_pos: Vec3, size: (i32, i32)) -> (i32, i32) {
+        let x_off = (cam_pos.x as i32 & !CHUNK_MASK) - size.0 / 2;
+        let z_off = (cam_pos.z as i32 & !CHUNK_MASK) - size.1 / 2;
         (x_off, z_off)
     }
 
     fn gen_texture(&mut self, fe: &ClientState, game: &GameState) {
         let player_pos = game.player().pos();
-        let cur_pos: IVec2 = Self::map_off(player_pos).into();
+        let map_off = Self::map_off(player_pos, MAP_SIZE);
+        let cur_pos: IVec2 = map_off.into();
         if let Some((pos, _)) = &self.cache {
             if &cur_pos == pos {
                 return;
             }
         }
-        let img = self.render_image(game);
+        let img = self.render_image(game, map_off, MAP_SIZE);
         let tex = Texture::from_image(&fe.display, img).unwrap();
         self.cache = Some((cur_pos, tex));
     }
@@ -170,7 +178,7 @@ impl MapCache {
 
         {
             let player_pos = game.player().pos();
-            let (x_off, z_off) = Self::map_off(player_pos);
+            let (x_off, z_off) = Self::map_off(player_pos, MAP_SIZE);
             let x = player_pos.x - x_off as f32;
             let z = player_pos.z - z_off as f32;
             let mut mesh = TextMesh::new(&fe.display).unwrap();
@@ -217,16 +225,44 @@ impl MapCache {
 pub fn init(args: RenderInitArgs) -> RenderInitArgs {
     args.reactor.add_sink(
         Message::ResetEverything,
-        Box::new(move |_: &Reactor<Message>, _msg: Message| {
+        Box::new(|_: &Reactor<Message>, _msg: Message| {
             MAP_CACHE.with(|map| {
                 map.borrow_mut().clear();
             });
         }),
     );
 
+    if std::env::args().any(|a| a == "render-map") {
+        args.render_reactor
+            .pre_world_render
+            .push(Box::new(|args: RenderPassArgs| {
+                MAP_CACHE.with(|map| {
+                    let _ = std::fs::remove_file("map.png");
+                    {
+                        let size: i32 = 1024 / CHUNK_SIZE as i32;
+                        let mut world = args.game.world_mut();
+                        for x in -size..size {
+                            for z in -size..size {
+                                for y in -2..2 {
+                                    let pos = IVec3::new(x, y, z);
+                                    world.generate(args.reactor, pos);
+                                }
+                            }
+                        }
+                    }
+                    let img =
+                        map.borrow_mut()
+                            .render_image(args.game, (-1024, -1024), (2048, 2048));
+                    img.save("map.png").unwrap();
+                    std::process::exit(0);
+                });
+                args
+            }));
+    }
+
     args.render_reactor
         .hud_2d_render
-        .push(Box::new(move |args: RenderPassArgs| {
+        .push(Box::new(|args: RenderPassArgs| {
             MAP_CACHE.with(|map| {
                 let _ = map
                     .borrow_mut()

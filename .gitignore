@@ -13,3 +13,4 @@ perf.data.old
 flamegraph.svg
 /*/Cargo.lock
 /*/target/
+/map.png

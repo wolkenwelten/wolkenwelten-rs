@@ -58,7 +58,7 @@ impl Character {
     }
 
     pub fn init(&mut self) {
-        self.set_pos(Vec3::new(1966.0, 8.0, 17.0));
+        self.set_pos(Vec3::new(840.0, 8.0, 17.0));
         self.set_rot(Vec3::new(-130.0, 0.0, 0.0));
         let inv = self.inventory_mut();
         inv.clear();

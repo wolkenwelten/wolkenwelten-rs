@@ -44,7 +44,7 @@ fn grass_height(x: i32, z: i32) -> i32 {
     let duy = duy + ((deg * 78.0).sin() * 19.0) as i32;
     let duy = duy + ((deg * 98.0).sin() * 7.0) as i32;
 
-    let y = (2048 - (d + dy)).min((d + dy / 2) - (2048 - 128 + duy));
+    let y = (900 - (d + dy)).min((d + dy / 2) - (900 - 128 + duy));
     if y > 0 {
         (y as f32).sqrt() as i32
     } else {
