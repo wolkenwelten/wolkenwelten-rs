@@ -1,6 +1,7 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
 use glam::IVec3;
+use glam::Vec3;
 use rand::prelude::*;
 use rand::Rng;
 use rand_xorshift::XorShiftRng;
@@ -33,23 +34,25 @@ fn gen_fluid(mut ret: BlockGeneratorResult, water_y: i32) -> BlockGeneratorResul
 }
 
 fn grass_height(x: i32, z: i32) -> i32 {
-    let d = ((x * x + z * z) as f32).sqrt() as i32;
-    let deg = (x as f32).atan2(z as f32);
-    let dy = ((deg * 21.0).sin() * 56.0) as i32;
-    let dy = dy + ((deg * 35.0).sin() * 16.0) as i32;
-    let dy = dy + ((deg * 48.0).sin() * 8.0) as i32;
+    let d = ((x * x + z * z) as f32).sqrt();
+    let deg = fast_math::atan2(x as f32, z as f32);
 
-    let duy = ((deg * 56.0).sin() * 48.0) as i32;
-    let duy = duy + ((deg * 61.0).sin() * 30.0) as i32;
-    let duy = duy + ((deg * 78.0).sin() * 19.0) as i32;
-    let duy = duy + ((deg * 98.0).sin() * 7.0) as i32;
+    let dmy = deg.sin() * 768.0;
 
-    let y = (900 - (d + dy)).min((d + dy / 2) - (900 - 128 + duy));
-    if y > 0 {
-        (y as f32).sqrt() as i32
+    let dy = (deg * 35.0).sin() * 16.0;
+    let dy = dy + ((deg * 48.0).sin() * 8.0);
+
+    let duy = (deg * 61.0).sin() * 4.0;
+    let duy = duy + ((deg * 78.0).sin() * 3.0);
+    let duy = duy + ((deg * 98.0).sin() * 2.0);
+
+    let y = (900.0 - (d + dy + dmy)).min((d + dy / 2.0) - (600.0 - 128.0 + duy)) / 16.0;
+    let y = if y > 24.0 {
+        24.0 + (y - 24.0) * 23.45
     } else {
         y
-    }
+    };
+    y as i32
 }
 
 fn calc_ground_height(x: i32, z: i32) -> i32 {
@@ -73,16 +76,40 @@ fn island_test_primary(
         let px = pos.x;
         let py = pos.y;
         let pz = pos.z;
+        let player_spawn_pos = Vec3::new(66.0, 4.0, 878.0);
 
         for x in 0..CHUNK_SIZE as i32 {
             for z in 0..CHUNK_SIZE as i32 {
                 let pxx = px + x;
                 let pzz = pz + z;
                 let floor_y = calc_ground_height(pxx, pzz);
-                if floor_y < 3 {
+                if floor_y < 2 {
                     result
                         .block
                         .set_pillar(23, IVec3::new(x, -(1 << 30) - py, z), floor_y - py);
+                    if rng.gen_range(1..2000) == 1 {
+                        let i = rng.gen_range(0..assets.rocks.len());
+                        let pos = IVec3::new(
+                            x - assets.rocks[i].size.x / 2,
+                            floor_y - py - 2,
+                            z - assets.rocks[i].size.z / 2,
+                        );
+                        if assets.rocks[i].fits(pos) {
+                            result.block.blit(&assets.rocks[i], pos);
+                        }
+                    } else if rng.gen_ratio(1, 800) {
+                        let mut mob_pos = (pos + IVec3::new(x, 0, z)).as_vec3();
+                        mob_pos.y = floor_y as f32 + 1.0;
+                        let d = mob_pos.distance_squared(player_spawn_pos);
+                        // Don't spawn right next to the player to give them some time to acclimate to the controls
+                        if d > 40.0 * 40.0 && point_lies_within_chunk(mob_pos, pos) {
+                            reactor.dispatch(Message::WorldgenSpawnMob { pos: mob_pos });
+                        }
+                    }
+                } else if floor_y >= 24 {
+                    result
+                        .block
+                        .set_pillar(3, IVec3::new(x, -(1 << 30) - py, z), floor_y - py);
                     if rng.gen_range(1..2000) == 1 {
                         let i = rng.gen_range(0..assets.rocks.len());
                         let pos = IVec3::new(
@@ -111,12 +138,6 @@ fn island_test_primary(
                         );
                         if assets.bushes[i].fits(pos) {
                             result.block.blit(&assets.bushes[i], pos);
-                        }
-                    } else if rng.gen_range(1..800) == 1 {
-                        let mut mob_pos = (pos + IVec3::new(x, 0, z)).as_vec3();
-                        mob_pos.y = floor_y as f32 + 1.0;
-                        if point_lies_within_chunk(mob_pos, pos) {
-                            reactor.dispatch(Message::WorldgenSpawnMob { pos: mob_pos });
                         }
                     } else if rng.gen_range(1..1000) == 1 {
                         let i = rng.gen_range(0..assets.rocks.len());

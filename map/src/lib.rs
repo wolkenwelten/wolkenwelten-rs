@@ -26,6 +26,7 @@ pub struct MapCache {
 }
 
 static MAP_SIZE: (i32, i32) = (512, 512);
+static RENDER_SIZE: i32 = 2048;
 
 impl MapCache {
     fn render_image(
@@ -239,7 +240,7 @@ pub fn init(args: RenderInitArgs) -> RenderInitArgs {
                 MAP_CACHE.with(|map| {
                     let _ = std::fs::remove_file("map.png");
                     {
-                        let size: i32 = 1024 / CHUNK_SIZE as i32;
+                        let size: i32 = RENDER_SIZE / 2 / CHUNK_SIZE as i32;
                         let mut world = args.game.world_mut();
                         for x in -size..size {
                             for z in -size..size {
@@ -250,9 +251,11 @@ pub fn init(args: RenderInitArgs) -> RenderInitArgs {
                             }
                         }
                     }
-                    let img =
-                        map.borrow_mut()
-                            .render_image(args.game, (-1024, -1024), (2048, 2048));
+                    let img = map.borrow_mut().render_image(
+                        args.game,
+                        (-RENDER_SIZE / 2, -RENDER_SIZE / 2),
+                        (RENDER_SIZE, RENDER_SIZE),
+                    );
                     img.save("map.png").unwrap();
                     std::process::exit(0);
                 });

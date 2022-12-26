@@ -9,7 +9,8 @@ homepage = "https://wolkenwelten.net"
 anyhow = "1.0"
 glam = "0.22"
 vox-format = "0.1"
+fast-math = "0.1"
 rand = "0.8"
-rand_xorshift = "0.3.0"
+rand_xorshift = "0.3"
 wolkenwelten-client = { path = "../client" }
 wolkenwelten-core = { path = "../core" }
