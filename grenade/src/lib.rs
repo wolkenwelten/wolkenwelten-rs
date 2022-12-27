@@ -36,32 +36,26 @@ fn draw(
 }
 
 impl Grenade {
-    #[inline]
     pub fn new() -> Self {
         Self { ent: Entity::new() }
     }
 
-    #[inline]
     pub fn rot(&self) -> Vec3 {
         self.ent.rot()
     }
 
-    #[inline]
     pub fn pos(&self) -> Vec3 {
         self.ent.pos()
     }
 
-    #[inline]
     pub fn set_pos(&mut self, pos: Vec3) {
         self.ent.set_pos(pos);
     }
 
-    #[inline]
     pub fn set_vel(&mut self, vel: Vec3) {
         self.ent.set_vel(vel);
     }
 
-    #[inline]
     pub fn tick(&mut self, world: &Chungus) -> bool {
         self.ent.tick(world)
     }

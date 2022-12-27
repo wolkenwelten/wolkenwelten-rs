@@ -28,36 +28,35 @@ impl Entity {
             size: 1.0,
         }
     }
-    #[inline]
+
     pub fn pos(&self) -> Vec3 {
         self.pos
     }
-    #[inline]
+
     pub fn rot(&self) -> Vec3 {
         self.rot
     }
-    #[inline]
+
     pub fn vel(&self) -> Vec3 {
         self.vel
     }
-    #[inline]
+
     pub fn size(&self) -> f32 {
         self.size
     }
 
-    #[inline]
     pub fn set_vel(&mut self, vel: Vec3) {
         self.vel = vel;
     }
-    #[inline]
+
     pub fn set_rot(&mut self, rot: Vec3) {
         self.rot = rot;
     }
-    #[inline]
+
     pub fn set_pos(&mut self, pos: Vec3) {
         self.pos = pos;
     }
-    #[inline]
+
     pub fn set_size(&mut self, size: f32) {
         self.size = size;
     }

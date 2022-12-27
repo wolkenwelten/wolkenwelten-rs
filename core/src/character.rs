@@ -69,144 +69,113 @@ impl Character {
         self.experience_mut().reset();
     }
 
-    #[inline]
     pub fn pos(&self) -> Vec3 {
         self.pos
     }
-    #[inline]
     pub fn rot(&self) -> Vec3 {
         self.rot
     }
-    #[inline]
     pub fn vel(&self) -> Vec3 {
         self.vel
     }
-    #[inline]
     pub fn movement(&self) -> Vec3 {
         self.movement
     }
-    #[inline]
     pub fn damage(&mut self, amount: i16) {
         self.health.damage(amount);
     }
 
-    #[inline]
     pub fn experience(&self) -> &Experience {
         &self.experience
     }
-    #[inline]
     pub fn experience_mut(&mut self) -> &mut Experience {
         &mut self.experience
     }
 
-    #[inline]
     pub fn mining(&self) -> Option<(IVec3, u8)> {
         self.mining
     }
-    #[inline]
     pub fn set_mining(&mut self, m: Option<(IVec3, u8)>) {
         self.mining = m;
     }
 
-    #[inline]
     pub fn no_clip(&self) -> bool {
         self.no_clip
     }
-    #[inline]
     pub fn set_no_clip(&mut self, no_clip: bool) {
         self.no_clip = no_clip;
     }
 
-    #[inline]
     pub fn set_vel(&mut self, vel: Vec3) {
         self.vel = vel;
     }
-    #[inline]
     pub fn set_pos(&mut self, pos: Vec3) {
         self.pos = pos;
     }
-    #[inline]
     pub fn set_rot(&mut self, rot: Vec3) {
         self.rot = rot;
     }
-    #[inline]
     pub fn set_movement(&mut self, v: Vec3) {
         self.movement = v;
     }
 
-    #[inline]
     pub fn may_jump(&self, world: &Chungus) -> bool {
         world.is_solid(self.pos + COL_POINT_BOTTOM)
     }
-    #[inline]
     pub fn may_act(&self, now: u64) -> bool {
         self.cooldown < now
     }
-    #[inline]
     pub fn may_mine(&self, now: u64) -> bool {
         self.mining_cooldown < now
     }
-    #[inline]
     pub fn jump(&mut self) {
         self.vel.y = 0.038;
     }
-    #[inline]
     pub fn set_cooldown(&mut self, until: u64) {
         self.cooldown = until;
     }
 
-    #[inline]
     pub fn health(&self) -> Health {
         self.health
     }
 
-    #[inline]
     pub fn set_max_health(&mut self, amount: i16) {
         self.health.set_max_health(amount);
         self.health.set_full_health();
     }
 
-    #[inline]
     pub fn item(&self) -> Item {
         self.inventory[self.inventory_active]
     }
 
-    #[inline]
     pub fn item_at(&self, pos: usize) -> Item {
         self.inventory[pos]
     }
 
-    #[inline]
     pub fn inventory(&self) -> &Vec<Item> {
         &self.inventory
     }
 
-    #[inline]
     pub fn inventory_mut(&mut self) -> &mut Vec<Item> {
         &mut self.inventory
     }
 
-    #[inline]
     pub fn inventory_active(&self) -> usize {
         self.inventory_active
     }
 
-    #[inline]
     pub fn set_inventory_active(&mut self, v: usize) {
         self.inventory_active = v.clamp(0, self.inventory.len());
     }
 
-    #[inline]
     pub fn is_dead(&self) -> bool {
         self.health.is_dead()
     }
 
-    #[inline]
     pub fn animation(&self) -> CharacterAnimation {
         self.animation
     }
 
-    #[inline]
     pub fn set_animation_none(&mut self) {
         self.animation = CharacterAnimation::None;
     }

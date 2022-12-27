@@ -30,7 +30,6 @@ impl BlockType {
         }
         ret
     }
-    #[inline]
     pub fn get_vox_types() -> Vec<Self> {
         Self::init_vox_types()
     }
@@ -69,11 +68,9 @@ impl BlockType {
         self
     }
 
-    #[inline]
     pub fn name(&self) -> &str {
         &self.name
     }
-    #[inline]
     pub fn colors(&self) -> [RGBA8; 2] {
         self.colors
     }
@@ -85,39 +82,30 @@ impl BlockType {
         self.with_texture_side(tex, Side::Bottom)
     }
 
-    #[inline]
     pub fn tex(&self) -> [u8; 6] {
         self.texture_index
     }
-    #[inline]
     pub fn tex_front(&self) -> u8 {
         self.texture_index[Side::Front as usize]
     }
-    #[inline]
     pub fn tex_back(&self) -> u8 {
         self.texture_index[Side::Back as usize]
     }
-    #[inline]
     pub fn tex_left(&self) -> u8 {
         self.texture_index[Side::Left as usize]
     }
-    #[inline]
     pub fn tex_right(&self) -> u8 {
         self.texture_index[Side::Right as usize]
     }
-    #[inline]
     pub fn tex_top(&self) -> u8 {
         self.texture_index[Side::Top as usize]
     }
-    #[inline]
     pub fn tex_bottom(&self) -> u8 {
         self.texture_index[Side::Bottom as usize]
     }
-    #[inline]
     pub fn mining_cat(&self) -> MiningCategory {
         self.mining_cat
     }
-    #[inline]
     pub fn block_health(&self) -> u16 {
         self.block_health
     }

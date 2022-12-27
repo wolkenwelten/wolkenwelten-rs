@@ -20,28 +20,26 @@ impl Default for Experience {
 }
 
 impl Experience {
-    #[inline]
     pub fn new() -> Self {
         Self::default()
     }
 
-    #[inline]
     pub fn xp(&self) -> u64 {
         self.xp
     }
-    #[inline]
+
     pub fn xp_total(&self) -> u64 {
         self.xp_total
     }
-    #[inline]
+
     pub fn next_level(&self) -> u64 {
         self.next_level
     }
-    #[inline]
+
     pub fn level(&self) -> u8 {
         self.level
     }
-    #[inline]
+
     pub fn gain(&mut self, xp: u64) {
         self.xp += xp;
     }
@@ -57,14 +55,13 @@ impl Experience {
         }
     }
 
-    #[inline]
     pub fn reset(&mut self) {
         self.xp = 0;
         self.xp_total = 0;
         self.next_level = 32;
         self.level = 1;
     }
-    #[inline]
+
     pub fn set_next_level(&mut self, next_level: u64) {
         self.next_level = next_level;
     }

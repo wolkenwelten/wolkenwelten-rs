@@ -274,12 +274,10 @@ impl InputState {
         }
     }
 
-    #[inline]
     pub fn key_up_down(&mut self, k: Key, state: bool) {
         self.button_states[k] = state;
     }
 
-    #[inline]
     pub fn get_speed(&self) -> f32 {
         if self.button_states[Key::Sprint] {
             1.6

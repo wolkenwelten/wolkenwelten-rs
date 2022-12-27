@@ -64,7 +64,6 @@ where
         self.defer_active.replace(false);
     }
 
-    #[inline]
     pub fn dispatch(&self, msg: T) {
         if *self.defer_active.borrow() {
             self.dispatch_raw(msg);
@@ -79,12 +78,10 @@ where
         self.reply_queue.replace(vec![])
     }
 
-    #[inline]
     pub fn reply(&self, msg: T) {
         self.reply_queue.borrow_mut().push(msg);
     }
 
-    #[inline]
     pub fn defer(&self, msg: T) {
         let defer_active = *self.defer_active.borrow();
         if defer_active {

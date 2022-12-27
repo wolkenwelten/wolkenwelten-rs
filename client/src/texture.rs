@@ -123,7 +123,6 @@ impl Texture {
         Ok(Self { texture })
     }
 
-    #[inline]
     pub fn texture(&self) -> &Texture2d {
         &self.texture
     }
@@ -162,7 +161,6 @@ impl TextureArray {
         Ok(Self { texture })
     }
 
-    #[inline]
     pub fn texture(&self) -> &Texture2dArray {
         &self.texture
     }

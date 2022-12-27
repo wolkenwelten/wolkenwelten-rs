@@ -98,41 +98,39 @@ impl Mob {
             cooldown: Instant::now(),
         }
     }
-    #[inline]
+
     pub fn pos(&self) -> Vec3 {
         self.pos
     }
-    #[inline]
+
     pub fn rot(&self) -> Vec3 {
         self.rot
     }
-    #[inline]
+
     pub fn set_rot(&mut self, rot: Vec3) {
         self.rot = rot;
     }
-    #[inline]
+
     pub fn set_vel(&mut self, vel: Vec3) {
         self.vel = vel;
     }
-    #[inline]
+
     pub fn model_index(&self) -> i32 {
         self.model_index
     }
-    #[inline]
+
     pub fn set_state(&mut self, state: MobState) {
         self.state = state;
     }
-    #[inline]
+
     pub fn set_idle_state(&mut self) {
         self.state = MobState::Idle(Instant::now());
     }
 
-    #[inline]
     pub fn may_instant_attack(&self) -> bool {
         self.cooldown.elapsed().as_millis() > 1200
     }
 
-    #[inline]
     pub fn cooldown(&mut self) {
         self.cooldown = Instant::now();
     }
@@ -245,7 +243,6 @@ impl Mob {
         Self::is_underwater_point(world, self.pos() + Vec3::new(0.0, -0.8, 0.0))
     }
 
-    #[inline]
     pub fn may_jump(&self, world: &Chungus) -> bool {
         world.is_solid(self.pos + COL_POINT_BOTTOM)
     }
@@ -311,7 +308,6 @@ impl Mob {
         self.pos += self.vel;
     }
 
-    #[inline]
     pub fn tick(
         &mut self,
         world: &Chungus,
@@ -501,12 +497,10 @@ impl MobList {
         self.mobs.push(Mob::new(pos, rot, model_index));
     }
 
-    #[inline]
     pub fn iter(&self) -> std::slice::Iter<Mob> {
         self.mobs.iter()
     }
 
-    #[inline]
     pub fn iter_mut(&mut self) -> std::slice::IterMut<Mob> {
         self.mobs.iter_mut()
     }

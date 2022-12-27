@@ -513,37 +513,30 @@ impl Chungus {
         }
     }
 
-    #[inline]
     pub fn generator(&self) -> &WorldGenerator {
         &self.generator
     }
 
-    #[inline]
     pub fn generator_mut(&mut self) -> &mut WorldGenerator {
         &mut self.generator
     }
 
-    #[inline]
     pub fn get_fluid(&self, k: &IVec3) -> Option<&ChunkFluidData> {
         self.chunks_fluid.get(k)
     }
 
-    #[inline]
     pub fn get_fluid_mut(&mut self, k: &IVec3) -> Option<&mut ChunkFluidData> {
         self.chunks_fluid.get_mut(k)
     }
 
-    #[inline]
     pub fn get(&self, k: &IVec3) -> Option<&ChunkBlockData> {
         self.chunks_block.get(k)
     }
 
-    #[inline]
     pub fn get_mut(&mut self, k: &IVec3) -> Option<&mut ChunkBlockData> {
         self.chunks_block.get_mut(k)
     }
 
-    #[inline]
     pub fn get_light(&self, k: &IVec3) -> Option<&ChunkLightData> {
         self.chunks_complex_light.get(k)
     }

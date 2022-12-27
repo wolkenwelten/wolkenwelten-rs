@@ -15,47 +15,39 @@ impl Default for Health {
 }
 
 impl Health {
-    #[inline]
     pub fn new(max_hp: i16) -> Self {
         Self { max_hp, hp: max_hp }
     }
 
-    #[inline]
     pub fn health(&self) -> i16 {
         self.hp
     }
 
-    #[inline]
     pub fn max_health(&self) -> i16 {
         self.max_hp
     }
 
-    #[inline]
     pub fn is_dead(self) -> bool {
         self.hp <= 0
     }
-    #[inline]
+
     pub fn is_alive(self) -> bool {
         !self.is_dead()
     }
 
-    #[inline]
     pub fn damage(&mut self, amount: i16) {
         self.hp = (self.hp - amount).clamp(0, self.max_hp);
     }
 
-    #[inline]
     pub fn heal(&mut self, amount: i16) {
         self.hp = (self.hp + amount).clamp(0, self.max_hp);
     }
 
-    #[inline]
     pub fn set_max_health(&mut self, amount: i16) {
         self.max_hp = amount;
         self.hp = self.hp.min(amount);
     }
 
-    #[inline]
     pub fn set_full_health(&mut self) {
         self.hp = self.max_hp;
     }

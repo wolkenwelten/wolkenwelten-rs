@@ -56,25 +56,23 @@ impl ItemDrop {
         ent.set_pos(pos);
         Self { item, ent }
     }
-    #[inline]
+
     pub fn pos(&self) -> Vec3 {
         self.ent.pos()
     }
-    #[inline]
+
     pub fn rot(&self) -> Vec3 {
         self.ent.rot()
     }
-    #[inline]
+
     pub fn item(&self) -> Item {
         self.item
     }
 
-    #[inline]
     pub fn set_vel(&mut self, vel: Vec3) {
         self.ent.set_vel(vel);
     }
 
-    #[inline]
     pub fn tick(&mut self, world: &Chungus) -> bool {
         self.ent.set_rot(self.ent.rot() + Vec3::new(0.0, 0.2, 0.0));
         self.ent.tick(world)
@@ -107,12 +105,10 @@ impl ItemDropList {
         self.drops.push(drop);
     }
 
-    #[inline]
     pub fn iter(&self) -> std::slice::Iter<ItemDrop> {
         self.drops.iter()
     }
 
-    #[inline]
     pub fn iter_mut(&mut self) -> std::slice::IterMut<ItemDrop> {
         self.drops.iter_mut()
     }

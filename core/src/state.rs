@@ -45,7 +45,6 @@ impl GameState {
         self
     }
 
-    #[inline]
     pub fn get_millis(&self) -> u64 {
         self.clock
             .borrow()
@@ -55,7 +54,6 @@ impl GameState {
             .unwrap()
     }
 
-    #[inline]
     pub fn player(&self) -> Ref<Character> {
         self.player.borrow()
     }
@@ -66,42 +64,34 @@ impl GameState {
         xp.xp_total() + xp.xp()
     }
 
-    #[inline]
     pub fn player_mut(&self) -> RefMut<Character> {
         self.player.borrow_mut()
     }
 
-    #[inline]
     pub fn player_rc(&self) -> Rc<RefCell<Character>> {
         self.player.clone()
     }
 
-    #[inline]
     pub fn ticks(&self) -> u64 {
         self.ticks_elapsed
     }
 
-    #[inline]
     pub fn running(&self) -> bool {
         *self.running.borrow()
     }
 
-    #[inline]
     pub fn world(&self) -> Ref<Chungus> {
         self.world.borrow()
     }
 
-    #[inline]
     pub fn world_mut(&self) -> RefMut<Chungus> {
         self.world.borrow_mut()
     }
 
-    #[inline]
     pub fn world_rc(&self) -> Rc<RefCell<Chungus>> {
         self.world.clone()
     }
 
-    #[inline]
     pub fn clock_rc(&self) -> Rc<RefCell<Instant>> {
         self.clock.clone()
     }
@@ -132,7 +122,6 @@ impl GameState {
         self.prepare_world(request);
     }
 
-    #[inline]
     pub fn has_chunk(&self, pos: IVec3) -> bool {
         self.world().get(&pos).is_some()
     }

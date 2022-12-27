@@ -82,27 +82,22 @@ impl ClientState {
         self.fluid_mesh.clear();
     }
 
-    #[inline]
     pub fn ticks(&self) -> u64 {
         self.ticks
     }
 
-    #[inline]
     pub fn overlay_color(&self) -> RGBA8 {
         self.overlay_color
     }
 
-    #[inline]
     pub fn set_overlay_color(&mut self, overlay_color: RGBA8) {
         self.overlay_color = overlay_color;
     }
 
-    #[inline]
     pub fn show_debug_info(&self) -> bool {
         self.show_debug_info
     }
 
-    #[inline]
     pub fn set_show_debug_info(&mut self, s: bool) {
         self.show_debug_info = s;
     }
@@ -111,12 +106,10 @@ impl ClientState {
         self.display.gl_window().window().request_redraw();
     }
 
-    #[inline]
     pub fn block_indeces(&self) -> &glium::IndexBuffer<u32> {
         &self.block_index_buffer
     }
 
-    #[inline]
     pub fn fps(&self) -> u32 {
         self.cur_fps
     }
@@ -147,20 +140,16 @@ impl ClientState {
         });
     }
 
-    #[inline]
     pub fn set_fov(&mut self, fov: f32) {
         self.cur_fov = fov;
     }
-    #[inline]
     pub fn fov(&self) -> f32 {
         self.cur_fov
     }
 
-    #[inline]
     pub fn window_size(&self) -> (u32, u32) {
         (self.window_width, self.window_height)
     }
-    #[inline]
     pub fn set_window_size(&mut self, (w, h): (u32, u32)) {
         self.window_width = w;
         self.window_height = h;

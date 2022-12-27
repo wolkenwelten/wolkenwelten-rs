@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Copy, Debug, Default, Serialize, Deserialize)]
 #[serde(tag = "T")]
+#[non_exhaustive]
 pub enum Message {
     #[default]
     NoOp,
@@ -150,6 +151,7 @@ pub enum Message {
 // Would love to replace this enum by a string or something similar
 #[derive(Clone, Copy, Debug, Default, Serialize, Deserialize)]
 #[serde(tag = "T")]
+#[non_exhaustive]
 pub enum SfxId {
     #[default]
     Void,

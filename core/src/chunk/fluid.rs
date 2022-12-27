@@ -29,27 +29,22 @@ impl ChunkFluidData {
         }
     }
 
-    #[inline]
     pub fn last_updated(&self) -> Instant {
         self.last_updated
     }
 
-    #[inline]
     pub fn last_update_without_changes(&self) -> Instant {
         self.last_update_without_changes
     }
 
-    #[inline]
     pub fn set_last_updated(&mut self) {
         self.last_updated = Instant::now();
     }
 
-    #[inline]
     pub fn set_last_update_without_changes(&mut self) {
         self.last_update_without_changes = Instant::now();
     }
 
-    #[inline]
     pub fn get(&self, pos: IVec3) -> u8 {
         self.data[pos.x as usize][pos.y as usize][pos.z as usize]
     }

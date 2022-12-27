@@ -33,27 +33,26 @@ impl GameLog {
         }
     }
 
-    #[inline]
     pub fn set_max_len(&mut self, l: u8) {
         self.max_len = l;
     }
-    #[inline]
+
     pub fn max_len(&self) -> u8 {
         self.max_len
     }
-    #[inline]
+
     pub fn len(&self) -> usize {
         self.entries.len()
     }
-    #[inline]
+
     pub fn is_empty(&self) -> bool {
         self.len() == 0
     }
-    #[inline]
+
     pub fn entries(&self) -> &VecDeque<(String, Instant)> {
         &self.entries
     }
-    #[inline]
+
     pub fn entries_mut(&mut self) -> &mut VecDeque<(String, Instant)> {
         &mut self.entries
     }
