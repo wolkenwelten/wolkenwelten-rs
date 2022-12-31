@@ -1,7 +1,7 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
-// Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
-// All rights reserved. AGPL-3.0+ license.
+#![forbid(unsafe_code)]
+
 use core::f32::consts::PI;
 use glam::{IVec3, Vec3};
 use rodio::{

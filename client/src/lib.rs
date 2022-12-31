@@ -1,5 +1,7 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
+#![forbid(unsafe_code)]
+
 pub use self::frustum::Frustum;
 pub use self::meshes::{BlockMesh, Mesh, MeshVertex, TextMesh, VoxelMesh};
 pub use self::queue::QueueEntry;

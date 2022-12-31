@@ -1,5 +1,9 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
+
+// #![forbid(unsafe_code)]
+// Sadly we gotta use unsafe to initialize v8, hopefully we can find another way in the future
+
 use std::cell::RefCell;
 use std::rc::Rc;
 use std::time::Instant;

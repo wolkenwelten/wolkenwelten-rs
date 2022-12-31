@@ -1,5 +1,7 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
+#![forbid(unsafe_code)]
+
 use wolkenwelten_client::RenderInit;
 use wolkenwelten_core::{GameState, Reactor};
 use wolkenwelten_scripting::{push_init_code, start_runtime};

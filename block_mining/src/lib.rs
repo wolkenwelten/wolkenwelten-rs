@@ -1,7 +1,7 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
-// Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
-// All rights reserved. AGPL-3.0+ license.
+#![forbid(unsafe_code)]
+
 use anyhow::Result;
 use glam::{IVec3, Mat4, Vec2};
 use glium::{draw_parameters::PolygonOffset, uniform, Surface};
