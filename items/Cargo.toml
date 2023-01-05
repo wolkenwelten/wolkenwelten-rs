@@ -1,0 +1,13 @@
+[package]
+name = "wolkenwelten-items"
+version = "0.1.2"
+edition = "2021"
+license = "AGPL-3.0-or-later"
+homepage = "https://wolkenwelten.net"
+
+[dependencies]
+anyhow = "1.0"
+glium = "0.32"
+glam = "0.22"
+wolkenwelten-client = { path = "../client" }
+wolkenwelten-core = { path = "../core" }

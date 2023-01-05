@@ -40,6 +40,11 @@ pub fn draw(
             &fe.shaders.mesh,
             &mvp,
         ),
+        Item::Scripted(_si) => {
+            fe.meshes
+                .bag
+                .draw(frame, fe.block_indeces(), &fe.shaders.voxel, &mvp, 1.0)
+        }
         Item::None => fe
             .meshes
             .fist

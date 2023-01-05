@@ -9,6 +9,7 @@ use wolkenwelten_core::BLOCKS;
 #[derive(Debug)]
 pub struct MeshList {
     pub fist: VoxelMesh,
+    pub bag: VoxelMesh,
     pub blocks: Vec<Mesh>,
 }
 
@@ -32,6 +33,7 @@ impl MeshList {
     pub fn new(display: &glium::Display) -> Result<Self> {
         Ok(Self {
             blocks: Self::gen_block_meshes(display)?,
+            bag: VoxelMesh::from_vox_data(display, include_bytes!("../../assets/bag.vox"))?,
             fist: VoxelMesh::from_vox_data(display, include_bytes!("../../assets/fist.vox"))?,
         })
     }

@@ -44,10 +44,11 @@ fn item_drop_draw(
             &mvp,
         ),
         Item::None => Ok(()),
-        _ => fe
-            .meshes
+        /*
+        _ => fe.meshes
             .bag
-            .draw(frame, fe.block_indeces(), &fe.shaders.block, &mvp, 1.0),
+            .draw(frame, fe.block_indeces(), &fe.shaders.block, &mvp, 1.0)
+        */
     }
 }
 

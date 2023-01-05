@@ -1,6 +1,8 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
-use crate::{BlockItem, Chungus, Experience, GameState, Health, Item, Message, Reactor};
+use crate::{
+    BlockItem, Chungus, Experience, GameState, Health, Item, Message, Reactor, ScriptedItem,
+};
 use glam::{IVec3, Vec3, Vec3Swizzles};
 use std::{f32::consts::PI, time::Instant};
 
@@ -63,6 +65,7 @@ impl Character {
         let inv = self.inventory_mut();
         inv.clear();
         inv.resize(10, Item::None);
+        inv[0] = ScriptedItem::new(1, 1, 1, 69).into();
         self.set_inventory_active(0);
         self.health.set_max_health(12);
         self.health.set_full_health();
