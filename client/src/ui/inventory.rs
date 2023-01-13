@@ -2,7 +2,7 @@
 // All rights reserved. AGPL-3.0+ license.
 use crate::ClientState;
 use glam::IVec2;
-use wolkenwelten_core::{GameState, Item};
+use wolkenwelten_core::{GameState, Item, ScriptedItemList};
 
 fn prepare_slot(
     fe: &mut ClientState,
@@ -46,16 +46,18 @@ fn prepare_slot(
                 text.as_str(),
             );
         }
-        Item::Scripted(si) => {
+        Item::Scripted(id) => {
+            let icon = ScriptedItemList::get_icon(id).unwrap_or(0);
+            let amount = ScriptedItemList::get_amount(id).unwrap_or(0);
             let tex = (
-                ((si.icon % 32) * 4) as i16,
-                ((si.icon / 32) * 4) as i16 + ((256 / 32) * 4),
+                ((icon % 32) * 4) as i16,
+                ((icon / 32) * 4) as i16 + ((256 / 32) * 4),
                 4,
                 4,
             );
 
             fe.ui_mesh.push_box(p, tex, rgba);
-            let text = format!("{}x", si.amount);
+            let text = format!("{}x", amount);
             fe.ui_mesh.push_string(
                 (pos.x + 4) as i16,
                 (pos.y + size.y - 12) as i16,

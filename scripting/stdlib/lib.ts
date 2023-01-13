@@ -11,6 +11,14 @@ interface WWCInterface {
     eprint:(value:any) => void,
 	game_log:(value:any) => void,
 
+	itemGetIcon:(id:number) => number | undefined,
+	itemGetMesh:(id:number) => number | undefined,
+	itemGetAmount:(id:number) => number | undefined,
+
+	itemSetIcon:(id:number, icon: number) => void,
+	itemSetMesh:(id:number, mesh: number) => void,
+	itemSetAmount:(id:number, amount: number) => void,
+
 	VERSION:string,
 }
 declare const WWC:WWCInterface;

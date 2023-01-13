@@ -6,7 +6,7 @@ use anyhow::Result;
 use glam::{IVec3, Mat4, Vec3};
 use std::cell::RefCell;
 use wolkenwelten_client::{ClientState, RenderInitArgs, RenderPassArgs};
-use wolkenwelten_core::{BlockItem, Chungus, Entity, Item, Message, Reactor};
+use wolkenwelten_core::{BlockItem, Chungus, Entity, Item, Message, Reactor, ScriptedItemList};
 
 thread_local! {
     pub static DROPS: RefCell<ItemDropList> = RefCell::new(ItemDropList::new());
@@ -43,6 +43,14 @@ fn item_drop_draw(
             &fe.shaders.mesh,
             &mvp,
         ),
+        Item::Scripted(id) => {
+            let mesh = ScriptedItemList::get_mesh(id).unwrap_or(0);
+            if let Some(mesh ) = fe.meshes.scripted_items.get(mesh as usize) {
+                mesh.draw(frame, fe.block_indeces(), &fe.shaders.voxel, &mvp, 1.0)
+            } else {
+                Ok(())
+            }
+        },
         Item::None => Ok(()),
         _ => fe
             .meshes

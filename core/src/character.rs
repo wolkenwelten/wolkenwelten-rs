@@ -1,7 +1,7 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
 use crate::{
-    BlockItem, Chungus, Experience, GameState, Health, Item, Message, Reactor, ScriptedItem,
+    BlockItem, Chungus, Experience, GameState, Health, Item, Message, Reactor,
 };
 use glam::{IVec3, Vec3, Vec3Swizzles};
 use std::{f32::consts::PI, time::Instant};
@@ -65,7 +65,7 @@ impl Character {
         let inv = self.inventory_mut();
         inv.clear();
         inv.resize(10, Item::None);
-        inv[0] = ScriptedItem::new(1, 1, 1, 69).into();
+        inv[0] = Item::Scripted(1);
         self.set_inventory_active(0);
         self.health.set_max_health(12);
         self.health.set_full_health();
@@ -237,6 +237,16 @@ impl Character {
                 return;
             }
         }
+    }
+
+    pub fn add_item_to_inventory(&mut self, item: Item) -> bool {
+        for inv in self.inventory_mut().iter_mut() {
+            if let Item::None = inv {
+                *inv = item;
+                return true;
+            }
+        }
+        return false;
     }
 
     pub fn add_block_to_inventory(&mut self, block: u8) {
@@ -521,12 +531,15 @@ impl Character {
             let player = game.player_rc();
             let f = move |_reactor: &Reactor<Message>, msg: Message| {
                 if let Message::ItemDropPickup {
-                    item: Item::Block(bi),
+                    item,
                     ..
-                } = msg
-                {
-                    for _ in 0..bi.amount {
-                        player.borrow_mut().add_block_to_inventory(bi.block);
+                } = msg {
+                    if let Item::Block(bi) = item {
+                        for _ in 0..bi.amount {
+                            player.borrow_mut().add_block_to_inventory(bi.block);
+                        }
+                    } else {
+                        player.borrow_mut().add_item_to_inventory(item);
                     }
                 }
             };

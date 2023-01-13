@@ -10,6 +10,7 @@ use wolkenwelten_core::BLOCKS;
 pub struct MeshList {
     pub fist: VoxelMesh,
     pub bag: VoxelMesh,
+    pub scripted_items: Vec<VoxelMesh>,
     pub blocks: Vec<Mesh>,
 }
 
@@ -34,6 +35,10 @@ impl MeshList {
         Ok(Self {
             blocks: Self::gen_block_meshes(display)?,
             bag: VoxelMesh::from_vox_data(display, include_bytes!("../../assets/bag.vox"))?,
+            scripted_items: vec![
+                VoxelMesh::from_vox_data(display, include_bytes!("../../assets/bag.vox"))?,
+                VoxelMesh::from_vox_data(display, include_bytes!("../../../grenade/assets/grenade.vox"))?
+            ],
             fist: VoxelMesh::from_vox_data(display, include_bytes!("../../assets/fist.vox"))?,
         })
     }

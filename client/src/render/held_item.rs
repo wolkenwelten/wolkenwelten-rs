@@ -3,7 +3,7 @@
 use crate::ClientState;
 use anyhow::Result;
 use glam::{Mat4, Vec3};
-use wolkenwelten_core::{CharacterAnimation, GameState, Item};
+use wolkenwelten_core::{CharacterAnimation, GameState, Item, ScriptedItemList};
 
 const ANIMATION_DUR: u128 = 250;
 
@@ -40,14 +40,21 @@ pub fn draw(
             &fe.shaders.mesh,
             &mvp,
         ),
-        Item::Scripted(_si) => {
-            fe.meshes
-                .bag
-                .draw(frame, fe.block_indeces(), &fe.shaders.voxel, &mvp, 1.0)
-        }
+        Item::Scripted(id) => {
+            let mesh = ScriptedItemList::get_mesh(id).unwrap_or(0);
+            if let Some(mesh ) = fe.meshes.scripted_items.get(mesh as usize) {
+                mesh.draw(frame, fe.block_indeces(), &fe.shaders.voxel, &mvp, 1.0)
+            } else {
+                Ok(())
+            }
+        },
         Item::None => fe
             .meshes
             .fist
+            .draw(frame, fe.block_indeces(), &fe.shaders.voxel, &mvp, 1.0),
+        _ => fe
+            .meshes
+            .bag
             .draw(frame, fe.block_indeces(), &fe.shaders.voxel, &mvp, 1.0),
     }
 }

@@ -11,13 +11,17 @@ use v8::{ContextScope, HandleScope};
 use wolkenwelten_client::{start_client, RenderInit};
 use wolkenwelten_core::{Chungus, GameState, Message, Reactor};
 
+mod item;
 mod io;
 mod world;
+
+pub use item::use_item;
 
 thread_local! {
     pub static WORLD: RefCell<Option<Rc<RefCell<Chungus>>>> = RefCell::new(None);
     static MSG_QUEUE: RefCell<Vec<Message>> = RefCell::new(vec![]);
     static JS_INIT_VEC: RefCell<Vec<String>> = RefCell::new(vec![]);
+    pub static SCRIPT_SCOPE: RefCell<Option<Rc<RefCell<ContextScope<'static, HandleScope<'static>>>>>> = RefCell::new(None);
 }
 
 pub fn push_init_code(code: &str) {
@@ -82,6 +86,12 @@ pub fn start_runtime(
             unsafe { &mut *(&mut handle_scope as *mut HandleScope<()>) },
             context,
         )));
+        {
+            let scope = scope.clone();
+            SCRIPT_SCOPE.with(move |s| {
+                s.replace(Some(scope));
+            });
+        }
         eval(
             &mut scope.borrow_mut(),
             include_str!("../target/dist/stdlib.js"),
@@ -116,6 +126,7 @@ pub fn start_runtime(
                 env!("CARGO_PKG_VERSION"),
             );
             io::init(&mut scope.borrow_mut(), &wwc);
+            item::init(&mut scope.borrow_mut(), &wwc);
             world::init(&mut scope.borrow_mut(), &wwc);
             {
                 let key = v8::String::new(&mut scope.borrow_mut(), "WWC").unwrap();
@@ -135,3 +146,4 @@ pub fn start_runtime(
         start_client(game_state, reactor, render_init_fun);
     }
 }
+
