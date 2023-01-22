@@ -36,34 +36,32 @@ impl ScriptedItemList {
         Default::default()
     }
 
-    pub fn get(id:u32) -> Option<ScriptedItem> {
-        SCRIPTED_ITEMS.with(|l| {
-            l.borrow().items.get(&id).map(|v| v.clone())
-        })
+    pub fn get(id: u32) -> Option<ScriptedItem> {
+        SCRIPTED_ITEMS.with(|l| l.borrow().items.get(&id).map(|v| v.clone()))
     }
 
-    pub fn get_icon(id:u32) -> Option<u16> {
+    pub fn get_icon(id: u32) -> Option<u16> {
         SCRIPTED_ITEMS.with(|l| {
             let l = l.borrow();
             l.items.get(&id).map(|si| si.icon)
         })
     }
 
-    pub fn get_mesh(id:u32) -> Option<u16> {
+    pub fn get_mesh(id: u32) -> Option<u16> {
         SCRIPTED_ITEMS.with(|l| {
             let l = l.borrow();
             l.items.get(&id).map(|si| si.mesh)
         })
     }
 
-    pub fn get_amount(id:u32) -> Option<u16> {
+    pub fn get_amount(id: u32) -> Option<u16> {
         SCRIPTED_ITEMS.with(|l| {
             let l = l.borrow();
             l.items.get(&id).map(|si| si.amount)
         })
     }
 
-    pub fn set_icon(id:u32, icon:u16) {
+    pub fn set_icon(id: u32, icon: u16) {
         SCRIPTED_ITEMS.with(|l| {
             let mut l = l.borrow_mut();
             if let Some(si) = l.items.get_mut(&id) {
@@ -75,7 +73,7 @@ impl ScriptedItemList {
         });
     }
 
-    pub fn set_mesh(id:u32, mesh:u16) {
+    pub fn set_mesh(id: u32, mesh: u16) {
         SCRIPTED_ITEMS.with(|l| {
             let mut l = l.borrow_mut();
             if let Some(si) = l.items.get_mut(&id) {
@@ -87,7 +85,7 @@ impl ScriptedItemList {
         });
     }
 
-    pub fn set_amount(id:u32, amount:u16) {
+    pub fn set_amount(id: u32, amount: u16) {
         SCRIPTED_ITEMS.with(|l| {
             let mut l = l.borrow_mut();
             if let Some(si) = l.items.get_mut(&id) {
@@ -99,7 +97,7 @@ impl ScriptedItemList {
         });
     }
 
-    pub fn delete(id:u32) {
+    pub fn delete(id: u32) {
         SCRIPTED_ITEMS.with(|l| {
             let mut l = l.borrow_mut();
             if let Some(si) = l.items.get_mut(&id) {

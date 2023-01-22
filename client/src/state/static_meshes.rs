@@ -37,7 +37,10 @@ impl MeshList {
             bag: VoxelMesh::from_vox_data(display, include_bytes!("../../assets/bag.vox"))?,
             scripted_items: vec![
                 VoxelMesh::from_vox_data(display, include_bytes!("../../assets/bag.vox"))?,
-                VoxelMesh::from_vox_data(display, include_bytes!("../../../grenade/assets/grenade.vox"))?
+                VoxelMesh::from_vox_data(
+                    display,
+                    include_bytes!("../../../grenade/assets/grenade.vox"),
+                )?,
             ],
             fist: VoxelMesh::from_vox_data(display, include_bytes!("../../assets/fist.vox"))?,
         })

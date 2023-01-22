@@ -2,9 +2,8 @@
 // All rights reserved. AGPL-3.0+ license.
 #![forbid(unsafe_code)]
 
-use wolkenwelten_client::RenderInit;
+use wolkenwelten_client::{start_client, RenderInit};
 use wolkenwelten_core::{GameState, Reactor};
-use wolkenwelten_scripting::{push_init_code, start_runtime};
 
 /// This function returns a list of the default plugins whose cargo feature is active
 pub fn add_init_functions() -> Vec<RenderInit> {
@@ -68,7 +67,6 @@ pub fn add_init_functions() -> Vec<RenderInit> {
         extern crate wolkenwelten_worldgen;
         render_init_fun.push(Box::new(wolkenwelten_worldgen::init));
     }
-    push_init_code(include_str!("./main.js"));
 
     render_init_fun
 }
@@ -89,5 +87,5 @@ pub fn start() {
 
     // Finally we pass everything along to the scripting system, which initializes itself and then passes everything along
     // to the client crate which finally opens a window
-    start_runtime(game_state, reactor, init_functions);
+    start_client(game_state, reactor, init_functions);
 }

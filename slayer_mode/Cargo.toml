@@ -11,7 +11,6 @@ The default game-mode, meant to be some sort of hack'n'slay / Rogue-lite heavily
 [dependencies]
 wolkenwelten-client = { path = "../client" }
 wolkenwelten-core = { path = "../core" }
-wolkenwelten-scripting = { path = "../scripting" }
 
 wolkenwelten-block-mining = { path = "../block_mining", optional = true }
 wolkenwelten-particles = { path = "../particles", optional = true }

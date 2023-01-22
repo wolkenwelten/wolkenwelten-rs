@@ -1,8 +1,6 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
-use crate::{
-    BlockItem, Chungus, Experience, GameState, Health, Item, Message, Reactor,
-};
+use crate::{BlockItem, Chungus, Experience, GameState, Health, Item, Message, Reactor};
 use glam::{IVec3, Vec3, Vec3Swizzles};
 use std::{f32::consts::PI, time::Instant};
 
@@ -530,10 +528,7 @@ impl Character {
         {
             let player = game.player_rc();
             let f = move |_reactor: &Reactor<Message>, msg: Message| {
-                if let Message::ItemDropPickup {
-                    item,
-                    ..
-                } = msg {
+                if let Message::ItemDropPickup { item, .. } = msg {
                     if let Item::Block(bi) = item {
                         for _ in 0..bi.amount {
                             player.borrow_mut().add_block_to_inventory(bi.block);
