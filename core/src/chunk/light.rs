@@ -113,9 +113,7 @@ impl ChunkLightData {
 
     fn ambient_occlusion(&mut self, chunk: &ChunkBlockData) {
         for (x, y, z) in ChunkPosIter::new() {
-            if chunk.data[x][y][z] != 0 {
-                self.data[x][y][z] /= 2;
-            }
+            self.data[x][y][z] = self.data[x][y][z] >> (chunk.data[x][y][z] != 0) as u8;
         }
     }
 
