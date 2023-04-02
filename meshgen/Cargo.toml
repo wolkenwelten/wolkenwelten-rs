@@ -6,6 +6,10 @@ license = "AGPL-3.0-or-later"
 homepage = "https://wolkenwelten.net"
 
 [dependencies]
-glium = "0.32"
 wolkenwelten-core = { path = "../core" }
+
+[dependencies.glium]
+path = "../../glium"
+default-features = false
+features = ["glutin_no_default_backend"]
 

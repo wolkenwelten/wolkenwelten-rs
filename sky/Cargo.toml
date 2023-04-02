@@ -7,7 +7,12 @@ homepage = "https://wolkenwelten.net"
 
 [dependencies]
 anyhow = "1.0"
-glium = "0.32"
-glam = "0.22"
+glam = "0.23"
 wolkenwelten-client = { path = "../client" }
 wolkenwelten-core = { path = "../core" }
+
+[dependencies.glium]
+path = "../../glium"
+default-features = false
+features = ["glutin_no_default_backend"]
+

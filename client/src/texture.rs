@@ -5,6 +5,7 @@ use glium::{
     texture::{RawImage2d, Texture2d, Texture2dArray},
     uniforms::Sampler,
 };
+use glutin::surface::WindowSurface;
 use image::{DynamicImage, Rgba};
 use wolkenwelten_core::BLOCKS;
 
@@ -19,7 +20,7 @@ pub struct TextureArray {
 }
 
 impl Texture {
-    pub fn from_image(display: &glium::Display, img: DynamicImage) -> Result<Self> {
+    pub fn from_image(display: &glium::Display<WindowSurface>, img: DynamicImage) -> Result<Self> {
         let img = img.to_rgba8();
 
         let image_dimensions = img.dimensions();
@@ -28,7 +29,7 @@ impl Texture {
         Ok(Self { texture })
     }
 
-    pub fn from_bytes(display: &glium::Display, bytes: &'static [u8]) -> Result<Self> {
+    pub fn from_bytes(display: &glium::Display<WindowSurface>, bytes: &'static [u8]) -> Result<Self> {
         Self::from_image(display, image::load_from_memory(bytes)?)
     }
 
@@ -102,7 +103,7 @@ impl Texture {
     }
 
     pub fn gui_texture(
-        display: &glium::Display,
+        display: &glium::Display<WindowSurface>,
         gui_bytes: &'static [u8],
         block_bytes: &'static [u8],
     ) -> Result<Self> {
@@ -137,7 +138,7 @@ impl Texture {
 }
 
 impl TextureArray {
-    pub fn from_bytes(display: &glium::Display, bytes: &'static [u8]) -> Result<Self> {
+    pub fn from_bytes(display: &glium::Display<WindowSurface>, bytes: &'static [u8]) -> Result<Self> {
         let img = image::load_from_memory(bytes)?;
         let img = img.to_rgba8();
         let tile_size: u32 = img.width();

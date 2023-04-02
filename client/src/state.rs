@@ -4,6 +4,7 @@ use crate::meshes::{BlockMesh, TextMesh};
 use crate::RENDER_DISTANCE;
 use anyhow::Result;
 use glam::{f32::Vec3, i32::IVec3};
+use glutin::surface::WindowSurface;
 use rgb::RGBA8;
 use std::{collections::HashMap, time::Instant};
 use wolkenwelten_core::{Character, CHUNK_SIZE};
@@ -26,7 +27,8 @@ pub struct ClientState {
     window_width: u32,
     window_height: u32,
 
-    pub display: glium::Display,
+    pub display: glium::Display<WindowSurface>,
+    pub window: winit::window::Window,
     pub meshes: MeshList,
     pub shaders: ShaderList,
     pub textures: TextureList,
@@ -44,7 +46,7 @@ pub struct ClientState {
 }
 
 impl ClientState {
-    pub fn new(display: glium::Display) -> Result<Self> {
+    pub fn new(display: glium::Display<WindowSurface>, window: winit::window::Window) -> Result<Self> {
         let meshes = MeshList::new(&display)?;
         let shaders = ShaderList::new(&display)?;
         let ui_mesh = TextMesh::new(&display)?;
@@ -62,6 +64,7 @@ impl ClientState {
             window_height: 480,
 
             display,
+            window,
             meshes,
             shaders,
             textures,
@@ -103,7 +106,7 @@ impl ClientState {
     }
 
     pub fn request_redraw(&mut self) {
-        self.display.gl_window().window().request_redraw();
+        self.window.request_redraw();
     }
 
     pub fn block_indeces(&self) -> &glium::IndexBuffer<u32> {

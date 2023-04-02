@@ -2,6 +2,7 @@
 // All rights reserved. AGPL-3.0+ license.
 use glium;
 use glium::implement_vertex;
+use glutin::surface::WindowSurface;
 
 #[derive(Copy, Clone, Debug, Default)]
 pub struct Vertex2D {
@@ -21,7 +22,7 @@ pub struct TextMesh {
 }
 
 impl TextMesh {
-    pub fn prepare(&mut self, display: &glium::Display) {
+    pub fn prepare(&mut self, display: &glium::Display<WindowSurface>) {
         if !self.finished {
             self.buffer = glium::VertexBuffer::dynamic(display, self.vertices.as_slice()).unwrap();
             self.vertex_count = self.vertices.len();
@@ -33,7 +34,7 @@ impl TextMesh {
         &self.buffer
     }
 
-    pub fn new(display: &glium::Display) -> Result<Self, glium::vertex::BufferCreationError> {
+    pub fn new(display: &glium::Display<WindowSurface>) -> Result<Self, glium::vertex::BufferCreationError> {
         let buffer = glium::VertexBuffer::empty(display, 0)?;
         Ok(Self {
             buffer,

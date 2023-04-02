@@ -4,7 +4,14 @@ pub use super::input::InputState;
 
 use winit::event::{Event, WindowEvent};
 use winit::event_loop::{ControlFlow, EventLoop};
-use winit::window::{CursorGrabMode, Fullscreen, Window, WindowBuilder};
+use winit::window::{CursorGrabMode, Window};
+
+use std::num::NonZeroU32;
+use glium;
+use glutin::prelude::*;
+use glutin::display::GetGlDisplay;
+use glutin::surface::WindowSurface;
+use raw_window_handle::HasRawWindowHandle;
 
 use crate::{prepare_frame, render_frame, ClientState, RenderInit, RenderReactor, RENDER_DISTANCE};
 use wolkenwelten_core::{ChunkRequestQueue, GameState, Message, Reactor};
@@ -38,38 +45,53 @@ fn ungrab_cursor(window: &Window) {
 }
 
 /// Create a new winit EventLoop and associated glium Display
-fn init() -> (EventLoop<()>, glium::Display) {
+fn init() -> (EventLoop<()>, glium::Display<WindowSurface>, winit::window::Window) {
     let title = format!("WolkenWelten - {}", env!("CARGO_PKG_VERSION"));
     let event_loop = EventLoop::new();
-    let wb = WindowBuilder::new()
-        .with_title(title)
-        .with_decorations(false)
-        .with_maximized(true);
 
-    let cb = glium::glutin::ContextBuilder::new().with_vsync(true);
+    let window_builder = winit::window::WindowBuilder::new().with_title(title);
+    let config_template_builder = glutin::config::ConfigTemplateBuilder::new();
+    let display_builder = glutin_winit::DisplayBuilder::new().with_window_builder(Some(window_builder));
 
-    // Disable vsync on ARM devices like the RPI4 where it seems to have a detrimental effect on the FPS
-    let cb = if cfg!(target_arch = "arm") || cfg!(target_arch = "aarch64") {
-        let req = glium::glutin::GlRequest::Specific(glium::glutin::Api::OpenGlEs, (3, 0));
-        cb.with_gl(req)
-    } else if !cfg!(target_os = "macos") {
-        let req = glium::glutin::GlRequest::Specific(glium::glutin::Api::OpenGl, (3, 1));
-        cb.with_gl(req)
-    } else {
-        cb
-    };
+    // First we create a window
+    let (window, gl_config) = display_builder
+        .build(&event_loop, config_template_builder, |mut configs| {
+            // Just use the first configuration since we don't have any special preferences here
+            configs.next().unwrap()
+        })
+        .unwrap();
+    let window = window.unwrap();
 
-    let display = glium::Display::new(wb, cb, &event_loop).unwrap();
+    // Then the configuration which decides which OpenGL version we'll end up using, here we just use the default which is currently 3.3 core
+    // When this fails we'll try and create an ES context, this is mainly used on mobile devices or various ARM SBC's
+    // If you depend on features available in modern OpenGL Versions you need to request a specific, modern, version. Otherwise things will very likely fail.
+    let raw_window_handle = window.raw_window_handle();
+    let context_attributes = glutin::context::ContextAttributesBuilder::new().build(Some(raw_window_handle));
+    let fallback_context_attributes = glutin::context::ContextAttributesBuilder::new()
+        .with_context_api(glutin::context::ContextApi::Gles(None))
+        .build(Some(raw_window_handle));
 
-    {
-        let ctx = display.gl_window();
-        let window = ctx.window();
-        window.focus_window();
-        let fs = Fullscreen::Borderless(window.current_monitor());
-        window.set_fullscreen(Some(fs));
-        grab_cursor(window);
-    }
-    (event_loop, display)
+    let not_current_gl_context = Some(unsafe {
+        gl_config.display().create_context(&gl_config, &context_attributes).unwrap_or_else(|_| {
+            gl_config.display()
+                .create_context(&gl_config, &fallback_context_attributes)
+                .expect("failed to create context")
+        })
+    });
+
+    // Determine our framebuffer size based on the window size, or default to 800x600 if it's invisible
+    let (width, height): (u32, u32) = window.inner_size().into();
+    let attrs = glutin::surface::SurfaceAttributesBuilder::<WindowSurface>::new().build(
+        raw_window_handle,
+        NonZeroU32::new(width).unwrap(),
+        NonZeroU32::new(height).unwrap(),
+    );
+    // Now we can create our surface, use it to make our context current and finally create our display
+    let surface = unsafe { gl_config.display().create_window_surface(&gl_config, &attrs).unwrap() };
+    let current_context = not_current_gl_context.unwrap().make_current(&surface).unwrap();
+    let display = glium::Display::from_context_surface(current_context, surface).unwrap();
+
+    (event_loop, display, window)
 }
 
 /// Run the actual game, this function only returns when the game quits
@@ -101,9 +123,7 @@ fn run_event_loop(
                 let (x, y) = render.window_size();
                 let center = PhysicalPosition::new(x / 2, y / 2);
                 let _ = render
-                    .display
-                    .gl_window()
-                    .window()
+                    .window
                     .set_cursor_position(center);
             }
 
@@ -112,9 +132,9 @@ fn run_event_loop(
                 ..
             } => {
                 if b {
-                    grab_cursor(render.display.gl_window().window());
+                    grab_cursor(&render.window);
                 } else {
-                    ungrab_cursor(render.display.gl_window().window());
+                    ungrab_cursor(&render.window);
                 }
             }
 
@@ -148,7 +168,7 @@ fn run_event_loop(
                 event: WindowEvent::Resized(physical_size),
                 ..
             } => {
-                render.display.gl_window().resize(physical_size);
+                render.display.context_surface_pair().resize(physical_size.into());
                 render.set_window_size((physical_size.width, physical_size.height));
             }
 
@@ -203,8 +223,8 @@ pub fn start_client(
     reactor: Reactor<Message>,
     render_init_fun: Vec<RenderInit>,
 ) {
-    let (event_loop, display) = init();
-    let render_state = ClientState::new(display).expect("Can't create ClientState");
+    let (event_loop, display, window) = init();
+    let render_state = ClientState::new(display, window).expect("Can't create ClientState");
 
     run_event_loop(
         AppState {

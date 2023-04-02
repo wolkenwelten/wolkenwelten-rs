@@ -4,6 +4,7 @@ use crate::BlockMesh;
 use anyhow::{anyhow, Result};
 use glium::texture::Texture2dArray;
 use glium::{uniform, Surface};
+use glutin::surface::WindowSurface;
 use std::time::Instant;
 use wolkenwelten_core::{BlockType, ChunkBlockData, ChunkLightData};
 use wolkenwelten_meshgen;
@@ -70,7 +71,7 @@ impl VoxelMesh {
     }
 
     fn texture_from_palette(
-        display: &glium::Display,
+        display: &glium::Display<WindowSurface>,
         palette: &vox_format::types::Palette,
     ) -> Result<Texture2dArray> {
         let tiles = palette
@@ -85,7 +86,7 @@ impl VoxelMesh {
     }
 
     fn mesh_from_model(
-        display: &glium::Display,
+        display: &glium::Display<WindowSurface>,
         model: &vox_format::types::Model,
     ) -> Result<BlockMesh> {
         let mut chunk = ChunkBlockData::new();
@@ -112,7 +113,7 @@ impl VoxelMesh {
         Ok(ret)
     }
 
-    pub fn from_vox_data(display: &glium::Display, data: &[u8]) -> Result<Self> {
+    pub fn from_vox_data(display: &glium::Display<WindowSurface>, data: &[u8]) -> Result<Self> {
         let vox_data = vox_format::from_slice(data)?;
 
         if let Some(model) = vox_data.models.first() {

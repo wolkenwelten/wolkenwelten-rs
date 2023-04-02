@@ -2,6 +2,7 @@
 // All rights reserved. AGPL-3.0+ license.
 use crate::{Mesh, MeshVertex, VoxelMesh};
 use anyhow::Result;
+use glutin::surface::WindowSurface;
 use wolkenwelten_core::BLOCKS;
 
 /// This struct is meant to be a simple way to store
@@ -15,7 +16,7 @@ pub struct MeshList {
 }
 
 impl MeshList {
-    fn gen_block_meshes(display: &glium::Display) -> Result<Vec<Mesh>> {
+    fn gen_block_meshes(display: &glium::Display<WindowSurface>) -> Result<Vec<Mesh>> {
         let tile_size = 64.0 / 2048.0;
         BLOCKS.with(|blocks| {
             Ok(blocks
@@ -31,7 +32,7 @@ impl MeshList {
     }
 
     /// Load all the the models from the build-in raw .obj/.vox bytes.
-    pub fn new(display: &glium::Display) -> Result<Self> {
+    pub fn new(display: &glium::Display<WindowSurface>) -> Result<Self> {
         Ok(Self {
             blocks: Self::gen_block_meshes(display)?,
             bag: VoxelMesh::from_vox_data(display, include_bytes!("../../assets/bag.vox"))?,

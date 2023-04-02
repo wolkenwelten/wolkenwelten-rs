@@ -3,6 +3,7 @@
 #![forbid(unsafe_code)]
 
 use glam::{IVec3, Mat4, Vec3};
+use glium::glutin::surface::WindowSurface;
 use glium::implement_vertex;
 use glium::Surface;
 use palette::{convert::FromColor, Hsv, Pixel, Srgb};
@@ -236,7 +237,7 @@ impl ParticleMesh {
     pub fn draw(
         &self,
         frame: &mut glium::Frame,
-        display: &glium::Display,
+        display: &glium::Display<WindowSurface>,
         program: &glium::Program,
         mvp: &Mat4,
     ) -> Result<(), glium::DrawError> {

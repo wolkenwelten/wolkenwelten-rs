@@ -4,6 +4,7 @@ use anyhow::Result;
 use glam::{Vec2, Vec3};
 use glium;
 use glium::{implement_vertex, uniform, Surface};
+use glutin::surface::WindowSurface;
 use wolkenwelten_core::BlockType;
 
 use crate::Texture;
@@ -32,12 +33,12 @@ pub struct Mesh {
 }
 
 impl Mesh {
-    pub fn from_vec(display: &glium::Display, vertices: &Vec<MeshVertex>) -> Result<Self> {
+    pub fn from_vec(display: &glium::Display<WindowSurface>, vertices: &Vec<MeshVertex>) -> Result<Self> {
         let buffer = glium::VertexBuffer::dynamic(display, vertices.as_slice())?;
         Ok(Self { buffer })
     }
 
-    pub fn from_vec_static(display: &glium::Display, vertices: &Vec<MeshVertex>) -> Result<Self> {
+    pub fn from_vec_static(display: &glium::Display<WindowSurface>, vertices: &Vec<MeshVertex>) -> Result<Self> {
         let buffer = glium::VertexBuffer::immutable(display, vertices.as_slice())?;
         Ok(Self { buffer })
     }
@@ -222,7 +223,7 @@ impl Mesh {
         vertices.extend(tmp);
     }
 
-    pub fn from_obj_string(display: &glium::Display, s: &str) -> Result<Self> {
+    pub fn from_obj_string(display: &glium::Display<WindowSurface>, s: &str) -> Result<Self> {
         let o = tobj::load_obj_buf(
             &mut s.as_bytes(),
             &tobj::LoadOptions {

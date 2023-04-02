@@ -1,6 +1,7 @@
 // Wolkenwelten - Copyright (C) 2022 - Benjamin Vincent Schulenburg
 // All rights reserved. AGPL-3.0+ license.
 use anyhow::Result;
+use glutin::surface::WindowSurface;
 
 /// A list of all the built-in shaders.
 #[derive(Debug)]
@@ -58,7 +59,7 @@ precision mediump sampler2DArray;
 impl ShaderList {
     /// Create a new shader program from 2 vert/frag source slices where the appropriate #version prefix
     /// will be automatically prepended
-    pub fn new_program(display: &glium::Display, vert: &str, frag: &str) -> Result<glium::Program> {
+    pub fn new_program(display: &glium::Display<WindowSurface>, vert: &str, frag: &str) -> Result<glium::Program> {
         let vert = format!("{}\n{}", VERT_PREFIX, vert);
         let frag = format!("{}\n{}", FRAG_PREFIX, frag);
         Ok(glium::Program::new(
@@ -82,7 +83,7 @@ impl ShaderList {
     /// This also sets the uses_point_size boolean so that GL_VERTEX_PROGRAM_POINT_SIZE is enabled before
     /// doing the actual draw calls.
     pub fn new_point_program(
-        display: &glium::Display,
+        display: &glium::Display<WindowSurface>,
         vert: &str,
         frag: &str,
     ) -> Result<glium::Program> {
@@ -104,7 +105,7 @@ impl ShaderList {
     }
 
     /// Initialize a new shader list and compile/link all the shaders.
-    pub fn new(display: &glium::Display) -> Result<Self> {
+    pub fn new(display: &glium::Display<WindowSurface>) -> Result<Self> {
         let mesh = Self::new_program(
             display,
             include_str!("../shaders/mesh.vert"),

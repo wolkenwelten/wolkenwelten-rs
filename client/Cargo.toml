@@ -9,12 +9,31 @@ homepage = "https://wolkenwelten.net"
 anyhow = "1.0"
 enum-map = "2.4"
 vox-format = "0.1"
-glium = "0.32"
-glam = "0.22"
+glam = "0.23"
 rgb = "0.8"
-winit = "0.27"
 tobj = "3.2"
 rand = "0.8"
 image = { version = "0.24", default-features = false, features = ["png"]}
+raw-window-handle = "0.5"
 wolkenwelten-core = { path = "../core" }
 wolkenwelten-meshgen = { path = "../meshgen" }
+
+[dependencies.glium]
+path = "../../glium"
+default-features = false
+features = ["glutin_no_default_backend"]
+
+[dependencies.glutin]
+version = "0.30.4"
+default-features = false
+features = ["glx"]
+
+[dependencies.glutin-winit]
+version = "0.3"
+default-features = false
+features = ["glx"]
+
+[dependencies.winit]
+version = "0.28"
+default-features = false
+features = ["x11"]

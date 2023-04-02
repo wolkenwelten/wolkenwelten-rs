@@ -4,6 +4,7 @@ use anyhow::Result;
 use glium::texture::Texture2dArray;
 use glium::uniforms::Sampler;
 use glium::{uniform, Surface};
+use glutin::surface::WindowSurface;
 use std::time::Instant;
 use wolkenwelten_core::{BlockType, ChunkBlockData, ChunkFluidData, ChunkLightData};
 use wolkenwelten_meshgen;
@@ -26,7 +27,7 @@ impl BlockMesh {
     }
 
     pub fn gen_index_buffer(
-        display: &glium::Display,
+        display: &glium::Display<WindowSurface>,
         square_count: usize,
     ) -> Result<glium::IndexBuffer<u32>, glium::index::BufferCreationError> {
         let mut v: Vec<u32> = Vec::with_capacity(square_count * 6);
@@ -67,7 +68,7 @@ impl BlockMesh {
         ((self.side_start[5] + self.side_square_count[5]) * 6) as u32
     }
 
-    pub fn new(display: &glium::Display) -> Result<BlockMesh> {
+    pub fn new(display: &glium::Display<WindowSurface>) -> Result<BlockMesh> {
         let buffer: glium::VertexBuffer<BlockVertex> = glium::VertexBuffer::empty(display, 0)?;
         Ok(Self {
             buffer,
@@ -80,7 +81,7 @@ impl BlockMesh {
 
     pub fn update(
         &mut self,
-        display: &glium::Display,
+        display: &glium::Display<WindowSurface>,
         chunks: &[&ChunkBlockData; 27],
         lights: &[&ChunkLightData; 27],
         block_types: &Vec<BlockType>,
@@ -101,7 +102,7 @@ impl BlockMesh {
 
     pub fn update_simple(
         &mut self,
-        display: &glium::Display,
+        display: &glium::Display<WindowSurface>,
         chunk: &ChunkBlockData,
         light: &ChunkLightData,
         block_types: &Vec<BlockType>,
@@ -122,7 +123,7 @@ impl BlockMesh {
 
     pub fn update_fluid(
         &mut self,
-        display: &glium::Display,
+        display: &glium::Display<WindowSurface>,
         chunks: &[&ChunkBlockData; 27],
         lights: &[&ChunkLightData; 27],
         fluids: &[&ChunkFluidData; 27],

@@ -9,4 +9,4 @@ homepage = "https://wolkenwelten.net"
 rodio = {version = "0.16", default-features = false, features = ["vorbis"]}
 wolkenwelten-client = { path = "../client" }
 wolkenwelten-core = { path = "../core" }
-glam = "0.22"
+glam = "0.23"

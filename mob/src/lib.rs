@@ -5,6 +5,7 @@
 use anyhow::Result;
 use glam::{Mat4, Vec3, Vec3Swizzles};
 use glium::Display;
+use glium::glutin::surface::WindowSurface;
 use rand::prelude::*;
 use rand::Rng;
 use rand_xorshift::XorShiftRng;
@@ -67,7 +68,7 @@ pub struct Mob {
     cooldown: Instant,
 }
 
-fn mob_load_meshes(display: &Display) -> Result<Vec<Vec<VoxelMesh>>> {
+fn mob_load_meshes(display: &Display<WindowSurface>) -> Result<Vec<Vec<VoxelMesh>>> {
     Ok(vec![vec![
         VoxelMesh::from_vox_data(display, include_bytes!("../assets/crab/idle_1.vox"))?,
         VoxelMesh::from_vox_data(display, include_bytes!("../assets/crab/idle_2.vox"))?,
