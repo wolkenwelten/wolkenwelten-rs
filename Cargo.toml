@@ -11,7 +11,7 @@ An open voxel sandbox
 """
 
 [target.'cfg(windows)'.build-dependencies]
-embed-resource = "1.6"
+embed-resource = "2.0"
 
 [dependencies]
 wolkenwelten-slayer-mode = { path = "slayer_mode" }
