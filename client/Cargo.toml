@@ -21,7 +21,7 @@ wolkenwelten-meshgen = { path = "../meshgen" }
 [dependencies.glium]
 path = "../../glium"
 default-features = false
-features = ["glutin_no_default_backend"]
+features = ["glutin_backend"]
 
 [dependencies.glutin]
 version = "0.30.4"

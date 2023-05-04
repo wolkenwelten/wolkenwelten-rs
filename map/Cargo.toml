@@ -15,5 +15,5 @@ wolkenwelten-core = { path = "../core" }
 [dependencies.glium]
 path = "../../glium"
 default-features = false
-features = ["glutin_no_default_backend"]
+features = ["glutin_backend"]
 

@@ -46,7 +46,10 @@ pub struct ClientState {
 }
 
 impl ClientState {
-    pub fn new(display: glium::Display<WindowSurface>, window: winit::window::Window) -> Result<Self> {
+    pub fn new(
+        display: glium::Display<WindowSurface>,
+        window: winit::window::Window,
+    ) -> Result<Self> {
         let meshes = MeshList::new(&display)?;
         let shaders = ShaderList::new(&display)?;
         let ui_mesh = TextMesh::new(&display)?;

@@ -59,7 +59,11 @@ precision mediump sampler2DArray;
 impl ShaderList {
     /// Create a new shader program from 2 vert/frag source slices where the appropriate #version prefix
     /// will be automatically prepended
-    pub fn new_program(display: &glium::Display<WindowSurface>, vert: &str, frag: &str) -> Result<glium::Program> {
+    pub fn new_program(
+        display: &glium::Display<WindowSurface>,
+        vert: &str,
+        frag: &str,
+    ) -> Result<glium::Program> {
         let vert = format!("{}\n{}", VERT_PREFIX, vert);
         let frag = format!("{}\n{}", FRAG_PREFIX, frag);
         Ok(glium::Program::new(

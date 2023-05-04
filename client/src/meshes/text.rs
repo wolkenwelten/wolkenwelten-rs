@@ -34,7 +34,9 @@ impl TextMesh {
         &self.buffer
     }
 
-    pub fn new(display: &glium::Display<WindowSurface>) -> Result<Self, glium::vertex::BufferCreationError> {
+    pub fn new(
+        display: &glium::Display<WindowSurface>,
+    ) -> Result<Self, glium::vertex::BufferCreationError> {
         let buffer = glium::VertexBuffer::empty(display, 0)?;
         Ok(Self {
             buffer,

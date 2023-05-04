@@ -4,8 +4,8 @@
 
 use anyhow::Result;
 use glam::{Mat4, Vec3, Vec3Swizzles};
-use glium::Display;
 use glium::glutin::surface::WindowSurface;
+use glium::Display;
 use rand::prelude::*;
 use rand::Rng;
 use rand_xorshift::XorShiftRng;

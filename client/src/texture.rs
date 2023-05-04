@@ -29,7 +29,10 @@ impl Texture {
         Ok(Self { texture })
     }
 
-    pub fn from_bytes(display: &glium::Display<WindowSurface>, bytes: &'static [u8]) -> Result<Self> {
+    pub fn from_bytes(
+        display: &glium::Display<WindowSurface>,
+        bytes: &'static [u8],
+    ) -> Result<Self> {
         Self::from_image(display, image::load_from_memory(bytes)?)
     }
 
@@ -138,7 +141,10 @@ impl Texture {
 }
 
 impl TextureArray {
-    pub fn from_bytes(display: &glium::Display<WindowSurface>, bytes: &'static [u8]) -> Result<Self> {
+    pub fn from_bytes(
+        display: &glium::Display<WindowSurface>,
+        bytes: &'static [u8],
+    ) -> Result<Self> {
         let img = image::load_from_memory(bytes)?;
         let img = img.to_rgba8();
         let tile_size: u32 = img.width();

@@ -496,13 +496,10 @@ dependencies = [
  "fnv",
  "gl_generator",
  "glutin",
- "glutin-winit",
  "lazy_static",
  "memoffset 0.8.0",
- "raw-window-handle",
  "smallvec",
  "takeable-option",
- "winit",
 ]
 
 [[package]]

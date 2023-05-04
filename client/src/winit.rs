@@ -6,12 +6,12 @@ use winit::event::{Event, WindowEvent};
 use winit::event_loop::{ControlFlow, EventLoop};
 use winit::window::{CursorGrabMode, Window};
 
-use std::num::NonZeroU32;
 use glium;
-use glutin::prelude::*;
 use glutin::display::GetGlDisplay;
+use glutin::prelude::*;
 use glutin::surface::WindowSurface;
 use raw_window_handle::HasRawWindowHandle;
+use std::num::NonZeroU32;
 
 use crate::{prepare_frame, render_frame, ClientState, RenderInit, RenderReactor, RENDER_DISTANCE};
 use wolkenwelten_core::{ChunkRequestQueue, GameState, Message, Reactor};
@@ -45,13 +45,18 @@ fn ungrab_cursor(window: &Window) {
 }
 
 /// Create a new winit EventLoop and associated glium Display
-fn init() -> (EventLoop<()>, glium::Display<WindowSurface>, winit::window::Window) {
+fn init() -> (
+    EventLoop<()>,
+    glium::Display<WindowSurface>,
+    winit::window::Window,
+) {
     let title = format!("WolkenWelten - {}", env!("CARGO_PKG_VERSION"));
     let event_loop = EventLoop::new();
 
     let window_builder = winit::window::WindowBuilder::new().with_title(title);
     let config_template_builder = glutin::config::ConfigTemplateBuilder::new();
-    let display_builder = glutin_winit::DisplayBuilder::new().with_window_builder(Some(window_builder));
+    let display_builder =
+        glutin_winit::DisplayBuilder::new().with_window_builder(Some(window_builder));
 
     // First we create a window
     let (window, gl_config) = display_builder
@@ -66,17 +71,22 @@ fn init() -> (EventLoop<()>, glium::Display<WindowSurface>, winit::window::Windo
     // When this fails we'll try and create an ES context, this is mainly used on mobile devices or various ARM SBC's
     // If you depend on features available in modern OpenGL Versions you need to request a specific, modern, version. Otherwise things will very likely fail.
     let raw_window_handle = window.raw_window_handle();
-    let context_attributes = glutin::context::ContextAttributesBuilder::new().build(Some(raw_window_handle));
+    let context_attributes =
+        glutin::context::ContextAttributesBuilder::new().build(Some(raw_window_handle));
     let fallback_context_attributes = glutin::context::ContextAttributesBuilder::new()
         .with_context_api(glutin::context::ContextApi::Gles(None))
         .build(Some(raw_window_handle));
 
     let not_current_gl_context = Some(unsafe {
-        gl_config.display().create_context(&gl_config, &context_attributes).unwrap_or_else(|_| {
-            gl_config.display()
-                .create_context(&gl_config, &fallback_context_attributes)
-                .expect("failed to create context")
-        })
+        gl_config
+            .display()
+            .create_context(&gl_config, &context_attributes)
+            .unwrap_or_else(|_| {
+                gl_config
+                    .display()
+                    .create_context(&gl_config, &fallback_context_attributes)
+                    .expect("failed to create context")
+            })
     });
 
     // Determine our framebuffer size based on the window size, or default to 800x600 if it's invisible
@@ -87,8 +97,16 @@ fn init() -> (EventLoop<()>, glium::Display<WindowSurface>, winit::window::Windo
         NonZeroU32::new(height).unwrap(),
     );
     // Now we can create our surface, use it to make our context current and finally create our display
-    let surface = unsafe { gl_config.display().create_window_surface(&gl_config, &attrs).unwrap() };
-    let current_context = not_current_gl_context.unwrap().make_current(&surface).unwrap();
+    let surface = unsafe {
+        gl_config
+            .display()
+            .create_window_surface(&gl_config, &attrs)
+            .unwrap()
+    };
+    let current_context = not_current_gl_context
+        .unwrap()
+        .make_current(&surface)
+        .unwrap();
     let display = glium::Display::from_context_surface(current_context, surface).unwrap();
 
     (event_loop, display, window)
@@ -122,9 +140,7 @@ fn run_event_loop(
 
                 let (x, y) = render.window_size();
                 let center = PhysicalPosition::new(x / 2, y / 2);
-                let _ = render
-                    .window
-                    .set_cursor_position(center);
+                let _ = render.window.set_cursor_position(center);
             }
 
             Event::WindowEvent {
@@ -168,7 +184,10 @@ fn run_event_loop(
                 event: WindowEvent::Resized(physical_size),
                 ..
             } => {
-                render.display.context_surface_pair().resize(physical_size.into());
+                render
+                    .display
+                    .context_surface_pair()
+                    .resize(physical_size.into());
                 render.set_window_size((physical_size.width, physical_size.height));
             }
 
